@@ -21,7 +21,7 @@ def create_geometry_solver_graph():
     """
     from agents import (
         parsing_agent,
-        difficulty_agent,
+        analysis_agent,
         explanation_agent,
         geogebra_command_agent,
         validation_agent,
@@ -38,13 +38,12 @@ def create_geometry_solver_graph():
         calculation_manager_agent,
         calculation_result_merger_agent
     )
-    
+
     # 그래프 초기화
     workflow = StateGraph(GeometryState)
-    
-    # 에이전트 노드 추가
+
     workflow.add_node("parsing_agent", parsing_agent)
-    workflow.add_node("difficulty_agent", difficulty_agent)
+    workflow.add_node("analysis_agent", analysis_agent)
 
     workflow.add_node("triangle_calculation_agent", triangle_calculation_agent)
     workflow.add_node("circle_calculation_agent", circle_calculation_agent)
@@ -63,8 +62,23 @@ def create_geometry_solver_graph():
     
     # 에이전트 간 전환 규칙 설정
     workflow.set_entry_point("parsing_agent")
-    workflow.add_edge("parsing_agent", "difficulty_agent")
-    workflow.add_edge("difficulty_agent", "calculation_manager_agent")
+    workflow.add_edge("parsing_agent", "analysis_agent")
+    
+    # 분석 결과에 따른 라우팅 설정
+    def route_after_analysis(state: GeometryState):
+        if state.requires_calculation:
+            return "calculation_manager_agent"
+        else:
+            return "geogebra_command_agent"
+    
+    workflow.add_conditional_edges(
+        "analysis_agent",
+        route_after_analysis,
+        {
+            "calculation_manager_agent": "calculation_manager_agent",
+            "geogebra_command_agent": "geogebra_command_agent"
+        }
+    )
     
     # 계산 관리 및 실행 경로 설정
     def route_calculation(state: GeometryState):
@@ -100,7 +114,12 @@ def create_geometry_solver_graph():
     # 계산 후 관리 혹은 병합으로 이동
     def after_calculation(state: GeometryState):
         if state.calculation_queue and state.calculation_queue.tasks:
-            return "calculation_manager_agent"
+            # 대기 중인 작업이 있는지 확인
+            pending_tasks = [task for task in state.calculation_queue.tasks if task.status == "pending"]
+            if pending_tasks:
+                print(f"[DEBUG] Found {len(pending_tasks)} pending tasks. Returning to calculation_manager_agent")
+                return "calculation_manager_agent"
+        print("[DEBUG] No pending tasks remain. Moving to calculation_result_merger_agent")
         return "calculation_result_merger_agent"
     
     workflow.add_conditional_edges(

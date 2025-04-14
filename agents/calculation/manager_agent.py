@@ -10,13 +10,15 @@ from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 
-from models.state_models import GeometryState, CalculationQueue, CalculationTaskCreation
+from models.state_models import GeometryState, CalculationQueue, CalculationTask, CalculationTaskCreation
 from agents.calculation.prompts.manager_prompt import CALCULATION_MANAGER_PROMPT, MANAGER_JSON_TEMPLATE
 from agents.calculation.utils.calculation_utils import (
     process_calculation_tasks,
     update_calculation_queue,
     determine_next_calculation
 )
+from utils.llm_manager import LLMManager
+from utils.json_parser import safe_parse_llm_json_output
 
 def calculation_manager_agent(state: GeometryState) -> GeometryState:
     """
@@ -30,14 +32,13 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
     Returns:
         更新后的状态对象
     """
+    print("[DEBUG] Starting calculation_manager_agent")
+    print(f"[DEBUG] Initial state: {state}")
     # 출력 파서 생성
     output_parser = JsonOutputParser(pydantic_object=CalculationTaskCreation)
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_calculation_manager_llm()
     
     # 프롬프트 생성 (파서 지침 포함)
     prompt = CALCULATION_MANAGER_PROMPT.partial(
@@ -47,12 +48,12 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
     # 에이전트 생성 대신 체인 사용
     chain = prompt | llm
     
-    # 계산 큐 초기화 (없는 경우)
+    # 계산 큐 확인 및 초기화 (없는 경우)
     if state.calculation_queue is None:
         state.calculation_queue = CalculationQueue(
             tasks=[],
-            completed_tasks=[],
-            current_task_id=None
+            current_task_id=None,
+            completed_task_ids=[]
         )
     
     # 계산 결과 초기화 (없는 경우)
@@ -63,10 +64,14 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
     calculation_queue = state.calculation_queue
     calculation_results = state.calculation_results
     
-    # 파싱된 문제 유형과 조건 추출
+    # 파싱된 문제 유형과 분석 결과 추출
     parsed_elements = state.parsed_elements
-    problem_type = parsed_elements.get("problem_type", {}) if parsed_elements else {}
+    problem_analysis = state.problem_analysis if hasattr(state, "problem_analysis") else {}
+    problem_type = problem_analysis.get("problem_type", {}) if problem_analysis else parsed_elements.get("problem_type", {})
     analyzed_conditions = parsed_elements.get("analyzed_conditions", {}) if parsed_elements else {}
+    
+    # 접근 방법 설정
+    approach = state.approach or problem_analysis.get("approach", "") if problem_analysis else ""
     
     # 에이전트 실행
     result = chain.invoke({
@@ -74,28 +79,135 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
         "parsed_elements": str(parsed_elements),
         "problem_type": str(problem_type),
         "analyzed_conditions": str(analyzed_conditions),
-        "approach": str(state.difficulty.get("approach", "")) if state.difficulty else "{}",
+        "approach": str(approach),
+        "problem_analysis": str(problem_analysis),
+        "calculation_types": str(problem_analysis.get("calculation_types", {})) if problem_analysis else "{}",
         "calculation_queue": str(calculation_queue),
         "calculation_results": str(calculation_results),
         "json_template": MANAGER_JSON_TEMPLATE,
         "agent_scratchpad": ""
     })
     
+    print(f"[DEBUG] Parsed elements: {parsed_elements}")
+    print(f"[DEBUG] Problem analysis: {problem_analysis}")
+    print(f"[DEBUG] Result from chain: {result}")
+    
     # 에이전트 응답 분석하여 작업 큐 업데이트
     try:
-        # AIMessage 객체에서 content 속성 사용
-        # JSON 파서를 이용한 파싱 시도
-        parsed_result = output_parser.parse(result.content)
-        # 파싱 성공 시 구조화된 방식으로 처리
-        process_calculation_tasks(state, parsed_result)
+        # 유틸리티 함수를 사용하여 JSON 출력 파싱
+        parsed_result = safe_parse_llm_json_output(result, CalculationTaskCreation, output_parser)
+        
+        print(f"[DEBUG] Parsed result: {parsed_result}")
+        
+        # 파싱된 결과가 딕셔너리인지 확인하고 작업 병합
+        if isinstance(parsed_result, dict):
+            tasks_list = parsed_result.get("tasks", [])
+            completed_ids = parsed_result.get("completed_task_ids", [])
+            next_calc_type = parsed_result.get("next_calculation_type")
+            skip_calculations = parsed_result.get("skip_calculations", [])
+        else:
+            # Pydantic 모델 객체인 경우
+            tasks_list = parsed_result.tasks
+            completed_ids = parsed_result.completed_task_ids
+            next_calc_type = parsed_result.next_calculation_type
+            skip_calculations = parsed_result.skip_calculations if hasattr(parsed_result, "skip_calculations") else []
+        
+        # 기존 큐에 새로운 작업 병합
+        for task_info in tasks_list:
+            # 작업 ID 생성 또는 재사용
+            task_id = task_info.get("task_id", f"{task_info['task_type']}_{len(state.calculation_queue.tasks) + 1}")
+            
+            # 이미 존재하는 작업인지 확인
+            existing_task = None
+            for task in state.calculation_queue.tasks:
+                if task.task_id == task_id:
+                    existing_task = task
+                    break
+            
+            if existing_task:
+                # 기존 작업 업데이트
+                existing_task.parameters.update(task_info.get("parameters", {}))
+                existing_task.dependencies = list(set(existing_task.dependencies + task_info.get("dependencies", [])))
+                
+                # GeoGebra 대체 정보 업데이트
+                if "geogebra_alternatives" in task_info:
+                    existing_task.geogebra_alternatives = task_info["geogebra_alternatives"]
+                if "geogebra_command" in task_info:
+                    existing_task.geogebra_command = task_info["geogebra_command"]
+            else:
+                # 새 작업 추가
+                new_task = CalculationTask(
+                    task_id=task_id,
+                    task_type=task_info["task_type"],
+                    parameters=task_info.get("parameters", {}),
+                    dependencies=task_info.get("dependencies", []),
+                    description=task_info.get("description", ""),
+                    status="pending",
+                    geogebra_alternatives=task_info.get("geogebra_alternatives", False),
+                    geogebra_command=task_info.get("geogebra_command")
+                )
+                state.calculation_queue.tasks.append(new_task)
+        
+        # 완료된 작업 ID 업데이트
+        for task_id in completed_ids:
+            if task_id not in state.calculation_queue.completed_task_ids:
+                state.calculation_queue.completed_task_ids.append(task_id)
+        
+        # 건너뛸 계산 작업들 (GeoGebra 명령어로 대체 가능) 완료된 것으로 처리
+        for task_id in skip_calculations:
+            if task_id not in state.calculation_queue.completed_task_ids:
+                # 해당 작업 찾기
+                for task in state.calculation_queue.tasks:
+                    if task.task_id == task_id:
+                        # GeoGebra 명령어로 대체 가능한지 확인
+                        if task.geogebra_alternatives:
+                            # 작업 완료 표시
+                            task.status = "completed"
+                            if task_id not in state.calculation_queue.completed_task_ids:
+                                state.calculation_queue.completed_task_ids.append(task_id)
+                            
+                            # 결과 정보에 GeoGebra 명령어 저장
+                            if state.calculation_results is None:
+                                state.calculation_results = {}
+                            
+                            if "geogebra_direct_commands" not in state.calculation_results:
+                                state.calculation_results["geogebra_direct_commands"] = []
+                            
+                            state.calculation_results["geogebra_direct_commands"].append({
+                                "task_id": task_id,
+                                "task_type": task.task_type,
+                                "parameters": task.parameters,
+                                "geogebra_command": task.geogebra_command
+                            })
+                            
+                            print(f"[DEBUG] Task {task_id} skipped and marked as completed. Will be replaced with GeoGebra command: {task.geogebra_command}")
+        
+        # 다음 계산 유형 설정 및 현재 작업 설정
+        if next_calc_type:
+            state.next_calculation = next_calc_type
+            
+            # 건너뛰기 목록에 없는 해당 유형의 첫 번째 대기 중인 작업 찾기
+            for task in state.calculation_queue.tasks:
+                if (task.task_type == next_calc_type and 
+                    task.status == "pending" and 
+                    task.task_id not in skip_calculations):
+                    state.calculation_queue.current_task_id = task.task_id
+                    task.status = "running"
+                    print(f"[DEBUG] Setting current_task_id to {task.task_id} and status to running")
+                    break
+        else:
+            # next_calculation_type이 null이면 모든 작업이 완료된 것으로 간주
+            print("[DEBUG] No more calculation tasks to process. Setting next_calculation to None for merger.")
+            state.next_calculation = None
+        
     except Exception as e:
         print(f"Error parsing calculation manager result as structured JSON: {e}")
         # JSON 파싱 실패 시 텍스트 기반 방식으로 처리
-        # AIMessage 객체에서 content 속성 사용
         update_calculation_queue(state, result.content)
         
-        # 다음 계산 유형이 설정되지 않은 경우에만 결정
-        if not state.next_calculation:
-            determine_next_calculation(state)
+    # 다음 계산 유형이 설정되지 않은 경우 결정
+    if not state.next_calculation:
+        determine_next_calculation(state)
     
+    print(f"[DEBUG] Updated state: {state}")
     return state 

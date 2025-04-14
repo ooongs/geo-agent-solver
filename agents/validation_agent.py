@@ -1,9 +1,10 @@
 from typing import Dict, List, Any, Optional
-from langchain.tools import Tool
+from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from utils.prompts import VALIDATION_PROMPT
 from utils.geogebra_validator import validate_geogebra_syntax
+from utils.llm_manager import LLMManager
 import json
 
 def validation_agent(state):
@@ -20,10 +21,7 @@ def validation_agent(state):
     tools = get_validation_tools()
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_validation_llm()
     
     # 에이전트 생성
     agent = create_openai_functions_agent(llm, tools, VALIDATION_PROMPT)
@@ -53,22 +51,22 @@ def validation_agent(state):
 def get_validation_tools():
     """검증 에이전트용 도구 생성"""
     return [
-        Tool(
+        StructuredTool.from_function(
             name="check_syntax",
             func=_check_syntax_tool,
             description="检查GeoGebra命令语法，验证命令是否符合GeoGebra语法规则"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="verify_object_definitions",
             func=_verify_object_definitions_tool,
             description="验证几何对象定义，检查是否所有必要的几何对象都已定义"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="verify_problem_constraints",
             func=_verify_problem_constraints_tool,
             description="验证是否满足问题约束，检查命令是否实现了问题的所有要求和约束"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="suggest_fixes",
             func=_suggest_fixes_tool,
             description="提出修复建议，根据验证结果提供改进命令的具体建议"

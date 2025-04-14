@@ -16,22 +16,33 @@ def process_calculation_tasks(state: GeometryState, result: CalculationTaskCreat
     
     Args:
         state: 현재 상태 객체
-        result: 파싱된 결과
+        result: 파싱된 결과 (CalculationTaskCreation 객체 또는 딕셔너리)
     """
     queue = state.calculation_queue
     
+    # 딕셔너리 또는 객체 처리를 위한 속성 접근
+    if isinstance(result, dict):
+        tasks = result.get("tasks", [])
+        completed_task_ids = result.get("completed_task_ids", [])
+        next_calculation_type = result.get("next_calculation_type")
+    else:
+        tasks = result.tasks
+        completed_task_ids = result.completed_task_ids
+        next_calculation_type = result.next_calculation_type
+    
     # 완료된 작업 처리
-    if result.completed_task_ids:
-        for task_id in result.completed_task_ids:
+    if completed_task_ids:
+        for task_id in completed_task_ids:
             for task in queue.tasks:
                 if task.task_id == task_id:
                     task.status = "completed"
-                    queue.completed_tasks.append(task)
+                    if task_id not in queue.completed_task_ids:
+                        queue.completed_task_ids.append(task_id)
                     queue.tasks.remove(task)
                     break
     
     # 새 작업 추가
-    for task_data in result.tasks:
+    for task_data in tasks:
         task_type = task_data.get("task_type")
         parameters = task_data.get("parameters", {})
         dependencies = task_data.get("dependencies", [])
@@ -54,18 +65,19 @@ def process_calculation_tasks(state: GeometryState, result: CalculationTaskCreat
                     task_type=task_type,
                     parameters=parameters,
                     dependencies=dependencies,
+                    description=task_data.get("description", ""),
                     status="pending"
                 )
                 queue.tasks.append(task)
     
     # 다음 계산 유형 설정
-    if result.next_calculation_type:
+    if next_calculation_type:
         # 해당 유형의 첫 번째 대기 중인 작업 찾기
         for task in queue.tasks:
-            if task.task_type == result.next_calculation_type and task.status == "pending":
+            if task.task_type == next_calculation_type and task.status == "pending":
                 queue.current_task_id = task.task_id
                 task.status = "running"
-                state.next_calculation = result.next_calculation_type
+                state.next_calculation = next_calculation_type
                 break
     else:
         # 실행 가능한 작업 찾기
@@ -85,7 +97,8 @@ def update_calculation_queue(state: GeometryState, agent_output: str) -> None:
         for task in queue.tasks:
             if task.task_id == queue.current_task_id and task.status == "running":
                 task.status = "completed"
-                queue.completed_tasks.append(task)
+                if task.task_id not in queue.completed_task_ids:
+                    queue.completed_task_ids.append(task.task_id)
                 queue.tasks.remove(task)
                 queue.current_task_id = None
                 break
@@ -114,13 +127,13 @@ def update_calculation_queue(state: GeometryState, agent_output: str) -> None:
                         parameters = task_data.get("parameters", {})
                         dependencies = task_data.get("dependencies", [])
                         
-                        # 작업 ID 생성
-                        task_id = f"{task_type}_{uuid.uuid4().hex[:8]}"
+                        # 작업 ID 생성 또는 재사용
+                        task_id = task_data.get("task_id", f"{task_type}_{uuid.uuid4().hex[:8]}")
                         
                         # 중복 작업 확인
                         is_duplicate = False
                         for existing_task in queue.tasks:
-                            if existing_task.task_type == task_type and existing_task.parameters == parameters:
+                            if existing_task.task_id == task_id or (existing_task.task_type == task_type and existing_task.parameters == parameters):
                                 is_duplicate = True
                                 break
                                 
@@ -131,9 +144,16 @@ def update_calculation_queue(state: GeometryState, agent_output: str) -> None:
                                 task_type=task_type,
                                 parameters=parameters,
                                 dependencies=dependencies,
+                                description=task_data.get("description", ""),
                                 status="pending"
                             )
                             queue.tasks.append(task)
+            
+            # 완료된 작업 ID 업데이트
+            if "completed_task_ids" in calculation_data and isinstance(calculation_data["completed_task_ids"], list):
+                for task_id in calculation_data["completed_task_ids"]:
+                    if task_id not in queue.completed_task_ids:
+                        queue.completed_task_ids.append(task_id)
             
             # 다음 계산 유형 설정
             if "next_calculation_type" in calculation_data:
@@ -235,6 +255,7 @@ def create_calculation_task(state: GeometryState, task_type: str, task_str: str)
         task_type=task_type,
         parameters=parameters,
         dependencies=dependencies,
+        description=task_str,
         status="pending"
     )
     
@@ -253,16 +274,78 @@ def determine_next_calculation(state: GeometryState) -> None:
     Args:
         state: 현재 상태 객체
     """
+    print(f"[DEBUG] Determining next calculation. Current queue: {state.calculation_queue}")
     queue = state.calculation_queue
     
-    # 실행 가능한 작업 찾기
+    # 이미 실행 중인 작업이 있는지 확인
     for task in queue.tasks:
-        if task.status == "pending" and all(
-            any(dep_task.task_id == dep_id and dep_task.status == "completed" 
-                for dep_task in queue.tasks + queue.completed_tasks)
-            for dep_id in task.dependencies
-        ):
+        if task.status == "running":
+            print(f"[DEBUG] Found running task {task.task_id} of type {task.task_type}")
             queue.current_task_id = task.task_id
-            task.status = "running"
             state.next_calculation = task.task_type
-            break 
+            return
+    
+    # 실행 가능한 작업 찾기 (의존성이 없거나 모든 의존성이 완료된 작업)
+    executable_tasks = []
+    for task in queue.tasks:
+        if task.status == "pending":
+            # 의존성 확인
+            dependencies_met = True
+            for dep_id in task.dependencies:
+                dependency_completed = False
+                # 완료된 작업 ID 목록에서 확인
+                if dep_id in queue.completed_task_ids:
+                    dependency_completed = True
+                # 아직 큐에 있는 작업 중 완료된 작업 확인
+                for dep_task in queue.tasks:
+                    if dep_task.task_id == dep_id and dep_task.status == "completed":
+                        dependency_completed = True
+                        break
+                if not dependency_completed:
+                    dependencies_met = False
+                    break
+            
+            if dependencies_met:
+                executable_tasks.append(task)
+    
+    if executable_tasks:
+        # 실행 가능한 작업 중 첫 번째 작업 선택
+        task = executable_tasks[0]
+        print(f"[DEBUG] Selected next task {task.task_id} of type {task.task_type}")
+        queue.current_task_id = task.task_id
+        task.status = "running"
+        state.next_calculation = task.task_type
+    else:
+        # 의존성을 만족하는 작업이 없는 경우 의존성이 없는 대기 중인 작업 찾기
+        for task in queue.tasks:
+            if task.status == "pending" and not task.dependencies:
+                print(f"[DEBUG] Found task with no dependencies: {task.task_id} of type {task.task_type}")
+                queue.current_task_id = task.task_id
+                task.status = "running"
+                state.next_calculation = task.task_type
+                return
+        
+        # 아직도 작업을 찾지 못한 경우 대기 중인 작업 중 첫 번째 작업 선택
+        for task in queue.tasks:
+            if task.status == "pending":
+                print(f"[DEBUG] Selected first pending task: {task.task_id} of type {task.task_type}")
+                queue.current_task_id = task.task_id
+                task.status = "running"
+                state.next_calculation = task.task_type
+                return
+        
+        # 완료된 작업 큐에서 제거
+        tasks_to_remove = []
+        for task in queue.tasks[:]:
+            if task.status == "completed" or task.task_id in queue.completed_task_ids:
+                tasks_to_remove.append(task)
+        
+        for task in tasks_to_remove:
+            if task in queue.tasks:
+                queue.tasks.remove(task)
+                print(f"[DEBUG] Removed completed task {task.task_id} from queue")
+                
+        # 작업이 없는 경우 계산 병합기로 진행
+        print("[DEBUG] No pending tasks found. Setting next_calculation to None")
+        state.next_calculation = None
+        return 

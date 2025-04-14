@@ -1,8 +1,9 @@
 from typing import Dict, Any, List, Optional
-from langchain.tools import Tool
+from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from utils.prompts import ALTERNATIVE_PROMPT
+from utils.llm_manager import LLMManager
 import json
 import re
 
@@ -20,10 +21,7 @@ def alternative_solution_agent(state):
     tools = get_alternative_tools()
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0.3,  # 약간의 창의성 허용
-        model="gpt-4"
-    )
+    llm = LLMManager.get_alternative_solution_llm()
     
     # 에이전트 생성
     agent = create_openai_functions_agent(llm, tools, ALTERNATIVE_PROMPT)
@@ -51,17 +49,17 @@ def alternative_solution_agent(state):
 def get_alternative_tools():
     """대체 해법 탐색 에이전트용 도구 생성"""
     return [
-        Tool(
+        StructuredTool.from_function(
             name="analyze_error_causes",
             func=_analyze_error_causes_tool,
             description="分析错误原因，深入分析验证失败的根本原因"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="suggest_alternative_approach",
             func=_suggest_alternative_approach_tool,
             description="提出替代解法，根据问题和错误分析提出新的解决方案"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="compare_approaches",
             func=_compare_approaches_tool,
             description="比较不同解法的优缺点，评估当前方法和替代方法的差异"

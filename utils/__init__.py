@@ -7,7 +7,6 @@ __all__ = [
     'GeoGebraValidator',
     'PARSING_PROMPT',
     'DIFFICULTY_PROMPT',
-    'CALCULATION_PROMPT',
     'GEOGEBRA_COMMAND_PROMPT',
     'VALIDATION_PROMPT',
     'ALTERNATIVE_PROMPT',

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 import json
 import re
 from config import DEFAULT_MODEL
+from utils.llm_manager import LLMManager
 
 # 출력 구조 정의
 class GeometricObject(BaseModel):
@@ -90,12 +91,7 @@ def parsing_agent(state):
     format_instructions = parser.get_format_instructions()
     
     # LLM 설정
-    llm = ChatOpenAI(
-        model=DEFAULT_MODEL,
-        temperature=0.1,
-        messages=[{"role": "system", "content": """您是一个专业的几何问题解析系统，精通中文几何术语和概念，能准确理解并分析各类几何问题。
-请以JSON格式输出解析结果，确保结果严格符合指定的结构。"""}]
-    )
+    llm = LLMManager.get_parsing_llm()
     
     # 프롬프트 체인 생성 및 실행
     chain = (PARSING_PROMPT.partial(format_instructions=format_instructions) | llm | parser)

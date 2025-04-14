@@ -3,28 +3,48 @@ from pydantic import BaseModel, Field
 from models.state_models import GeometryState
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
-from langchain.tools import Tool
-from langchain_core.prompts import ChatPromptTemplate
-from tools.area_tools import AreaTools
-from tools.wrappers.area_wrappers import (
+from langchain.tools import StructuredTool
+from agents.calculation.wrappers.area_wrappers import (
     calculate_area_triangle_wrapper,
     calculate_area_triangle_from_sides_wrapper,
     calculate_area_triangle_from_base_height_wrapper,
     calculate_area_rectangle_wrapper,
+    calculate_area_rectangle_from_points_wrapper,
     calculate_area_square_wrapper,
     calculate_area_parallelogram_wrapper,
+    calculate_area_parallelogram_from_points_wrapper,
     calculate_area_rhombus_wrapper,
+    calculate_area_rhombus_from_points_wrapper,
     calculate_area_trapezoid_wrapper,
+    calculate_area_trapezoid_from_points_wrapper,
     calculate_area_regular_polygon_wrapper,
     calculate_area_polygon_wrapper,
     calculate_area_circle_wrapper,
     calculate_area_sector_wrapper,
     calculate_area_segment_wrapper
 )
-from tools.schemas.area_schemas import AreaInput, RectangleAreaInput, CircleAreaInput, TriangleAreaInput, PolygonAreaInput
+from agents.calculation.schemas.area_schemas import (
+    TriangleAreaFromPointsInput,
+    TriangleAreaFromSidesInput,
+    TriangleAreaFromBaseHeightInput,
+    RectangleAreaFromPointsInput,
+    RectangleAreaFromWidthHeightInput,
+    SquareAreaFromSideInput,
+    ParallelogramAreaFromPointsInput,
+    RhombusAreaFromPointsInput,
+    RhombusAreaFromDiagonalsInput,
+    TrapezoidAreaFromPointsInput,
+    TrapezoidAreaFromBaseHeightInput,
+    RegularPolygonAreaFromSideInput,
+    PolygonAreaFromPointsInput,
+    CircleAreaFromRadiusInput,
+    SectorAreaFromRadiusAngleInput,
+    SegmentAreaFromRadiusAngleInput
+)
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models import CalculationResult
+from agents.calculation.models.calculation_result_model import CalculationResult
 from agents.calculation.prompts.area_prompt import AREA_CALCULATION_PROMPT, AREA_JSON_TEMPLATE
+from utils.llm_manager import LLMManager
 
 def area_calculation_agent(state: GeometryState) -> GeometryState:
     """
@@ -38,10 +58,27 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
     Returns:
         更新后的状态对象
     """
+    print("[DEBUG] Starting area_calculation_agent")
+    print(f"[DEBUG] Initial state: {state}")
+    
     # 현재 작업 ID 가져오기
     current_task_id = state.calculation_queue.current_task_id
+    print(f"[DEBUG] Current task ID: {current_task_id}")
+    
+    if not current_task_id:
+        print("[DEBUG] No current_task_id set. Setting it to the first pending area task.")
+        # 작업 ID가 없는 경우 첫 번째 대기 중인 면적 작업 설정
+        for task in state.calculation_queue.tasks:
+            if task.task_type == "area" and task.status == "pending":
+                state.calculation_queue.current_task_id = task.task_id
+                task.status = "running"
+                current_task_id = task.task_id
+                print(f"[DEBUG] Set current_task_id to {current_task_id}")
+                break
+    
     if not current_task_id or not current_task_id.startswith("area_"):
         # 작업 ID가 없거나 면적 작업이 아닌 경우
+        print(f"[DEBUG] Task ID not set or not an area task: {current_task_id}. Returning state.")
         return state
     
     # 현재 작업 찾기
@@ -52,106 +89,130 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
             break
             
     if not current_task:
+        print(f"[DEBUG] Could not find task with ID {current_task_id}. Returning state.")
         return state
+    
+    print(f"[DEBUG] Current task: {current_task}")
     
     # 도구 생성
     tools = [
-        Tool(
-            name="area_calculator",
-            func=AreaTools.calculate_area_tool,
-            description="执行通用面积相关计算，支持各种几何图形的面积计算",
-            args_schema=AreaInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="calculate_triangle_area",
+        StructuredTool.from_function(
+            name="calculate_area_triangle",
             func=calculate_area_triangle_wrapper,
-            description="计算三角形的面积（使用三个顶点坐标）",
-            args_schema=PolygonAreaInput,
+            description="计算三角形面积（使用顶点坐标）",
+            args_schema=TriangleAreaFromPointsInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_triangle_area_from_sides",
+        StructuredTool.from_function(
+            name="calculate_area_triangle_from_sides",
             func=calculate_area_triangle_from_sides_wrapper,
-            description="计算三角形的面积（使用三边长度，海伦公式）",
-            args_schema=TriangleAreaInput,
+            description="计算三角形面积（使用三条边长度）",
+            args_schema=TriangleAreaFromSidesInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_triangle_area_from_base_height",
+        StructuredTool.from_function(
+            name="calculate_area_triangle_from_base_height",
             func=calculate_area_triangle_from_base_height_wrapper,
-            description="计算三角形的面积（使用底和高）",
-            args_schema=TriangleAreaInput,
+            description="计算三角形面积（使用底边和高）",
+            args_schema=TriangleAreaFromBaseHeightInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_rectangle_area",
+        StructuredTool.from_function(
+            name="calculate_area_rectangle",
             func=calculate_area_rectangle_wrapper,
-            description="计算矩形的面积（使用宽和高）",
-            args_schema=RectangleAreaInput,
+            description="计算矩形面积",
+            args_schema=RectangleAreaFromWidthHeightInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_square_area",
+        StructuredTool.from_function(
+            name="calculate_area_rectangle_from_points",
+            func=calculate_area_rectangle_from_points_wrapper,
+            description="计算矩形面积（使用顶点坐标）",
+            args_schema=RectangleAreaFromPointsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_area_square",
             func=calculate_area_square_wrapper,
-            description="计算正方形的面积（使用边长）",
-            args_schema=RectangleAreaInput,
+            description="计算正方形面积",
+            args_schema=SquareAreaFromSideInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_parallelogram_area",
+        StructuredTool.from_function(
+            name="calculate_area_parallelogram",
             func=calculate_area_parallelogram_wrapper,
-            description="计算平行四边形的面积（使用底和高）",
-            args_schema=RectangleAreaInput,
+            description="计算平行四边形面积",
+            args_schema=ParallelogramAreaFromPointsInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_rhombus_area",
+        StructuredTool.from_function(
+            name="calculate_area_parallelogram_from_points",
+            func=calculate_area_parallelogram_from_points_wrapper,
+            description="计算平行四边形面积（使用顶点坐标）",
+            args_schema=ParallelogramAreaFromPointsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_area_rhombus",
             func=calculate_area_rhombus_wrapper,
-            description="计算菱形的面积（使用两条对角线）",
-            args_schema=RectangleAreaInput,
+            description="计算菱形面积（使用对角线）",
+            args_schema=RhombusAreaFromDiagonalsInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_trapezoid_area",
+        StructuredTool.from_function(
+            name="calculate_area_rhombus_from_points",
+            func=calculate_area_rhombus_from_points_wrapper,
+            description="计算菱形面积（使用顶点坐标）",
+            args_schema=RhombusAreaFromPointsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_area_trapezoid",
             func=calculate_area_trapezoid_wrapper,
-            description="计算梯形的面积（使用上底、下底和高）",
-            args_schema=AreaInput,
+            description="计算梯形面积",
+            args_schema=TrapezoidAreaFromPointsInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_regular_polygon_area",
+        StructuredTool.from_function(
+            name="calculate_area_trapezoid_from_points",
+            func=calculate_area_trapezoid_from_points_wrapper,
+            description="计算梯形面积（使用顶点坐标）",
+            args_schema=TrapezoidAreaFromBaseHeightInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_area_regular_polygon",
             func=calculate_area_regular_polygon_wrapper,
-            description="计算正多边形的面积（使用边长和边数）",
-            args_schema=AreaInput,
+            description="计算正多边形面积",
+            args_schema=RegularPolygonAreaFromSideInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_polygon_area",
+        StructuredTool.from_function(
+            name="calculate_area_polygon",
             func=calculate_area_polygon_wrapper,
-            description="计算任意多边形的面积（使用顶点坐标）",
-            args_schema=PolygonAreaInput,
+            description="计算多边形面积",
+            args_schema=PolygonAreaFromPointsInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_circle_area",
+        StructuredTool.from_function(
+            name="calculate_area_circle",
             func=calculate_area_circle_wrapper,
-            description="计算圆的面积（使用半径）",
-            args_schema=CircleAreaInput,
+            description="计算圆面积",
+            args_schema=CircleAreaFromRadiusInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_sector_area",
+        StructuredTool.from_function(
+            name="calculate_area_sector",
             func=calculate_area_sector_wrapper,
-            description="计算扇形的面积（使用半径和角度）",
-            args_schema=AreaInput,
+            description="计算扇形面积",
+            args_schema=SectorAreaFromRadiusAngleInput,
             handle_tool_error=True
         ),
-        Tool(
-            name="calculate_segment_area",
+        StructuredTool.from_function(
+            name="calculate_area_segment",
             func=calculate_area_segment_wrapper,
-            description="计算弓形的面积（使用半径和角度）",
-            args_schema=AreaInput,
+            description="计算弓形面积",
+            args_schema=SegmentAreaFromRadiusAngleInput,
             handle_tool_error=True
         )
     ]
@@ -160,10 +221,7 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
     output_parser = JsonOutputParser(pydantic_object=CalculationResult)
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_area_calculation_llm()
     
     # 프롬프트 생성 (파서 지침 포함)
     prompt = AREA_CALCULATION_PROMPT.partial(
@@ -183,6 +241,8 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
         "agent_scratchpad": ""
     })
     
+    print(f"[DEBUG] Result from agent: {result}")
+    
     # 계산 결과 파싱 및 저장
     try:
         parsed_result = output_parser.parse(result["output"])
@@ -192,8 +252,29 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
         # 파싱 실패 시 결과 텍스트 그대로 저장
         current_task.result = {"raw_output": result["output"]}
     
+    print(f"[DEBUG] Parsed result: {current_task.result}")
+    
+    # 작업 상태 업데이트 - 완료로 설정
+    current_task.status = "completed"
+    
+    # 이 작업을 완료된 작업 목록에 추가하고 큐에서 제거
+    if current_task_id not in state.calculation_queue.completed_task_ids:
+        state.calculation_queue.completed_task_ids.append(current_task_id)
+    
+    # 작업을 큐에서 제거
+    for i, task in enumerate(state.calculation_queue.tasks[:]):
+        if task.task_id == current_task_id:
+            state.calculation_queue.tasks.pop(i)
+            print(f"[DEBUG] Removed completed task {current_task_id} from queue")
+            break
+    
+    # 현재 작업 ID 지우기
+    state.calculation_queue.current_task_id = None
+    
     # 전체 계산 결과에 추가
     _update_calculation_results(state, current_task)
+    
+    print(f"[DEBUG] Updated state: {state}")
     
     return state
 

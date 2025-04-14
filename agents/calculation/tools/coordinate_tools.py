@@ -9,7 +9,6 @@ import numpy as np
 from pydantic import BaseModel, Field
 from langchain_core.tools import ToolException
 from .base_tools import GeometryToolBase
-from .schemas.coordinate_schemas import CoordinateInput
 
 class CoordinateTools(GeometryToolBase):
     """좌표 관련 계산 도구"""
@@ -58,6 +57,51 @@ class CoordinateTools(GeometryToolBase):
         return abs(line1[0] / line1[1] - line2[0] / line2[1]) < 1e-10
     
     @staticmethod
+    def calculate_segment_division(p1: Tuple[float, float], p2: Tuple[float, float], ratio: float) -> Tuple[float, float]:
+        """선분을 특정 비율로 나누는 점 계산"""
+        return (
+            p1[0] + ratio * (p2[0] - p1[0]),
+            p1[1] + ratio * (p2[1] - p1[1])
+        )
+    
+    @staticmethod
+    def calculate_internal_division_point(p1: Tuple[float, float], p2: Tuple[float, float], m: float, n: float) -> Tuple[float, float]:
+        """선분을 내분하는 점 계산 (m:n 비율)"""
+        if abs(m + n) < 1e-10:
+            return p1  # 비율이 잘못된 경우
+        
+        return (
+            (m * p2[0] + n * p1[0]) / (m + n),
+            (m * p2[1] + n * p1[1]) / (m + n)
+        )
+    
+    @staticmethod
+    def calculate_external_division_point(p1: Tuple[float, float], p2: Tuple[float, float], m: float, n: float) -> Tuple[float, float]:
+        """선분을 외분하는 점 계산 (m:n 비율)"""
+        if abs(m - n) < 1e-10:
+            return p1  # 비율이 잘못된 경우
+        
+        return (
+            (m * p2[0] - n * p1[0]) / (m - n),
+            (m * p2[1] - n * p1[1]) / (m - n)
+        )
+    
+    @staticmethod
+    def is_point_on_segment(p: Tuple[float, float], segment_start: Tuple[float, float], segment_end: Tuple[float, float]) -> bool:
+        """점이 선분 위에 있는지 확인"""
+        # 점이 직선 위에 있는지 확인
+        if abs((p[1] - segment_start[1]) * (segment_end[0] - segment_start[0]) - 
+               (p[0] - segment_start[0]) * (segment_end[1] - segment_start[1])) > 1e-10:
+            return False
+        
+        # 점이 선분의 범위 내에 있는지 확인
+        if min(segment_start[0], segment_end[0]) <= p[0] <= max(segment_start[0], segment_end[0]) and \
+           min(segment_start[1], segment_end[1]) <= p[1] <= max(segment_start[1], segment_end[1]):
+            return True
+        
+        return False
+    
+    @staticmethod
     def calculate_coordinate_tool(input_json: str) -> str:
         """좌표 계산 도구 메인 함수"""
         try:
@@ -102,6 +146,32 @@ class CoordinateTools(GeometryToolBase):
                     x = (b1*c2 - b2*c1) / det
                     y = (a2*c1 - a1*c2) / det
                     result["intersection"] = (x, y)
+            
+            # 선분 분할 계산
+            if "segment" in data and len(data["segment"]) == 2:
+                p1, p2 = data["segment"]
+                
+                if "division_ratio" in data:
+                    ratio = data["division_ratio"]
+                    result["division_point"] = CoordinateTools.calculate_segment_division(p1, p2, ratio)
+                
+                if "internal_ratio" in data:
+                    m, n = data["internal_ratio"]
+                    if m <= 0 or n <= 0:
+                        raise ToolException("内分比的两个数值必须为正数")
+                    result["internal_division_point"] = CoordinateTools.calculate_internal_division_point(p1, p2, m, n)
+                
+                if "external_ratio" in data:
+                    m, n = data["external_ratio"]
+                    if m <= 0 or n <= 0 or m == n:
+                        raise ToolException("外分比的两个数值必须为正数且不相等")
+                    result["external_division_point"] = CoordinateTools.calculate_external_division_point(p1, p2, m, n)
+            
+            # 점이 선분 위에 있는지 확인
+            if "check_point" in data and "segment" in data and len(data["segment"]) == 2:
+                p = data["check_point"]
+                p1, p2 = data["segment"]
+                result["is_on_segment"] = CoordinateTools.is_point_on_segment(p, p1, p2)
             
             if not result:
                 raise ToolException("请提供有效的坐标数据，可以是两点（计算中点、距离等）或三点（检查共线性）或两条直线（检查平行性）")

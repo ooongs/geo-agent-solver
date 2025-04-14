@@ -1,8 +1,9 @@
 from typing import Dict, List, Any, Optional
-from langchain.tools import Tool
+from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from utils.prompts import EXPLANATION_PROMPT
+from utils.llm_manager import LLMManager
 import json
 import re
 
@@ -20,10 +21,7 @@ def explanation_agent(state):
     tools = get_explanation_tools()
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0.3,  # 약간의 창의성 허용
-        model="gpt-4"
-    )
+    llm = LLMManager.get_explanation_llm()
     
     # 에이전트 생성
     agent = create_openai_functions_agent(llm, tools, EXPLANATION_PROMPT)
@@ -47,22 +45,22 @@ def explanation_agent(state):
 def get_explanation_tools():
     """해설 생성 에이전트용 도구 생성"""
     return [
-        Tool(
+        StructuredTool.from_function(
             name="explain_key_concepts",
             func=_explain_key_concepts_tool,
             description="解释关键几何概念，提供与问题相关的核心几何概念解释"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="explain_solution_steps",
             func=_explain_solution_steps_tool,
             description="解释解题步骤，详细解释从问题到解答的每个步骤"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="provide_educational_insights",
             func=_provide_educational_insights_tool,
             description="提供教育见解，提供学习建议和知识拓展"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="generate_geogebra_tutorial",
             func=_generate_geogebra_tutorial_tool,
             description="生成GeoGebra使用教程，提供如何在GeoGebra中实现解决方案的指导"

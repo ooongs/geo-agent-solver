@@ -6,8 +6,6 @@
 
 from typing import Dict, Any, List, Tuple, Optional
 import numpy as np
-from pydantic import BaseModel, Field
-from langchain_core.tools import ToolException
 from .base_tools import GeometryToolBase
 
 
@@ -160,81 +158,3 @@ class AngleTools(GeometryToolBase):
         angles = AngleTools.calculate_interior_angles_triangle(vertices)
         return any(AngleTools.is_angle_obtuse(angle) for angle in angles)
     
-    @staticmethod
-    def calculate_angle_tool(input_json: str) -> str:
-        """각도 계산 도구 메인 함수"""
-        try:
-            data = AngleTools.parse_input(input_json)
-            
-            result = {}
-            
-            # 세 점으로부터 각도 계산
-            if "points" in data and len(data["points"]) == 3:
-                p1, p2, p3 = data["points"]
-                angle_rad = AngleTools.calculate_angle_three_points(p1, p2, p3)
-                result["angle_rad"] = angle_rad
-                result["angle_deg"] = AngleTools.radians_to_degrees(angle_rad)
-                result["is_acute"] = AngleTools.is_angle_acute(angle_rad)
-                result["is_right"] = AngleTools.is_angle_right(angle_rad)
-                result["is_obtuse"] = AngleTools.is_angle_obtuse(angle_rad)
-                result["angle_bisector"] = AngleTools.calculate_angle_bisector(p1, p2, p3)
-            
-            # 두 직선 사이의 각도 계산
-            if "lines" in data and len(data["lines"]) == 2:
-                line1, line2 = data["lines"]
-                angle_rad = AngleTools.calculate_angle_two_lines(line1, line2)
-                result["angle_rad"] = angle_rad
-                result["angle_deg"] = AngleTools.radians_to_degrees(angle_rad)
-                if abs(angle_rad) < 1e-10:
-                    result["relationship"] = "平行"
-                elif abs(angle_rad - np.pi/2) < 1e-10:
-                    result["relationship"] = "垂直"
-                else:
-                    result["relationship"] = "相交"
-            
-            # 삼각형 각도 계산
-            if "triangle" in data and len(data["triangle"]) == 3:
-                vertices = data["triangle"]
-                interior_angles_rad = AngleTools.calculate_interior_angles_triangle(vertices)
-                result["interior_angles_rad"] = interior_angles_rad
-                result["interior_angles_deg"] = [AngleTools.radians_to_degrees(angle) for angle in interior_angles_rad]
-                result["exterior_angles_rad"] = AngleTools.calculate_exterior_angles_triangle(vertices)
-                result["exterior_angles_deg"] = [AngleTools.radians_to_degrees(angle) for angle in result["exterior_angles_rad"]]
-                result["is_acute_triangle"] = AngleTools.is_triangle_acute(vertices)
-                result["is_right_triangle"] = AngleTools.is_triangle_right(vertices)
-                result["is_obtuse_triangle"] = AngleTools.is_triangle_obtuse(vertices)
-                
-                # 삼각형 종류 판별
-                if result["is_acute_triangle"]:
-                    result["triangle_type"] = "锐角三角形"
-                elif result["is_right_triangle"]:
-                    result["triangle_type"] = "直角三角形"
-                elif result["is_obtuse_triangle"]:
-                    result["triangle_type"] = "钝角三角形"
-            
-            # 원에서의 내접각 계산
-            if "circle" in data and "points" in data and len(data["points"]) == 2:
-                center = data["circle"]["center"]
-                radius = data["circle"]["radius"]
-                p1, p2 = data["points"]
-                
-                # 점들이 원 위에 있는지 확인
-                dist1 = AngleTools.calculate_distance(center, p1)
-                dist2 = AngleTools.calculate_distance(center, p2)
-                if abs(dist1 - radius) > 1e-6 or abs(dist2 - radius) > 1e-6:
-                    raise ToolException("所提供的点不在圆上，无法计算内接角")
-                
-                inscribed_angle_rad = AngleTools.calculate_inscribed_angle(center, p1, p2)
-                result["inscribed_angle_rad"] = inscribed_angle_rad
-                result["inscribed_angle_deg"] = AngleTools.radians_to_degrees(inscribed_angle_rad)
-                result["central_angle_rad"] = 2 * inscribed_angle_rad
-                result["central_angle_deg"] = AngleTools.radians_to_degrees(2 * inscribed_angle_rad)
-            
-            if not result:
-                raise ToolException("请提供有效的角度计算参数，例如三点（计算角度）、两直线（计算夹角）或三角形顶点（计算内角和外角）")
-                
-            return AngleTools.format_output(result)
-        except ToolException as e:
-            return AngleTools.format_output({"error": str(e)})
-        except Exception as e:
-            return AngleTools.format_output({"error": f"计算角度时出现错误：{str(e)}"}) 

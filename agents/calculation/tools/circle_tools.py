@@ -11,36 +11,6 @@ from pydantic import BaseModel, Field
 from langchain_core.tools import ToolException
 from .base_tools import GeometryToolBase
 
-class CircleInput(BaseModel):
-    """원 계산 도구 입력 스키마"""
-    center: Optional[List[float]] = Field(
-        default=None,
-        description="圆的中心坐标，格式为[x, y]"
-    )
-    radius: Optional[float] = Field(
-        default=None,
-        description="圆的半径"
-    )
-    three_points: Optional[List[List[float]]] = Field(
-        default=None,
-        description="三个点的坐标用于确定圆，格式为[[x1,y1], [x2,y2], [x3,y3]]"
-    )
-    points: Optional[List[List[float]]] = Field(
-        default=None,
-        description="需要检查与圆的关系的点，格式为[[x1,y1], [x2,y2], ...]"
-    )
-    external_point: Optional[List[float]] = Field(
-        default=None,
-        description="圆外一点，用于计算切线，格式为[x, y]"
-    )
-    angle: Optional[float] = Field(
-        default=None,
-        description="角度值（以度为单位），用于计算弦长、扇形面积等"
-    )
-    second_circle: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="第二个圆的信息，用于计算两圆交点，格式为{\"center\": [x, y], \"radius\": r}"
-    )
 
 class CircleTools(GeometryToolBase):
     """원 관련 계산 도구"""
@@ -231,71 +201,4 @@ class CircleTools(GeometryToolBase):
         """중심과 한 점을 알 때 원의 중심과 반지름 계산"""
         radius = CircleTools.calculate_distance(center, point)
         return (center, radius)
-    
-    @staticmethod
-    def calculate_circle_tool(input_json: str) -> str:
-        """원 계산 도구 메인 함수"""
-        try:
-            data = CircleTools.parse_input(input_json)
-            
-            # 원의 정보
-            center = data.get("center")
-            radius = data.get("radius")
-            
-            # 다른 입력 방식
-            three_points = data.get("three_points")
-            
-            result = {}
-            
-            # 세 점으로부터 원 계산
-            if three_points and len(three_points) == 3:
-                center, radius = CircleTools.calculate_circle_from_three_points(
-                    three_points[0], three_points[1], three_points[2]
-                )
-                if radius == 0:
-                    raise ToolException("无法通过给定的三点确定一个圆，这些点可能共线")
-                result["center"] = center
-                result["radius"] = radius
-            
-            # 기본 정보가 있는 경우
-            if center and radius:
-                result["area"] = CircleTools.calculate_area(radius)
-                result["circumference"] = CircleTools.calculate_circumference(radius)
-                
-                # 추가 계산
-                if "points" in data:
-                    result["points_status"] = []
-                    for point in data["points"]:
-                        if CircleTools.is_point_inside_circle(center, radius, point):
-                            result["points_status"].append("inside")
-                        elif CircleTools.is_point_on_circle(center, radius, point):
-                            result["points_status"].append("on")
-                        else:
-                            result["points_status"].append("outside")
-                
-                if "external_point" in data:
-                    ext_point = data["external_point"]
-                    if CircleTools.is_point_inside_circle(center, radius, ext_point):
-                        raise ToolException("给定点在圆内，无法计算切线")
-                    result["tangent_points"] = CircleTools.calculate_tangent_point(center, radius, ext_point)
-                
-                if "angle" in data:
-                    angle = CircleTools.degrees_to_radians(data["angle"])
-                    result["chord_length"] = CircleTools.calculate_chord_length(radius, angle)
-                    result["sector_area"] = CircleTools.calculate_sector_area(radius, angle)
-                    result["segment_area"] = CircleTools.calculate_segment_area(radius, angle)
-                
-                if "second_circle" in data:
-                    second_circle = data["second_circle"]
-                    if "center" in second_circle and "radius" in second_circle:
-                        result["intersection_points"] = CircleTools.calculate_circle_intersection(
-                            center, radius, second_circle["center"], second_circle["radius"]
-                        )
-            elif not three_points:
-                raise ToolException("请提供圆的基本信息（中心坐标和半径）或三个点来确定圆")
-            
-            return CircleTools.format_output(result)
-        except ToolException as e:
-            return CircleTools.format_output({"error": str(e)})
-        except Exception as e:
-            return CircleTools.format_output({"error": f"计算圆时出现错误：{str(e)}"}) 
+   

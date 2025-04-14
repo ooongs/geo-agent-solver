@@ -10,7 +10,8 @@ from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 
 from models.state_models import GeometryState
-from agents.calculation.prompts.merger_prompt import RESULT_MERGER_PROMPT
+from agents.calculation.prompts.merger_prompt import RESULT_MERGER_PROMPT, MERGER_JSON_TEMPLATE
+from utils.llm_manager import LLMManager
 
 def parse_merger_result(output: str, existing_results: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -57,15 +58,20 @@ def parse_merger_result(output: str, existing_results: Dict[str, Any]) -> Dict[s
         final_results["steps"].extend(steps)
     
     # 문제 유형 정보 추가
-    problem_type = {}
-    if "triangle" in output.lower() or "三角形" in output:
-        problem_type["triangle"] = True
-    if "circle" in output.lower() or "圆" in output:
-        problem_type["circle"] = True
-    if "angle" in output.lower() or "角" in output:
-        problem_type["angle"] = True
-    if "coordinate" in output.lower() or "坐标" in output:
-        problem_type["coordinate"] = True
+    problem_type = final_results.get("problem_type", {})
+    if isinstance(problem_type, dict):
+        if "triangle" in output.lower() or "三角形" in output:
+            problem_type["triangle"] = True
+        if "circle" in output.lower() or "圆" in output:
+            problem_type["circle"] = True
+        if "angle" in output.lower() or "角" in output:
+            problem_type["angle"] = True
+        if "coordinate" in output.lower() or "坐标" in output:
+            problem_type["coordinate"] = True
+        if "area" in output.lower() or "面积" in output:
+            problem_type["area"] = True
+        if "measurement" in output.lower() or "测量" in output:
+            problem_type["measurement"] = True
     
     if problem_type:
         final_results["problem_type"] = problem_type
@@ -94,10 +100,7 @@ def calculation_result_merger_agent(state: GeometryState) -> GeometryState:
         return state
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_calculation_merger_llm()
     
     # 프롬프트 생성
     prompt = RESULT_MERGER_PROMPT
@@ -106,18 +109,23 @@ def calculation_result_merger_agent(state: GeometryState) -> GeometryState:
     chain = prompt | llm
     
     # 완료된 작업 목록 생성
-    completed_tasks = state.calculation_queue.completed_tasks
-    if state.calculation_queue.tasks:
-        completed_tasks = completed_tasks + [
-            task for task in state.calculation_queue.tasks 
-            if task.status == "completed" and task.result
-        ]
+    completed_tasks = []
+    for task in state.calculation_queue.tasks:
+        if task.task_id in state.calculation_queue.completed_task_ids and task.result:
+            completed_tasks.append(task)
+    
+    # 문제 분석 정보 가져오기 (있는 경우)
+    problem_analysis = ""
+    if hasattr(state, "problem_analysis"):
+        problem_analysis = str(state.problem_analysis)
     
     # 에이전트 실행
     result = chain.invoke({
         "problem": state.input_problem,
         "completed_tasks": str([task.model_dump() for task in completed_tasks]),
         "calculation_results": str(state.calculation_results),
+        "problem_analysis": problem_analysis,
+        "json_template": MERGER_JSON_TEMPLATE,
         "agent_scratchpad": ""
     })
     

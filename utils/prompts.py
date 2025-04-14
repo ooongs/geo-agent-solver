@@ -19,85 +19,122 @@ PARSING_PROMPT = ChatPromptTemplate.from_template("""
 {format_instructions}
 """)
 
-# 난이도 평가 에이전트 프롬프트
-DIFFICULTY_PROMPT = ChatPromptTemplate.from_template("""
-你是一个几何问题难度评估专家。你可以使用提供的工具来分析问题复杂度、识别所需知识点并推荐解题策略。
 
-评估以下几何问题的难度:
+# 분석 에이전트 프롬프트
+ANALYSIS_PROMPT = ChatPromptTemplate.from_template("""
+你是一个几何问题作图分析专家。你的任务是分析几何问题的特点，确定解决问题的最佳作图方法。
+
+请分析以下几何问题:
 {problem}
 
 解析要素:
 {parsed_elements}
 
-请全面评估问题难度，考虑问题的复杂程度、所需知识点和解题策略。
+请完成以下分析任务:
+1. 确定问题类型：三角形问题、圆问题、角度问题、坐标几何、面积计算等
+2. 推荐作图方法：尺规作图、GeoGebra作图等
+3. 判断问题的作图类型：
+   - 基本作图：基本的点、线、圆等几何元素的作图
+   - 特殊作图：特定条件下的几何图形作图
+   - 构造作图：根据给定条件构造复杂几何图形
+4. 确定需要的作图步骤类型：
+   - triangle: 三角形的作图
+   - circle: 圆的作图
+   - angle: 角度的作图
+   - length: 长度的作图
+   - area: 面积的作图
+   - coordinate: 坐标几何作图
+5. 提出作图任务建议，包括：
+   - 任务类型（上述六种类型之一）
+   - 所需参数
+   - 作图步骤之间的依赖关系
+6. 判断哪些操作可以直接使用GeoGebra命令完成而无需计算:
+   - 两点中点的计算 (可用 Midpoint 命令)
+   - 线的交点计算 (可用 Intersect 命令)
+   - 角平分线 (可用 AngleBisector 命令)
+   - 垂直线/平行线 (可用 Perpendicular/Parallel 命令)
+   - 圆的内切/外接 (可用相应的 Circle 命令)
+
+注意: 对于每个suggested_task，请根据具体操作特性设置合适的operation_type，确保如下:
+- task_type表示作图步骤的大类别(三角形/圆/角度/长度/面积/坐标)
+- operation_type表示具体执行的操作类型(例如midpoint, intersect, angleBisector等)
+- 当任务可以通过GeoGebra命令直接实现时，operation_type应与GeoGebra命令相对应
+- 同一个task_type可以有不同的operation_type，取决于具体操作
+- 对于每个任务，如果存在对应的GeoGebra命令，必须在direct_geogebra_commands中添加对应条目
+
+常见operation_type参考(但不限于):
+- midpoint: 中点计算
+- intersect: 交点计算
+- angleBisector: 角平分线
+- perpendicular: 垂线
+- parallel: 平行线
+- circle: 圆的构造
+- polygon: 多边形构造
+- segment: 线段
+- angle: 角度
+- distance: 距离测量
+- reflection: 镜像反射
+- rotation: 旋转
+- translation: 平移
+
+注意: 请提供作图计划的详细推理解释，包括:
+- 作图步骤的具体顺序和理由
+- 每个步骤如何依赖于前面的步骤
+- 为什么这种作图方法是最合适的
+- 如何保证构造的正确性
+
+你的输出必须符合以下JSON格式:
+{{
+  "problem_type": {{
+    "triangle": boolean,
+    "circle": boolean,
+    "angle": boolean,
+    "coordinate": boolean,
+    "area": boolean,
+    "measurement": boolean,
+    "proof": boolean,
+    "construction": boolean
+  }},
+  "approach": "作图方法（尺规作图/GeoGebra作图等）",
+  "requires_calculation": boolean,
+  "calculation_types": {{
+    "triangle": boolean,
+    "circle": boolean,
+    "angle": boolean,
+    "length": boolean,
+    "area": boolean,
+    "coordinate": boolean
+  }},
+  "reasoning": "分析理由",
+  "suggested_tasks_reasoning": "作图计划的详细推理过程",
+  "suggested_tasks": [
+    {{
+      "task_type": "triangle/circle/angle/length/area/coordinate",
+      "operation_type": "midpoint/intersect/perpendicular/parallel/angleBisector/etc",
+      "parameters": {{
+        "param1": "value1",
+        "param2": "value2"
+      }},
+      "dependencies": [],
+      "description": "作图步骤描述"
+    }}
+  ],
+  "direct_geogebra_commands": [
+    {{
+      "operation_type": "midpoint/intersect/perpendicular/parallel/angleBisector/etc",
+      "parameters": {{
+        "point1": "A",
+        "point2": "B"
+      }},
+      "description": "使用GeoGebra的命令直接实现，无需计算",
+      "geogebra_command": "Midpoint(A, B)"
+    }}
+  ]
+}}
+
+仅返回JSON格式的响应，不要添加其他说明或注释。
 """)
 
-# 数学计算代理提示
-CALCULATION_PROMPT = ChatPromptTemplate.from_template("""
-你是一个专业的几何计算专家。你的任务是使用提供的工具进行精确的几何计算，并生成结构化的计算结果。
-
-问题: {problem}
-解析元素: {parsed_elements}
-问题类型: {problem_type}
-分析条件: {analyzed_conditions}
-推荐方法: {approach}
-
-请按照以下步骤进行计算：
-
-1. 分析问题中涉及的几何元素：
-   - 识别所有点、线、角、三角形、圆等基本元素
-   - 确定它们之间的位置关系和度量关系
-
-2. 使用适当的工具进行计算：
-   - 对于每个几何元素，选择最合适的计算工具
-   - 确保提供所有必要的参数
-   - 记录每个计算步骤和结果
-
-3. 生成结构化的计算结果，包括：
-   - 所有点的坐标
-   - 所有线段的长度
-   - 所有角的大小
-   - 所有图形的面积
-   - 其他相关的几何量
-
-4. 验证计算结果的合理性：
-   - 检查计算结果是否符合几何定理
-   - 验证数值是否在合理范围内
-   - 确保所有必要的几何关系都得到满足
-
-可用工具：
-- triangle_calculator: 三角形计算
-  * 必需参数: vertices (格式: [[x1,y1], [x2,y2], [x3,y3]])
-  * 可选计算: centroid, circumcenter, incenter, orthocenter
-
-- circle_calculator: 圆的计算
-  * 参数组合1: center + radius
-  * 参数组合2: three_points (格式: [[x1,y1], [x2,y2], [x3,y3]])
-  * 可选参数: points, external_point, angle, second_circle
-
-- coordinate_calculator: 坐标几何计算
-  * 用于点、线、距离等坐标相关计算
-
-- angle_calculator: 角度计算
-  * 用于角的大小、角平分线等计算
-
-- length_calculator: 长度计算
-  * 用于线段长度、距离等计算
-
-- area_calculator: 面积计算
-  * 用于各种几何图形的面积计算
-
-注意事项：
-1. 优先使用工具进行计算，而不是手动计算
-2. 确保所有输入参数格式正确
-3. 如果工具返回错误，尝试调整参数或使用其他工具
-4. 保持计算过程的完整记录
-5. 结果必须符合指定的JSON格式
-
-{agent_scratchpad}
-
-{format_instructions}
-""")
 
 # GeoGebra 명령어 생성 에이전트 프롬프트
 GEOGEBRA_COMMAND_PROMPT = ChatPromptTemplate.from_messages([
@@ -114,6 +151,13 @@ GEOGEBRA_COMMAND_PROMPT = ChatPromptTemplate.from_messages([
 - 解析元素: {parsed_elements}
 - 计算结果: {calculations}
 - 问题分析: {problem_analysis}
+
+分析输入数据，注意以下几点：
+1. 如果提供了具体的坐标和度量值，请使用这些精确值
+2. 如果只有问题分析但没有计算结果，需要通过几何关系推断合理的值
+3. 如果有计算结果但没有问题分析，请从计算结果中推断问题类型
+4. 确保生成的命令是完整的，能够准确表达问题的几何关系
+5. 对于不确定的值，使用合理的默认值（如默认半径、默认角度等）
 
 输出格式应该是JSON格式，包含以下字段：
 - commands: 生成的GeoGebra命令列表

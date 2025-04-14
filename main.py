@@ -2,6 +2,7 @@ import os
 import json
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
+import sys
 
 from graph import create_geometry_solver_graph
 from models import GeometryState
@@ -95,28 +96,33 @@ def main():
     """메인 실행 함수"""
     print("\n기하학 문제 해결 시스템 (GeoGebra 명령어 생성)\n")
     
-    # 문제 입력 또는 예제 선택
-    use_example = input("예제 문제를 사용하시겠습니까? (y/n): ").lower() == 'y'
-    
-    if use_example:
-        # 예제 문제 목록
-        examples = [
-            "在△ABC中，∠C=90°，AB=5，BC=3，求AC的长度。",
-            "已知圆O的半径为5，点P在圆上，点Q是直径OP上的中点，求PQ的长度。",
-            "在坐标平面中，点A(1,2)，点B(4,6)，求线段AB的中点坐标。",
-            "已知等边三角形ABC的边长为6，求三角形的高和面积。",
-            "在平面直角坐标系中，点A(0,0)，点B(3,0)，点C(0,4)，证明△ABC是直角三角形，并求其面积。"
-        ]
-        
-        print("\n예제 문제 목록:")
-        for i, example in enumerate(examples):
-            print(f"{i+1}. {example}")
-        
-        choice = int(input("\n선택할 예제 번호 (1-5): ")) - 1
-        problem_text = examples[choice]
+    # 명령줄 인수 확인
+    if len(sys.argv) > 1:
+        # 명령줄에서 문제 텍스트 받기
+        problem_text = sys.argv[1]
     else:
-        # 사용자 직접 입력
-        problem_text = input("\n중국어 기하학 문제를 입력하세요: ")
+        # 문제 입력 또는 예제 선택
+        use_example = input("예제 문제를 사용하시겠습니까? (y/n): ").lower() == 'y'
+        
+        if use_example:
+            # 예제 문제 목록
+            examples = [
+                "在△ABC中，∠C=90°，AB=5，BC=3，求AC的长度。",
+                "已知圆O的半径为5，点P在圆上，点Q是直径OP上的中点，求PQ的长度。",
+                "在坐标平面中，点A(1,2)，点B(4,6)，求线段AB的中点坐标。",
+                "已知等边三角形ABC的边长为6，求三角形的高和面积。",
+                "在平面直角坐标系中，点A(0,0)，点B(3,0)，点C(0,4)，证明△ABC是直角三角形，并求其面积。"
+            ]
+            
+            print("\n예제 문제 목록:")
+            for i, example in enumerate(examples):
+                print(f"{i+1}. {example}")
+            
+            choice = int(input("\n선택할 예제 번호 (1-5): ")) - 1
+            problem_text = examples[choice]
+        else:
+            # 사용자 직접 입력
+            problem_text = input("\n중국어 기하학 문제를 입력하세요: ")
     
     # 문제 해결
     print("\n문제 해결 중...")
@@ -125,10 +131,14 @@ def main():
     # 결과 출력
     display_result(result)
     
-    # 결과 저장
-    save = input("\n결과를 저장하시겠습니까? (y/n): ").lower() == 'y'
-    if save:
+    # 결과 저장 (명령줄 인수로 넘어왔을 때는 자동 저장)
+    if len(sys.argv) > 1:
         save_result(result)
+        print(f"\n결과가 output 디렉토리에 저장되었습니다.")
+    else:
+        save = input("\n결과를 저장하시겠습니까? (y/n): ").lower() == 'y'
+        if save:
+            save_result(result)
 
 def test_with_examples():
     """예제 문제로 테스트 수행"""

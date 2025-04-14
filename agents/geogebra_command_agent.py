@@ -1,10 +1,11 @@
 from typing import Dict, Any, List, Optional
-from langchain.tools import Tool
+from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from utils.prompts import GEOGEBRA_COMMAND_PROMPT
 from utils.geogebra_validator import validate_geogebra_syntax
+from utils.llm_manager import LLMManager
 import re
 import json
 import numpy as np
@@ -23,10 +24,20 @@ def geogebra_command_agent(state):
     tools = get_geogebra_command_tools()
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_geogebra_command_llm()
+    
+    # 입력 데이터 준비
+    # 계산 결과가 없는 경우 빈 딕셔너리로 초기화
+    calculations = getattr(state, "calculations", {})
+    if not calculations and hasattr(state, "calculation_results"):
+        calculations = state.calculation_results
+    
+    # 문제 분석 정보가 없는 경우 계산 결과에서 문제 유형 정보 추출
+    problem_analysis = {}
+    if hasattr(state, "problem_analysis"):
+        problem_analysis = state.problem_analysis
+    elif "problem_type" in calculations:
+        problem_analysis = {"problem_type": calculations["problem_type"]}
     
     # 에이전트 생성
     agent = create_openai_functions_agent(llm, tools, GEOGEBRA_COMMAND_PROMPT)
@@ -36,8 +47,8 @@ def geogebra_command_agent(state):
     result = agent_executor.invoke({
         "problem": state.input_problem,
         "parsed_elements": str(state.parsed_elements),
-        "calculations": str(state.calculations),
-        "problem_analysis": str(state.problem_analysis) if hasattr(state, "problem_analysis") else "{}",
+        "calculations": str(calculations),
+        "problem_analysis": str(problem_analysis),
         "agent_scratchpad": ""
     })
     
@@ -59,37 +70,59 @@ def geogebra_command_agent(state):
     # 상태 업데이트
     state.geogebra_commands = commands
     
+    # GeoGebra 직접 명령어 추가 (계산 없이 생성 가능한 명령어)
+    if hasattr(state, "calculation_results") and state.calculation_results:
+        direct_commands = _extract_direct_commands_from_calculations(state.calculation_results)
+        if direct_commands:
+            # 명령어 순서를 조정하여 기본 점/선 명령어가 먼저 오도록 함
+            reorganized_commands = []
+            
+            # 1. 점 정의 명령어 추가
+            point_commands = [cmd for cmd in commands if "=" in cmd and cmd.split("=")[0].strip() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+            reorganized_commands.extend(point_commands)
+            
+            # 2. 직접 명령어 추가 (중점, 교점 등)
+            reorganized_commands.extend(direct_commands)
+            
+            # 3. 나머지 명령어 추가
+            for cmd in commands:
+                if cmd not in reorganized_commands:
+                    reorganized_commands.append(cmd)
+            
+            state.geogebra_commands = reorganized_commands
+            print(f"[DEBUG] Added {len(direct_commands)} direct GeoGebra commands")
+    
     return state
 
 def get_geogebra_command_tools():
     """GeoGebra 명령어 생성 에이전트용 도구 생성"""
     return [
-        Tool(
+        StructuredTool.from_function(
             name="generate_point_commands",
             func=_generate_point_commands_tool,
             description="根据解析元素和计算结果生成点的GeoGebra命令"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="generate_line_commands",
             func=_generate_line_commands_tool,
             description="根据解析元素和计算结果生成线和线段的GeoGebra命令"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="generate_circle_commands",
             func=_generate_circle_commands_tool,
             description="根据解析元素和计算结果生成圆的GeoGebra命令"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="generate_angle_commands",
             func=_generate_angle_commands_tool,
             description="根据解析元素和计算结果生成角的GeoGebra命令"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="generate_measurement_commands",
             func=_generate_measurement_commands_tool,
             description="根据解析元素和计算结果生成测量的GeoGebra命令"
         ),
-        Tool(
+        StructuredTool.from_function(
             name="validate_geogebra_syntax",
             func=_validate_geogebra_syntax_tool,
             description="验证GeoGebra命令的语法"
@@ -473,4 +506,24 @@ def _extract_commands_from_text(text: str) -> List[str]:
         if '=' in line or ':' in line or '(' in line:
             commands.append(line)
     
-    return commands 
+    return commands
+
+def _extract_direct_commands_from_calculations(calculations: Dict[str, Any]) -> List[str]:
+    """
+    계산 결과에서 GeoGebra 직접 명령어 추출
+    
+    Args:
+        calculations: 계산 결과 딕셔너리
+        
+    Returns:
+        GeoGebra 직접 명령어 목록
+    """
+    direct_commands = []
+    
+    # geogebra_direct_commands 필드가 있는지 확인
+    if "geogebra_direct_commands" in calculations:
+        for cmd_info in calculations["geogebra_direct_commands"]:
+            if "geogebra_command" in cmd_info and cmd_info["geogebra_command"]:
+                direct_commands.append(cmd_info["geogebra_command"])
+    
+    return direct_commands 

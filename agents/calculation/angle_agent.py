@@ -1,15 +1,33 @@
-from typing import Dict, Any, List, Optional, Union
-from pydantic import BaseModel, Field
+from typing import Any
 from models.state_models import GeometryState
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
-from langchain.tools import Tool
-from langchain_core.prompts import ChatPromptTemplate
-from tools.angle_tools import AngleTools
-from tools.schemas.angle_schemas import AngleInput, RadiansToDegreesInput, DegreesToRadiansInput, AngleBetweenPointsInput
+from langchain.tools import StructuredTool
+from agents.calculation.tools.angle_tools import AngleTools
+from agents.calculation.wrappers.angle_wrappers import (
+    calculate_angle_three_points_wrapper,
+    calculate_angle_two_lines_wrapper,
+    calculate_angle_two_vectors_wrapper,
+    calculate_interior_angles_triangle_wrapper,
+    calculate_exterior_angles_triangle_wrapper,
+    calculate_inscribed_angle_wrapper,
+    calculate_angle_bisector_wrapper,
+    angle_classification_wrapper
+)
+from agents.calculation.schemas.angle_schemas import (
+    RadiansToDegreesInput, 
+    DegreesToRadiansInput, 
+    AngleBetweenPointsInput, 
+    AngleBetweenLinesInput, 
+    AngleBetweenVectorsInput,
+    AngleTriangleInput,
+    InscribedAngleInput,
+    AngleClassificationInput
+)
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models import CalculationResult
+from agents.calculation.models.calculation_result_model import CalculationResult
 from agents.calculation.prompts.angle_prompt import ANGLE_CALCULATION_PROMPT, ANGLE_JSON_TEMPLATE
+from utils.llm_manager import LLMManager
 
 def angle_calculation_agent(state: GeometryState) -> GeometryState:
     """
@@ -23,10 +41,27 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
     Returns:
         更新后的状态对象
     """
+    print("[DEBUG] Starting angle_calculation_agent")
+    print(f"[DEBUG] Initial state: {state}")
+    
     # 현재 작업 ID 가져오기
     current_task_id = state.calculation_queue.current_task_id
+    print(f"[DEBUG] Current task ID: {current_task_id}")
+    
+    if not current_task_id:
+        print("[DEBUG] No current_task_id set. Setting it to the first pending angle task.")
+        # 작업 ID가 없는 경우 첫 번째 대기 중인 각도 작업 설정
+        for task in state.calculation_queue.tasks:
+            if task.task_type == "angle" and task.status == "pending":
+                state.calculation_queue.current_task_id = task.task_id
+                task.status = "running"
+                current_task_id = task.task_id
+                print(f"[DEBUG] Set current_task_id to {current_task_id}")
+                break
+    
     if not current_task_id or not current_task_id.startswith("angle_"):
         # 작업 ID가 없거나 각도 작업이 아닌 경우
+        print(f"[DEBUG] Task ID not set or not a angle task: {current_task_id}. Returning state.")
         return state
     
     # 현재 작업 찾기
@@ -37,64 +72,81 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
             break
             
     if not current_task:
+        print(f"[DEBUG] Could not find task with ID {current_task_id}. Returning state.")
         return state
+    
+    print(f"[DEBUG] Current task: {current_task}")
     
     # 도구 생성
     tools = [
-        Tool(
-            name="angle_calculator",
-            func=AngleTools.calculate_angle_tool,
-            description="执行通用角度相关计算，包括角度大小、角平分线等",
-            args_schema=AngleInput,
+        StructuredTool.from_function(
+            name="calculate_angle_points",
+            func=calculate_angle_three_points_wrapper,
+            description="计算三点形成的角度",
+            args_schema=AngleBetweenPointsInput,
             handle_tool_error=True
         ),
-        Tool(
+        StructuredTool.from_function(
+            name="calculate_angle_vectors",
+            func=calculate_angle_two_vectors_wrapper,
+            description="计算两个向量之间的角度",
+            args_schema=AngleBetweenVectorsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_angle_lines",
+            func=calculate_angle_two_lines_wrapper,
+            description="计算两条直线之间的角度",
+            args_schema=AngleBetweenLinesInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_triangle_angles",
+            func=calculate_interior_angles_triangle_wrapper,
+            description="计算三角形的三个内角",
+            args_schema=AngleTriangleInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_triangle_exterior_angles",
+            func=calculate_exterior_angles_triangle_wrapper,
+            description="计算三角形的外角",
+            args_schema=AngleTriangleInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_angle_bisector",
+            func=calculate_angle_bisector_wrapper,
+            description="计算角平分线",
+            args_schema=AngleBetweenPointsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="is_angle_type",
+            func=angle_classification_wrapper,
+            description="判断角的类型（锐角、直角、钝角）",
+            args_schema=AngleClassificationInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
             name="radians_to_degrees",
             func=AngleTools.radians_to_degrees,
             description="将弧度值转换为角度值（度）",
             args_schema=RadiansToDegreesInput,
             handle_tool_error=True
         ),
-        Tool(
+        StructuredTool.from_function(
+            name="calculate_inscribed_angle",
+            func=calculate_inscribed_angle_wrapper,
+            description="计算圆内接角",
+            args_schema=InscribedAngleInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
             name="degrees_to_radians",
             func=AngleTools.degrees_to_radians,
             description="将角度值（度）转换为弧度值",
             args_schema=DegreesToRadiansInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="calculate_angle_between_points",
-            func=AngleTools.calculate_angle_three_points,
-            description="计算由三个点形成的角度（第二个点为顶点）",
-            args_schema=AngleBetweenPointsInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="calculate_angle_bisector",
-            func=AngleTools.calculate_angle_bisector,
-            description="计算角平分线的直线方程",
-            args_schema=AngleBetweenPointsInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="is_angle_acute",
-            func=AngleTools.is_angle_acute,
-            description="判断给定角度是否为锐角（小于90°）",
-            args_schema=RadiansToDegreesInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="is_angle_right",
-            func=AngleTools.is_angle_right,
-            description="判断给定角度是否为直角（等于90°）",
-            args_schema=RadiansToDegreesInput,
-            handle_tool_error=True
-        ),
-        Tool(
-            name="is_angle_obtuse",
-            func=AngleTools.is_angle_obtuse,
-            description="判断给定角度是否为钝角（大于90°）",
-            args_schema=RadiansToDegreesInput,
             handle_tool_error=True
         )
     ]
@@ -103,10 +155,7 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
     output_parser = JsonOutputParser(pydantic_object=CalculationResult)
     
     # LLM 초기화
-    llm = ChatOpenAI(
-        temperature=0,
-        model="gpt-4"
-    )
+    llm = LLMManager.get_angle_calculation_llm()
     
     # 프롬프트 생성 (파서 지침 포함)
     prompt = ANGLE_CALCULATION_PROMPT.partial(
@@ -122,9 +171,11 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
         "problem": state.input_problem,
         "current_task": str(current_task.model_dump()),
         "calculation_results": str(state.calculation_results),
-        "format_instructions": ANGLE_JSON_TEMPLATE,
+        "json_template": ANGLE_JSON_TEMPLATE,
         "agent_scratchpad": ""
     })
+    
+    print(f"[DEBUG] Result from agent: {result}")
     
     # 계산 결과 파싱 및 저장
     try:
@@ -135,8 +186,29 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
         # 파싱 실패 시 결과 텍스트 그대로 저장
         current_task.result = {"raw_output": result["output"]}
     
+    print(f"[DEBUG] Parsed result: {current_task.result}")
+    
+    # 작업 상태 업데이트 - 완료로 설정
+    current_task.status = "completed"
+    
+    # 이 작업을 완료된 작업 목록에 추가하고 큐에서 제거
+    if current_task_id not in state.calculation_queue.completed_task_ids:
+        state.calculation_queue.completed_task_ids.append(current_task_id)
+    
+    # 작업을 큐에서 제거
+    for i, task in enumerate(state.calculation_queue.tasks[:]):
+        if task.task_id == current_task_id:
+            state.calculation_queue.tasks.pop(i)
+            print(f"[DEBUG] Removed completed task {current_task_id} from queue")
+            break
+    
+    # 현재 작업 ID 지우기
+    state.calculation_queue.current_task_id = None
+    
     # 전체 계산 결과에 추가
     _update_calculation_results(state, current_task)
+    
+    print(f"[DEBUG] Updated state: {state}")
     
     return state
 
