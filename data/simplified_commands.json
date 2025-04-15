@@ -1,0 +1,561 @@
+[
+  {
+    "Line": [
+      {
+        "term": "Creates a line through two points A and B.",
+        "index": 0,
+        "command": "Line"
+      },
+      {
+        "term": "Creates a line through the given point parallel to the given line.",
+        "index": 1,
+        "command": "Line"
+      },
+      {
+        "term": "Creates a line through the given point with direction vector v.",
+        "index": 2,
+        "command": "Line"
+      }
+    ]
+  },
+  {
+    "Vector": [
+      {
+        "term": "Creates the position vector of the given point.",
+        "index": 0,
+        "command": "Vector"
+      },
+      {
+        "term": "Creates a vector from Start Point to End Point.",
+        "index": 1,
+        "command": "Vector"
+      }
+    ]
+  },
+  {
+    "Segment": [
+      {
+        "term": "Creates a segment between two points.",
+        "index": 0,
+        "command": "Segment"
+      },
+      {
+        "term": "Creates a segment with the given starting point and length, as well as the end point of the segment.",
+        "index": 1,
+        "command": "Segment"
+      }
+    ]
+  },
+  {
+    "Semicircle": [
+      {
+        "term": "Creates a semicircle above the segment between the two points and displays its length in Algebra View.",
+        "index": 0,
+        "command": "Semicircle"
+      }
+    ]
+  },
+  {
+    "Ellipse": [
+      {
+        "term": "Creates an ellipse with two focal points and semimajor axis length.",
+        "index": 0,
+        "command": "Ellipse"
+      },
+      {
+        "term": "Creates an ellipse with two focal points, where the length of the semimajor axis equals the length of the given segment.",
+        "index": 1,
+        "command": "Ellipse"
+      },
+      {
+        "term": "Creates an ellipse with two focal points passing through a given point.",
+        "index": 2,
+        "command": "Ellipse"
+      }
+    ]
+  },
+  {
+    "Hyperbola": [
+      {
+        "term": "Creates a hyperbola with given focus points and semimajor axis length.",
+        "index": 0,
+        "command": "Hyperbola"
+      },
+      {
+        "term": "Creates a hyperbola with given focus points where the length of the semimajor axis equals the length of the segment.",
+        "index": 1,
+        "command": "Hyperbola"
+      },
+      {
+        "term": "Creates a hyperbola with given focus points passing through a given point.",
+        "index": 2,
+        "command": "Hyperbola"
+      }
+    ]
+  },
+  {
+    "Parabola": [
+      {
+        "term": "Creates a parabola with focal point and the line as directrix.",
+        "index": 0,
+        "command": "Parabola"
+      }
+    ]
+  },
+  {
+    "Circle": [
+      {
+        "term": "Creates a circle with given center and radius.",
+        "index": 0,
+        "command": "Circle"
+      },
+      {
+        "term": "Creates a circle with given center and radius equal to the length of the given segment.",
+        "index": 1,
+        "command": "Circle"
+      },
+      {
+        "term": "Creates a circle with given center through a given point.",
+        "index": 2,
+        "command": "Circle"
+      },
+      {
+        "term": "Creates a circle through the three given points (if they do not lie on the same line).",
+        "index": 3,
+        "command": "Circle"
+      },
+      {
+        "term": "Creates a circle with line as axis and through the point.",
+        "index": 4,
+        "command": "Circle"
+      },
+      {
+        "term": "Creates a circle with center, radius, and axis parallel to direction, which can be a line, vector or plane.",
+        "index": 5,
+        "command": "Circle"
+      }
+    ]
+  },
+  {
+    "Sector": [
+      {
+        "term": "Yields a conic sector between two points on the conic section and calculates its area. Only works for circles and ellipses.",
+        "index": 0,
+        "command": "Sector"
+      },
+      {
+        "term": "Yields a conic sector between two parameter values between 0 and 2π on the conic section and calculates its area.",
+        "index": 1,
+        "command": "Sector"
+      }
+    ]
+  },
+  {
+    "CircularArc": [
+      {
+        "term": "Creates a circular arc with midpoint between the two points.",
+        "index": 0,
+        "command": "CircularArc"
+      }
+    ]
+  },
+  {
+    "CircularSector": [
+      {
+        "term": "Creates a circular sector with midpoint between the two points.",
+        "index": 0,
+        "command": "CircularSector"
+      }
+    ]
+  },
+  {
+    "CircumcircularArc": [
+      {
+        "term": "Creates a circular arc through three points, where the first point is the starting point and the third point is the endpoint of the circumcircular arc.",
+        "index": 0,
+        "command": "CircumcircularArc"
+      }
+    ]
+  },
+  {
+    "CircumcircularSector": [
+      {
+        "term": "Creates a circular sector whose arc runs through the three points, where the first point is the starting point and the third point is the endpoint of the arc.",
+        "index": 0,
+        "command": "CircumcircularSector"
+      }
+    ]
+  },
+  {
+    "Cone": [
+      {
+        "term": "Creates a cone with given base and height.",
+        "index": 0,
+        "command": "Cone"
+      },
+      {
+        "term": "Creates a cone with vertex (second point), circle center (first point) and given radius.",
+        "index": 1,
+        "command": "Cone"
+      },
+      {
+        "term": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to the given vector and apex angle 2α.",
+        "index": 2,
+        "command": "Cone"
+      }
+    ]
+  },
+  {
+    "Cube": [
+      {
+        "term": "Creates a cube having as base the given square.",
+        "index": 0,
+        "command": "Cube"
+      },
+      {
+        "term": "Creates a cube having the segment between the two points as an edge. The other vertices are uniquely determined by the given direction, that should be one of: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created cube will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+        "index": 1,
+        "command": "Cube"
+      },
+      {
+        "term": "Creates a cube with three (adjacent) points of the first face. The points have to start a square for the cube to be defined.",
+        "index": 2,
+        "command": "Cube"
+      },
+      {
+        "term": "Creates a cube with two (adjacent) points of the first face, and the third point automatically created on a circle, so that the cube can rotate around its first edge.",
+        "index": 3,
+        "command": "Cube"
+      }
+    ]
+  },
+  {
+    "Cylinder": [
+      {
+        "term": "Creates a cylinder with given base and given height.",
+        "index": 0,
+        "command": "Cylinder"
+      },
+      {
+        "term": "Creates a cylinder with given radius and with given points as the centers of the top and bottom.",
+        "index": 1,
+        "command": "Cylinder"
+      }
+    ]
+  },
+  {
+    "Dodecahedron": [
+      {
+        "term": "Creates a dodecahedron having the given regular pentagon as base.",
+        "index": 0,
+        "command": "Dodecahedron"
+      },
+      {
+        "term": "Creates a dodecahedron having the segment between two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created dodecahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+        "index": 1,
+        "command": "Dodecahedron"
+      },
+      {
+        "term": "Creates a dodecahedron with three (adjacent) points of the first face. The points have to start a regular pentagon for the dodecahedron to be defined.",
+        "index": 2,
+        "command": "Dodecahedron"
+      },
+      {
+        "term": "Creates a dodecahedron with two (adjacent) points of the first face, and the third point automatically created on a circle, so that the dodecahedron can rotate around its first edge.",
+        "index": 3,
+        "command": "Dodecahedron"
+      }
+    ]
+  },
+  {
+    "Icosahedron": [
+      {
+        "term": "Creates an icosahedron having as base the given equilateral triangle.",
+        "index": 0,
+        "command": "Icosahedron"
+      },
+      {
+        "term": "Creates an icosahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created icosahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+        "index": 1,
+        "command": "Icosahedron"
+      },
+      {
+        "term": "Creates an icosahedron with the three points of the first face. The points have to draw an equilateral triangle for the icosahedron to be defined.",
+        "index": 2,
+        "command": "Icosahedron"
+      },
+      {
+        "term": "Creates an icosahedron with the two points of the first face, and the third point automatically created on a circle, so that the icosahedron can rotate around its first edge.",
+        "index": 3,
+        "command": "Icosahedron"
+      }
+    ]
+  },
+  {
+    "Incircle": [
+      {
+        "term": "Creates the incircle of the triangle formed by the three points. The incircle is the circle that is tangent to all three sides of the triangle.",
+        "index": 0,
+        "command": "Incircle"
+      }
+    ]
+  },
+  {
+    "InfiniteCone": [
+      {
+        "term": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to the given vector and apex angle 2α.",
+        "index": 0,
+        "command": "InfiniteCone"
+      },
+      {
+        "term": "Creates an infinite cone with given first point as vertex, line through two points as axis of symmetry and apex angle 2α.",
+        "index": 1,
+        "command": "InfiniteCone"
+      },
+      {
+        "term": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to given line and apex angle 2α.",
+        "index": 2,
+        "command": "InfiniteCone"
+      }
+    ]
+  },
+  {
+    "InfiniteCylinder": [
+      {
+        "term": "Creates an infinite cylinder with given point on axis, axis of symmetry parallel to the given vector and radius.",
+        "index": 0,
+        "command": "InfiniteCylinder"
+      },
+      {
+        "term": "Creates an infinite cylinder with axis through two points and given radius.",
+        "index": 1,
+        "command": "InfiniteCylinder"
+      },
+      {
+        "term": "Creates an infinite cylinder with given line as axis and radius.",
+        "index": 2,
+        "command": "InfiniteCylinder"
+      }
+    ]
+  },
+  {
+    "InfiniteCylinder": [
+      {
+        "term": "Creates an infinite cylinder with given radius and given line as an axis of symmetry.",
+        "index": 0,
+        "command": "InfiniteCylinder"
+      },
+      {
+        "term": "Creates an infinite cylinder with given radius and with axis of symmetry through a given point parallel to the vector.",
+        "index": 1,
+        "command": "InfiniteCylinder"
+      },
+      {
+        "term": "Creates an infinite cylinder with given radius and with line through two points as an axis of symmetry.",
+        "index": 2,
+        "command": "InfiniteCylinder"
+      }
+    ]
+  },
+  {
+    "Octahedron": [
+      {
+        "term": "Creates an octahedron having as base the given equilateral triangle.",
+        "index": 0,
+        "command": "Octahedron"
+      },
+      {
+        "term": "Creates an octahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created octahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+        "index": 1,
+        "command": "Octahedron"
+      },
+      {
+        "term": "Creates an octahedron with the three points of the first face. The points have to draw an equilateral triangle for the octahedron to be defined.",
+        "index": 2,
+        "command": "Octahedron"
+      },
+      {
+        "term": "Creates an octahedron with the two points of the first face, and the third point automatically created on a circle, so that the octahedron can rotate around its first edge. Octahedron(A, B) is a shortcut for Octahedron(A, B, C) with C = Point(Circle(Midpoint(A, B), Distance(A, B) sqrt(3) / 2, Segment(A, B))).",
+        "index": 3,
+        "command": "Octahedron"
+      }
+    ]
+  },
+  {
+    "Plane": [
+      {
+        "term": "Creates the plane containing the given polygon.",
+        "index": 0,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane containing the conic.",
+        "index": 1,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane through the given point, parallel to the given plane.",
+        "index": 2,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane through the given point and line.",
+        "index": 3,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane through the lines (that must be intersecting or parallel to each other).",
+        "index": 4,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane through the given points.",
+        "index": 5,
+        "command": "Plane"
+      },
+      {
+        "term": "Creates the plane through the given point and having as normal vector the cross product of the given vectors (that must not be collinear).",
+        "index": 6,
+        "command": "Plane"
+      }
+    ]
+  },
+  {
+    "Polygon": [
+      {
+        "term": "Creates a polygon defined by the given points.",
+        "index": 0,
+        "command": "Polygon"
+      },
+      {
+        "term": "Creates a regular polygon with n vertices.",
+        "index": 1,
+        "command": "Polygon"
+      },
+      {
+        "term": "Creates a regular polygon with n vertices, and directed by the direction (e.g. a plane to which the polygon will be parallel, if possible).",
+        "index": 2,
+        "command": "Polygon"
+      }
+    ]
+  },
+  {
+    "Prism": [
+      {
+        "term": "Creates a prism defined by the given points.",
+        "index": 0,
+        "command": "Prism"
+      },
+      {
+        "term": "Creates a prism with the given polygon as base and the point as first top point.",
+        "index": 1,
+        "command": "Prism"
+      },
+      {
+        "term": "Creates a right prism with the polygon as base and given height.",
+        "index": 2,
+        "command": "Prism"
+      }
+    ]
+  },
+  {
+    "Pyramid": [
+      {
+        "term": "Creates a pyramid defined by the given points.",
+        "index": 0,
+        "command": "Pyramid"
+      },
+      {
+        "term": "Creates a pyramid with the given polygon as base and the point as apex.",
+        "index": 1,
+        "command": "Pyramid"
+      },
+      {
+        "term": "Creates a centered pyramid defined by the polygon as base and given height.",
+        "index": 2,
+        "command": "Pyramid"
+      }
+    ]
+  },
+  {
+    "Sphere": [
+      {
+        "term": "Creates a sphere with center and radius.",
+        "index": 0,
+        "command": "Sphere"
+      },
+      {
+        "term": "Creates a sphere with center in the first point through the second point.",
+        "index": 1,
+        "command": "Sphere"
+      }
+    ]
+  },
+  {
+    "Tetrahedron": [
+      {
+        "term": "Creates a tetrahedron having as base the given equilateral triangle.",
+        "index": 0,
+        "command": "Tetrahedron"
+      },
+      {
+        "term": "Creates a tetrahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created tetrahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+        "index": 1,
+        "command": "Tetrahedron"
+      },
+      {
+        "term": "Creates a tetrahedron with the three points of the first face. The points have to draw an equilateral triangle for the tetrahedron to be defined.",
+        "index": 2,
+        "command": "Tetrahedron"
+      },
+      {
+        "term": "Creates a tetrahedron with the two points of the first face, and the third point automatically created on a circle, so that the tetrahedron can rotate around its first edge.",
+        "index": 3,
+        "command": "Tetrahedron"
+      }
+    ]
+  },
+  {
+    "Curve": [
+      {
+        "term": "Creates a 2D parametric curve using x and y expressions with the given parameter variable over the specified interval.",
+        "index": 0,
+        "command": "Curve"
+      },
+      {
+        "term": "Creates a 3D parametric curve using x, y and z expressions with the given parameter variable over the specified interval.",
+        "index": 1,
+        "command": "Curve"
+      }
+    ]
+  },
+  {
+    "Intersect": [
+      {
+        "term": "Yields the intersection points of two objects.",
+        "index": 0,
+        "command": "Intersect"
+      },
+      {
+        "term": "Yields the nth intersection point of two objects. Each object must be a line, conic, polynomial function or implicit curve.",
+        "index": 1,
+        "command": "Intersect"
+      },
+      {
+        "term": "Yields an intersection point of two objects by using a numerical, iterative method with initial point.",
+        "index": 2,
+        "command": "Intersect"
+      },
+      {
+        "term": "Yields the intersection points numerically for the two functions in the given interval.",
+        "index": 3,
+        "command": "Intersect"
+      },
+      {
+        "term": "Finds one intersection point using a numerical, iterative method starting at the given parameters.",
+        "index": 4,
+        "command": "Intersect"
+      }
+    ]
+  }
+]

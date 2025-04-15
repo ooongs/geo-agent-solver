@@ -1,0 +1,7 @@
+# GeoGebra 명령어 검색 시스템 요구사항
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.6
+pgvector>=0.2.0
+sentence-transformers>=2.2.2
+numpy>=1.24.0
+sqlalchemy-utils>=0.40.0 

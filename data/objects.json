@@ -1,0 +1,187 @@
+[
+    {
+        "name": "Point",
+        "naming": "Points are always named using upper case letters. Just type in the name (e.g. A, P) and an equal sign in front of the coordinates or commands.",
+        "description": "Points may be entered in Cartesian or polar coordinates.",
+        "command": "Point",
+        "examples": [
+            {
+                "description": "To enter a point P in 2D in Cartesian coordinates you may use P = (1, 0)",
+                "syntax": "( <Number>, <Number> )",
+                "example": ["A = (1, 2)"]
+            },
+            {
+                "description": "To enter a point P in 3D in Cartesian coordinates you may use P = (1, 0, 2)",
+                "syntax": "( <Number>, <Number>, <Number> )",
+                "example": ["A = (1, 2, 3)"]
+            },
+            {
+                "description": "To enter a point P in 2D in polar coordinates you may use P = (1; 0°)",
+                "syntax": "( <Number>, <Angle> )",
+                "example": ["A = (1; 0°)"]
+            },
+            {
+                "description": "To enter a point P in 3D in spherical coordinates you may use P = (1; 60°; 30°), where ρ is the distance from origin, θ is the azimuthal angle, and φ is the polar angle",
+                "syntax": "( <Number>, <Angle>, <Angle> )",
+                "example": ["A = (1; 60°; 30°)"]
+            }
+        ]
+    },
+    {
+        "name": "Vector",
+        "naming": "In order to distinguish between points and vectors, vectors need to have a lower case name in GeoGebra. Again, type in the name (e.g. v, u) and an equal sign in front of the coordinates or commands",
+        "description": "Vectors may be entered in Cartesian or polar coordinates.",
+        "command": "Vector",
+        "examples": [
+            {
+                "description": "To enter a vector v in 2D in Cartesian coordinates you may use v = (1, 0)",
+                "syntax": "( <Number>, <Number> )",
+                "example": ["v = (0, 5)"]
+            },
+            {
+                "description": "To enter a vector v in 3D in Cartesian coordinates you may use v = (1, 0, 2)", 
+                "syntax": "( <Number>, <Number>, <Number> )",
+                "example": ["v = (0, 5, -1)"]
+            }
+        ]
+    },
+    {
+        "name": "Line",
+        "naming" : "Lines can be named by typing in the name and a colon in front of their equations or commands.",
+        "description": "A line",
+        "command": "Line",
+        "examples": [
+            {
+                "description": "To enter a line in Cartesian coordinates you may use y = x + 3",
+                "syntax": "<Name>: y = <Number> x + <Number>",
+                "example": ["g: y = x + 3"]
+            }
+        ]
+    },
+    {
+        "name": "Segment",
+        "naming": "Segments can be defined by two points.",
+        "description": "A segment in the plane.",
+        "command": "Segment",
+        "examples": [
+            {
+                "description": "To enter a segment in Cartesian coordinates you may use AB",
+                "syntax": "( <Point>, <Point> )",
+                "example": ["AB"]
+            }
+        ]
+    },
+    {
+        "name": "Conic",
+        "description": "A Conic object such as an ellipse, hyperbola, or parabola, can be entered using commands or as a quadratic equation in x and y.",
+        "naming": "A conic section can be entered as a quadratic equation in x and y. The conic section's name can be entered at the beginning of the input, followed by a colon.",
+        "children": [
+            {
+                "name": "Ellipse",
+                "description": "An ellipse defined by a quadratic equation.",
+                "command": "Ellipse",
+                "syntax": "<Name>: <Number> x^2 + <Number> y^2 = <Number>",
+                "example": ["ell: 9x^2 + 16y^2 = 144"]
+            },
+            {
+                "name": "Hyperbola", 
+                "description": "A hyperbola defined by a quadratic equation.",
+                "command": "Hyperbola",
+                "syntax": "<Name>: <Number> x^2 - <Number> y^2 = <Number>",
+                "example": ["hyp: 9x^2 - 16y^2 = 144"]
+            },
+            {
+                "name": "Parabola",
+                "description": "A parabola defined by a quadratic equation.",
+                "command": "Parabola",
+                "syntax": "<Name>: y^2 = <Number> x",
+                "example": ["par: y^2 = 4x"]
+            },
+            {
+                "name": "Circle",
+                "description": "A circle defined by a quadratic equation.",
+                "command": "Circle",
+                "syntax": "<Name>: (x - <Number>)^2 + (y - <Number>)^2 = <Number>",
+                "example": ["c2: (x - 5)^2 + (y + 2)^2 = 25"]
+            }
+        ]
+
+    },
+    {
+        "name": "Angle",
+        "naming": "Angles can be named by typing in the name and a colon in front of their equations or commands.",
+        "description": "Angles can be entered in degrees (°) or radians (rad). The constant π is useful for radian values, and can also be entered as pi.",
+        "children": [
+            {
+                "description": "Angle α in degree α = 60°, or using the Degrees/Minutes/Seconds syntax: α =1°23′45''",
+                "syntax": "<Number>°",
+                "example": ["90°","20°"]
+            },
+            {
+                "description": "Angle α in radians α = pi/3",
+                "syntax": "<Number>",
+                "example": ["2π"]
+            }
+        ]
+    },
+    {
+        "name": "Polygon",
+        "description": "A polygon is a closed polyline.",
+        "command": "Polygon",
+        "examples": [
+            {
+                "description": "To enter a triangle you may use polygon(A, B, C)",
+                "syntax": "Polygon( <Point>, <Point>, <Point> )",
+                "example": ["polygon(A, B, C)"]
+            },
+            {
+                "description": "To enter a quadrilateral you may use polygon(A, B, C, D)",
+                "syntax": "Polygon( <Point>, <Point>, <Point>, <Point> )",
+                "example": ["polygon(A, B, C, D)"]
+            }
+        ]
+    },{
+        "name": "Direction",
+        "description": "A direction is a vector.",
+        "command": "Direction",
+        "examples": [
+            {
+                "description": "Direction can be vector",
+                "syntax": "<Vector>",
+                "example": ["v = (0, 5)"]
+            },
+            {
+                "description": "Direction can be Axis",
+                "syntax": "Axis",
+                "example": ["xAxis","yAxis","zAxis"]
+            }
+        ]
+    },{
+        "name": "Function",
+        "naming": "Functions are named using lowercase letters followed by parentheses containing the variable (e.g. f(x), g(x))",
+        "description": "Functions can be defined using previously defined variables (e.g. numbers, points, vectors) as well as other functions.",
+        "command": "Function",
+        "examples": [
+            {
+                "description": "Basic function definition",
+                "syntax": "<Function Name>(x) = <Expression>",
+                "example": ["f(x) = 3x^3 - x^2"]
+            },
+            {
+                "description": "Function using another function",
+                "syntax": "<Function Name>(x) = <Function Expression>",
+                "example": ["g(x) = tan(f(x))"]
+            },
+            {
+                "description": "Nameless function",
+                "syntax": "<Expression>",
+                "example": ["sin(3x) + tan(x)"]
+            },
+            {
+                "description": "Function using derivatives",
+                "syntax": "<Function Name>'(x) or <Function Name>''(x)",
+                "example": ["f'(x)", "g(x) = cos(f'(x + 2))"]
+            }
+        ]
+    }
+]

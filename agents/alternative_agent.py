@@ -30,8 +30,8 @@ def alternative_solution_agent(state):
     # 에이전트 실행
     result = agent_executor.invoke({
         "problem": state.input_problem,
-        "approach": str(state.difficulty.get("approach", "")) if state.difficulty else "{}",
-        "errors": str(state.validation.get("errors", [])) if state.validation else "[]"
+        "approach": state.approach,
+        "errors": str(state.validation.get("errors", [])) if state.validation else "[]",
     })
     
     # 결과 분석

@@ -1,0 +1,796 @@
+[
+    {
+        "command": "Line",
+        "category": "Geometry Commands",
+        "class": "Line",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Line/",
+        "description": "Creates a line.",
+        "usage": [
+            {
+                "syntax": "Line( <Point>, <Point> )",
+                "description": "Creates a line through two points A and B.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Line( <Point>, <Parallel Line> )",
+                "description": "Creates a line through the given point parallel to the given line.", 
+                "example": [],  
+                "related": ["Point", "Line"]
+            },
+            {
+                "syntax": "Line( <Point>, <Direction Vector> )",
+                "description": "Creates a line through the given point with direction vector v.",
+                "example": [],
+                "note": "You can also use a parametric syntax to create a line eg X = (1, 2) + r (2, 3) or X = (1, 2, 3) + r (2, 3, 4)",
+                "related": ["Point", "Vector"]
+            }
+        ]
+    },
+    {
+        "command": "Vector",
+        "category": "Geometry Commands",
+        "class": "Vector",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Vector/",
+        "description": "Creates a vector.",
+        "usage": [
+            {
+                "syntax": "Vector( <Point> )",
+                "description": "Creates the position vector of the given point.",
+                "example": ["Vector((3, 2)) yields u = (3,2)"],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Vector( <Start Point>, <End Point> )",
+                "description": "Creates a vector from Start Point to End Point.",
+                "example": ["Vector((1, 1), (3, 4)) yields u = (2,3)"],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Segment",
+        "category": "Geometry Commands",
+        "class": "Segment",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Segment/",
+        "description": "Creates a segment.",
+        "usage": [
+            {
+                "syntax": "Segment( <Point>, <Point> )",
+                "description": "Creates a segment between two points.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Segment( <Point>, <Length> )",
+                "description": "Creates a segment with the given starting point and length, as well as the end point of the segment.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Semicircle",
+        "category": "Geometry Commands",
+        "class": "2D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Semicircle/",
+        "description": "Creates a semicircle.",
+        "usage": [
+            {
+                "syntax": "Semicircle( <Point>, <Point> )",
+                "description": "Creates a semicircle above the segment between the two points and displays its length in Algebra View.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Ellipse",
+        "category": "Conic Commands",
+        "class": "Conic",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Ellipse/",
+        "description": "Creates an ellipse.",
+        "usage": [
+            {
+                "syntax": "Ellipse( <Focus>, <Focus>, <Semimajor Axis Length> )",
+                "description": "Creates an ellipse with two focal points and semimajor axis length.",
+                "note": "If the condition: 2*semimajor axis length > Distance between the focus points isn't met, you will get an hyperbola.",
+                "example": ["Ellipse((0, 1), (1, 1), 1) yields 12x² + 16y² - 12x - 32y = -7"],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Ellipse( <Focus>, <Focus>, <Segment> )",
+                "description": "Creates an ellipse with two focal points, where the length of the semimajor axis equals the length of the given segment.",
+                "example": ["Let s = Segment((0,1), (2,1)) : Ellipse((0, 1), (2, 1), s) yields 3x² + 4y² - 6x - 8y = 5"],
+                "related": ["Point", "Segment"]
+            },
+            {
+                "syntax": "Ellipse( <Focus>, <Focus>, <Point> )",
+                "description": "Creates an ellipse with two focal points passing through a given point.",
+                "example": ["Ellipse((0, 1), (2, 1), (1,2)) yields 1x² + 2y² - 2x - 4y = -1"],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Hyperbola",
+        "category": "Conic Commands",
+        "class": "Conic", 
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Hyperbola/",
+        "description": "Creates a hyperbola.",
+        "usage": [
+            {
+                "syntax": "Hyperbola( <Focus>, <Focus>, <Semimajor Axis Length> )",
+                "description": "Creates a hyperbola with given focus points and semimajor axis length.",
+                "note": "If the condition: 0 < 2*semimajor axis length < Distance between the focus points isn't met, you will get an ellipse.",
+                "example": ["Hyperbola((0, -4), (2, 4), 1) yields -8xy - 15y² + 8y = -16"],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Hyperbola( <Focus>, <Focus>, <Segment> )",
+                "description": "Creates a hyperbola with given focus points where the length of the semimajor axis equals the length of the segment.",
+                "example": ["Let a = Segment((0,1), (2,1)). Hyperbola((4, 1), (-2, 1), a) yields -5x² + 4y² + 10x - 8y = -19"],
+                "related": ["Point", "Segment"]
+            },
+            {
+                "syntax": "Hyperbola( <Focus>, <Focus>, <Point> )",
+                "description": "Creates a hyperbola with given focus points passing through a given point.",
+                "example": ["Hyperbola((1, 1), (2, 1), (-2,-4)) yields -2.69x² + 1.30y² + 8.07x - 2.62y = 4.52"],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Parabola",
+        "category": "Conic Commands", 
+        "class": "Conic",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Parabola/",
+        "description": "Creates a parabola.",
+        "usage": [
+            {
+                "syntax": "Parabola( <Point>, <Line> )",
+                "description": "Creates a parabola with focal point and the line as directrix.",
+                "example": ["Let a = Line((0,1), (2,1)). Parabola((3, 3), a) yields x² - 6x - 4y = -17"],
+                "related": ["Point", "Line"]
+            }
+        ]
+    },
+    {
+        "command": "Circle",
+        "category": "Geometry Commands",
+        "class": "Conic",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Circle/",
+        "description": "Creates a circle.",
+        "usage": [
+            {
+                "syntax": "Circle( <Point>, <Radius> )",
+                "description": "Creates a circle with given center and radius.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Circle( <Point>, <Segment> )",
+                "description": "Creates a circle with given center and radius equal to the length of the given segment.",
+                "example": [],
+                "related": ["Point","Segment"]
+            },
+            {
+                "syntax": "Circle( <Point>, <Point> )",
+                "description": "Creates a circle with given center through a given point.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Circle( <Point>, <Point>, <Point> )",
+                "description": "Creates a circle through the three given points (if they do not lie on the same line).",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Circle( <Line>, <Point> )",
+                "description": "Creates a circle with line as axis and through the point.",
+                "example": [],
+                "related": ["Line","Point"]
+            },
+            {
+                "syntax": "Circle( <Point>, <Radius>, <Direction> )",
+                "description": "Creates a circle with center, radius, and axis parallel to direction, which can be a line, vector or plane.",
+                "example": [],
+                "related": ["Point","Direction"]
+            }
+        ]
+    },
+    {
+        "command": "Sector",
+        "category": "Geometry Commands",
+        "class": "Conic",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Sector/",
+        "description": "Creates a conic sector and calculates its area.",
+        "usage": [
+            {
+                "syntax": "Sector( <Conic>, <Point>, <Point> )",
+                "description": "Yields a conic sector between two points on the conic section and calculates its area. Only works for circles and ellipses.",
+                "example": [
+                    "Let c: x² + 2y² = 8 be an ellipse, D = (-2.83, 0) and E = (0, -2) two points on the ellipse. Sector(c, D, E) yields d = 4.44",
+                    "Let c: x² + y² = 9 be a circle, A = (3, 0) and B = (0, 3) two points on the circle. Sector(c, A, B) yields d = 7.07"
+                ],
+                "related": ["Conic", "Point"]
+            },
+            {
+                "syntax": "Sector( <Conic>, <Parameter Value>, <Parameter Value> )",
+                "description": "Yields a conic sector between two parameter values between 0 and 2π on the conic section and calculates its area.",
+                "note": "Internally uses parametric forms: Circle: (r cos(t), r sin(t)) where r is radius. Ellipse: (a cos(t), b sin(t)) where a,b are semimajor/minor axes.",
+                "example": ["Let c: x² + y² = 9 be a circle. Sector(c, 0, 3/4 π) yields d = 10.6"],
+                "related": ["Conic"]
+            }
+        ]
+    },
+    {
+        "command": "CircularArc",
+        "category": "Geometry Commands",
+        "class": "Circle",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/CircularArc/",
+        "description": "Creates a circular arc.",
+        "usage": [
+            {
+                "syntax": "CircularArc( <Midpoint>, <Point A>, <Point B> )",
+                "description": "Creates a circular arc with midpoint between the two points.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "CircularSector",
+        "category": "Geometry Commands",
+        "class": "Circle",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/CircularSector/",
+        "description": "Creates a circular sector.",
+        "usage": [
+            {
+                "syntax": "CircularSector( <Midpoint>, <Point A>, <Point B> )",
+                "description": "Creates a circular sector with midpoint between the two points.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {   
+        "command": "CircumcircularArc",
+        "category": "Geometry Commands",
+        "class": "Circle",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/CircumcircularArc/",
+        "description": "Creates a circumcircular arc.",
+        "usage": [
+            {
+                "syntax": "CircumcircularArc( <Point>, <Point>, <Point> )",
+                "description": "Creates a circular arc through three points, where the first point is the starting point and the third point is the endpoint of the circumcircular arc.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "CircumcircularSector",
+        "category": "Geometry Commands",
+        "class": "Circle",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/CircumcircularSector/",
+        "description": "Creates a circumcircular sector.",
+        "usage": [
+            {
+                "syntax": "CircumcircularSector( <Point>, <Point>, <Point> )",
+                "description": "Creates a circular sector whose arc runs through the three points, where the first point is the starting point and the third point is the endpoint of the arc.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Cone",
+        "category": "3D Commands",
+        "class": "Quadric",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Cone/",
+        "description": "Creates a cone.",
+        "usage": [
+            {
+                "syntax": "Cone( <Circle>, <Height> )",
+                "description": "Creates a cone with given base and height.",
+                "example": [],
+                "related": ["Conic-Circle"]
+            },
+            {
+                "syntax": "Cone( <Point>, <Point>, <Radius> )",
+                "description": "Creates a cone with vertex (second point), circle center (first point) and given radius.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Cone( <Point>, <Vector>, <Angle α> )",
+                "description": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to the given vector and apex angle 2α.",
+                "example": [],
+                "note": "This command yields undefined if angle ≥ 𝜋/2.",
+                "related": ["Point","Vector","Angle"]
+            }
+        ]
+    },
+    {
+        "command": "Cube",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Cube/",
+        "description": "Creates a cube.",
+        "usage": [
+            {
+                "syntax": "Cube( <Square> )",
+                "description": "Creates a cube having as base the given square.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Cube( <Point>, <Point>, <Direction> )",
+                "description": "Creates a cube having the segment between the two points as an edge. The other vertices are uniquely determined by the given direction, that should be one of: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created cube will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "Cube( <Point>, <Point>, <Point> )",
+                "description": "Creates a cube with three (adjacent) points of the first face. The points have to start a square for the cube to be defined.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Cube( <Point>, <Point> )",
+                "description": "Creates a cube with two (adjacent) points of the first face, and the third point automatically created on a circle, so that the cube can rotate around its first edge.",
+                "note": "Cube(A, B) is a shortcut for Cube(A, B, C) with C = Point(Circle(B, Distance(A, B), Segment(A, B))).",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Cylinder",
+        "category": "3D Commands", 
+        "class": "Quadric",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Cylinder/",
+        "description": "Creates a cylinder.",
+        "usage": [
+            {
+                "syntax": "Cylinder( <Circle>, <Height> )",
+                "description": "Creates a cylinder with given base and given height.",
+                "example": [],
+                "related": ["Circle"]
+            },
+            {
+                "syntax": "Cylinder( <Point>, <Point>, <Radius> )",
+                "description": "Creates a cylinder with given radius and with given points as the centers of the top and bottom.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Dodecahedron",
+        "category": "3D Commands",
+        "class": "3D", 
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Dodecahedron/",
+        "description": "Creates a dodecahedron.",
+        "usage": [
+            {
+                "syntax": "Dodecahedron( <Regular pentagon> )",
+                "description": "Creates a dodecahedron having the given regular pentagon as base.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Dodecahedron( <Point>, <Point>, <Direction> )",
+                "description": "Creates a dodecahedron having the segment between two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created dodecahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "Dodecahedron( <Point>, <Point>, <Point> )",
+                "description": "Creates a dodecahedron with three (adjacent) points of the first face. The points have to start a regular pentagon for the dodecahedron to be defined.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Dodecahedron( <Point>, <Point> )",
+                "description": "Creates a dodecahedron with two (adjacent) points of the first face, and the third point automatically created on a circle, so that the dodecahedron can rotate around its first edge.",
+                "note": "Dodecahedron(A, B) is a shortcut for Dodecahedron(A, B, C) with C = Point(Circle(((1 - sqrt(5)) A + (3 + sqrt(5)) B) / 4, Distance(A, B) sqrt(10 + 2sqrt(5)) / 4, Segment(A, B))).",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Icosahedron",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Icosahedron/",
+        "description": "Creates an icosahedron.",
+        "usage": [
+            {
+                "syntax": "Icosahedron( <Equilateral Triangle> )",
+                "description": "Creates an icosahedron having as base the given equilateral triangle.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Icosahedron( <Point>, <Point>, <Direction> )",
+                "description": "Creates an icosahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created icosahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "Icosahedron( <Point>, <Point>, <Point> )",
+                "description": "Creates an icosahedron with the three points of the first face. The points have to draw an equilateral triangle for the icosahedron to be defined.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Icosahedron( <Point>, <Point> )",
+                "description": "Creates an icosahedron with the two points of the first face, and the third point automatically created on a circle, so that the icosahedron can rotate around its first edge.",
+                "note": "Icosahedron(A, B) is a shortcut for Icosahedron(A, B, C) with C = Point(Circle(Midpoint(A, B), Distance(A, B) sqrt(3) / 2, Segment(A, B))).",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Incircle",
+        "category": "Conic Commands",
+        "class": "Circle",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Incircle/",
+        "description": "Creates the incircle of a triangle.",
+        "usage": [
+            {
+                "syntax": "Incircle( <Point>, <Point>, <Point> )",
+                "description": "Creates the incircle of the triangle formed by the three points. The incircle is the circle that is tangent to all three sides of the triangle.",
+                "example": ["Let O=(0, 0), A=(3, 0) and B=(0, 5) be three points: Incircle(O, A, B) yields (x - 1.08)² + (y - 1.08)² = 1.18 in Algebra View and draws the corresponding circle in Graphics View."],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "InfiniteCone",
+        "category": "3D Commands",
+        "class": "Quadric",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/InfiniteCone/",
+        "description": "Creates an infinite cone.",
+        "usage": [
+            {
+                "syntax": "InfiniteCone( <Point>, <Vector>, <Angle α> )",
+                "description": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to the given vector and apex angle 2α.",
+                "example": [],
+                "related": ["Point", "Vector", "Angle"]
+            },
+            {
+                "syntax": "InfiniteCone( <Point>, <Point>, <Angle α> )",
+                "description": "Creates an infinite cone with given first point as vertex, line through two points as axis of symmetry and apex angle 2α.",
+                "example": [],
+                "related": ["Point", "Angle"]
+            },
+            {
+                "syntax": "InfiniteCone( <Point>, <Line>, <Angle α> )",
+                "description": "Creates an infinite cone with given point as vertex, axis of symmetry parallel to given line and apex angle 2α.",
+                "example": [],
+                "related": ["Point", "Line", "Angle"]
+            }
+        ]
+    },{
+        "command": "InfiniteCylinder",
+        "category": "3D Commands",
+        "class": "Quadric",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/InfiniteCylinder/",
+        "description": "Creates an infinite cylinder.",
+        "usage": [
+            {
+                "syntax": "InfiniteCylinder( <Point>, <Vector>, <Number> )",
+                "description": "Creates an infinite cylinder with given point on axis, axis of symmetry parallel to the given vector and radius.",
+                "example": [],
+                "related": ["Point", "Vector"]
+            },
+            {
+                "syntax": "InfiniteCylinder( <Point>, <Point>, <Number> )",
+                "description": "Creates an infinite cylinder with axis through two points and given radius.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "InfiniteCylinder( <Line>, <Number> )",
+                "description": "Creates an infinite cylinder with given line as axis and radius.",
+                "example": [],
+                "related": ["Line"]
+            }
+        ]
+    }
+    ,{
+        "command": "Octahedron",
+        "category": "3D Commands",
+        "class": "Quadric",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Octahedron/",
+        "description": "Creates an octahedron.",
+        "usage": [
+            {
+                "syntax": "Octahedron( <Equilateral Triangle> )",
+                "description": "Creates an octahedron having as base the given equilateral triangle.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Octahedron( <Point>, <Point>, <Direction> )",
+                "description": "Creates an octahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created octahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "Octahedron( <Point>, <Point>, <Point> )",
+                "description": "Creates an octahedron with the three points of the first face. The points have to draw an equilateral triangle for the octahedron to be defined.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Octahedron( <Point>, <Point> )",
+                "description": "Creates an octahedron with the two points of the first face, and the third point automatically created on a circle, so that the octahedron can rotate around its first edge. Octahedron(A, B) is a shortcut for Octahedron(A, B, C) with C = Point(Circle(Midpoint(A, B), Distance(A, B) sqrt(3) / 2, Segment(A, B))).",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Plane",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Plane/",
+        "description": "Creates a plane.",
+        "usage": [
+            {
+                "syntax": "Plane( <Polygon> )",
+                "description": "Creates the plane containing the given polygon.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Plane( <Conic> )",
+                "description": "Creates the plane containing the conic.",
+                "example": [],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Plane( <Point>, <Plane> )",
+                "description": "Creates the plane through the given point, parallel to the given plane.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Plane( <Point>, <Line> )",
+                "description": "Creates the plane through the given point and line.",
+                "example": [],
+                "related": ["Point", "Line"]
+            },
+            {
+                "syntax": "Plane( <Line>, <Line> )",
+                "description": "Creates the plane through the lines (that must be intersecting or parallel to each other).",
+                "example": [],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "Plane( <Point>, <Point>, <Point> )",
+                "description": "Creates the plane through the given points.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Plane( <Point>, <Vector>, <Vector> )",
+                "description": "Creates the plane through the given point and having as normal vector the cross product of the given vectors (that must not be collinear).",
+                "example": [],
+                "related": ["Point", "Vector"]
+            }
+        ]
+    },
+    {
+        "command": "Polygon",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Polygon/",
+        "description": "Creates a polygon such as a triangle, square, quadrilateral, pentagon, hexagon, etc.",
+        "usage": [
+            {
+                "syntax": "Polygon( <Point>, …​, <Point> )",
+                "description": "Creates a polygon defined by the given points.",
+                "example": ["Polygon((1, 1), (3, 0), (3, 2), (0, 4)) yields a quadrilateral."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Polygon( <Point>, <Point>, <Number of Vertices> )",
+                "description": "Creates a regular polygon with n vertices.",
+                "example": ["Polygon((1, 1), (4, 1), 6) yields a hexagon."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Polygon( <Point>, <Point>, <Number of Vertices n>, <Direction> )",
+                "description": "Creates a regular polygon with n vertices, and directed by the direction (e.g. a plane to which the polygon will be parallel, if possible).",
+                "example": [],
+                "related": ["Point", "Direction"]
+            }
+        ]
+    },
+    {
+        "command": "Prism",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Prism/",
+        "description": "Creates a prism.",
+        "usage": [
+            {
+                "syntax": "Prism( <Point>, <Point>, …​ )",
+                "description": "Creates a prism defined by the given points.",
+                "note": "Prism(A, B, C, D) creates the prism with base ABC and top DEF. The vectors AD, BE, CF are equal.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Prism( <Polygon>, <Point> )",
+                "description": "Creates a prism with the given polygon as base and the point as first top point.",
+                "note": "Prism(poly1, A) creates a prism with base poly1 and top point A.",
+                "example": [],
+                "related": ["Polygon", "Point"]
+            },
+            {
+                "syntax": "Prism( <Polygon>, <Height value> )",
+                "description": "Creates a right prism with the polygon as base and given height.",
+                "note": "Prism(poly1, 3) creates a prism with base poly1 and height 3.",
+                "example": [],
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "Pyramid",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Pyramid/",
+        "description": "Creates a pyramid.",
+        "usage": [
+            {
+                "syntax": "Pyramid( <Point>, <Point>, …​ )",
+                "description": "Creates a pyramid defined by the given points.",
+                "note": "Pyramid(A, B, C, D) creates the pyramid with base ABC and apex D.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Pyramid( <Polygon>, <Point> )",
+                "description": "Creates a pyramid with the given polygon as base and the point as apex.",
+                "note": "Pyramid(poly1, A) creates a pyramid with base poly1 and apex A.",
+                "example": [],
+                "related": ["Polygon", "Point"]
+            },
+            {
+                "syntax": "Pyramid( <Polygon>, <Height> )",
+                "description": "Creates a centered pyramid defined by the polygon as base and given height.",
+                "note": "Pyramid(poly1, 3) creates a centered pyramid with base poly1 and height 3.",
+                "example": [],
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "Sphere",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Sphere/",
+        "description": "Creates a sphere.",
+        "usage": [
+            {
+                "syntax": "Sphere( <Point>, <Radius> )",
+                "description": "Creates a sphere with center and radius.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Sphere( <Point>, <Point> )",
+                "description": "Creates a sphere with center in the first point through the second point.",
+                "note": "Sphere((0, 0, 0), (1, 1, 1)) yields x² + y² + z² = 3",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    }
+    ,{
+        "command": "Tetrahedron",
+        "category": "3D Commands",
+        "class": "3D",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Tetrahedron/",
+        "description": "Creates a tetrahedron.",
+        "usage": [
+            {
+                "syntax": "Tetrahedron( <Equilateral Triangle> )",
+                "description": "Creates a tetrahedron having as base the given equilateral triangle.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Tetrahedron( <Point>, <Point>, <Direction> )",
+                "description": "Creates a tetrahedron having the segment between the two points as an edge. The other vertices are univocally determined by the given direction, that needs to be: a vector, a segment, a line, a ray orthogonal to the segment, or a polygon, a plane parallel to the segment. The created tetrahedron will have: a face with the segment as an edge in a plane orthogonal to the given vector/segment/line/ray, or a face with the segment as an edge in a plane parallel to the polygon/plane.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "Tetrahedron( <Point>, <Point>, <Point> )",
+                "description": "Creates a tetrahedron with the three points of the first face. The points have to draw an equilateral triangle for the tetrahedron to be defined.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Tetrahedron( <Point>, <Point> )",
+                "description": "Creates a tetrahedron with the two points of the first face, and the third point automatically created on a circle, so that the tetrahedron can rotate around its first edge.",
+                "note": "Tetrahedron(A, B) is a shortcut for Tetrahedron(A, B, C) with C = Point(Circle(Midpoint(A, B), Distance(A, B) sqrt(3) / 2, Segment(A, B))).",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Curve",
+        "category": "3D Commands",
+        "class": "3D", 
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Curve/",
+        "description": "Creates a parametric curve in 2D or 3D.",
+        "usage": [
+            {
+                "syntax": "Curve( <Expression>, <Expression>, <Parameter Variable>, <Start Value>, <End Value> )",
+                "description": "Creates a 2D parametric curve using x and y expressions with the given parameter variable over the specified interval.",
+                "note": "End Value must be greater than or equal to Start Value and both must be finite. x, y and z cannot be used as parameter variables.",
+                "example": ["Curve(2 cos(t), 2 sin(t), t, 0, 2π) creates a circle with radius 2 around the origin"],
+                "related": []
+            },
+            {
+                "syntax": "Curve( <Expression>, <Expression>, <Expression>, <Parameter Variable>, <Start Value>, <End Value> )",
+                "description": "Creates a 3D parametric curve using x, y and z expressions with the given parameter variable over the specified interval.", 
+                "note": "End Value must be greater than or equal to Start Value and both must be finite. x, y and z cannot be used as parameter variables.",
+                "example": ["Curve(cos(t), sin(t), t, t, 0, 10π) creates a 3D spiral"],
+                "related": []
+            }
+        ]
+    },
+    {
+        "command": "Intersect",
+        "category": "Geometry Commands",
+        "class": "Point",
+        "link": "https://geogebra.github.io/docs/manual/en/commands/Intersect/",
+        "description": "Yields the intersection points of two objects.",
+        "usage": [
+            {
+                "syntax": "Intersect( <Object>, <Object> )",
+                "description": "Yields the intersection points of two objects.",
+                "example": ["Let a: -3x + 7y = -10 be a line and c: x^2 + 2y^2 = 8 be an ellipse. Intersect(a, c) yields the intersection points E = (-1.02, -1,87) and F = (2.81, -0.22) of the line and the ellipse.", "Intersect(y = x + 3, Curve(t, 2t, t, 0, 10)) yields A=(3,6).", "Intersect(Curve(2s, 5s, s,-10, 10), Curve(t, 2t, t, -10, 10)) yields A=(0,0)"],
+                "related": ["Line", "Conic", "Curve"]
+            },
+            {
+                "syntax": "Intersect( <Object>, <Object>, <Index of Intersection Point> )",
+                "description": "Yields the nth intersection point of two objects. Each object must be a line, conic, polynomial function or implicit curve.",
+                "example": ["Let a(x) = x^3 + x^2 - x be a function and b: -3x + 5y = 4 be a line. Intersect(a, b, 2) yields the intersection point C = (-0.43, 0.54) of the function and the line."],
+                "related": ["Line", "Conic", "Function"]
+            },
+            {
+                "syntax": "Intersect( <Object>, <Object>, <Initial Point> )",
+                "description": "Yields an intersection point of two objects by using a numerical, iterative method with initial point.",
+                "example": ["Let a(x) = x^3 + x^2 - x be a function, b: -3x + 5y = 4 be a line, and C = (0, 0.8) be the initial point. Intersect(a, b, C) yields the intersection point D = (-0.43, 0.54) of the function and the line by using a numerical, iterative method."],
+                "related": ["Point", "Line", "Function"]
+            },
+            {
+                "syntax": "Intersect( <Function>, <Function>, <Start x-Value>, <End x-Value> )",
+                "description": "Yields the intersection points numerically for the two functions in the given interval.",
+                "example": ["Let f(x) = x^3 + x^2 - x and g(x) = 4 / 5 + 3 / 5 x be two functions. Intersect(f, g, -1, 2) yields the intersection points A = (-0.43, 0.54) and B = (1.1, 1.46) of the two functions in the interval [ -1, 2 ]."],
+                "related": ["Function"]
+            },
+            {
+                "syntax": "Intersect( <Curve 1>, <Curve 2>, <Parameter 1>, <Parameter 2> )",
+                "description": "Finds one intersection point using a numerical, iterative method starting at the given parameters.",
+                "example": ["Let a = Curve(cos(t), sin(t), t, 0, π) and b = Curve(cos(t) + 1, sin(t), t, 0, π). Intersect(a, b, 0, 2) yields the intersection point A = (0.5, 0.87)."],
+                "related": ["Curve"]
+            }
+        ]
+    }
+]

@@ -87,6 +87,12 @@ class LLMManager:
             "model": ADVANCED_MODEL,
             "temperature": 0.3,
             "system_message": "您是一个创新的几何问题解决专家，能够提供多种不同的解题思路和方法。"
+        },
+        # 명령어 선택 전용 LLM 프로필
+        "command_selection": {
+            "model": ADVANCED_MODEL,
+            "temperature": 0.2,
+            "system_message": "您是一个GeoGebra命令选择专家，能够从多个候选命令中选择最适合特定几何作图步骤的命令。您理解几何概念、GeoGebra语法和作图步骤的上下文关系。"
         }
     }
     
@@ -263,6 +269,11 @@ class LLMManager:
     def get_alternative_solution_llm(cls, **kwargs):
         """대체 해법 에이전트용 LLM 인스턴스 생성"""
         return cls.get_llm("alternative", **kwargs)
+    
+    @classmethod
+    def get_command_selection_llm(cls, **kwargs):
+        """명령어 선택 에이전트용 LLM 인스턴스 생성"""
+        return cls.get_llm("command_selection", **kwargs)
     
     # === 계산 에이전트별 LLM 인스턴스 (하위 호환성 유지) ===
     @classmethod

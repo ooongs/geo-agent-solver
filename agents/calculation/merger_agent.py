@@ -6,82 +6,14 @@
 """
 
 from typing import Dict, Any
+import re
+import json
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 
 from models.state_models import GeometryState
 from agents.calculation.prompts.merger_prompt import RESULT_MERGER_PROMPT, MERGER_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
-
-def parse_merger_result(output: str, existing_results: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    병합 결과 파싱
-    
-    Args:
-        output: 에이전트 출력 문자열
-        existing_results: 기존 계산 결과
-        
-    Returns:
-        최종 계산 결과
-    """
-    import re
-    import json
-    
-    # JSON 형식 결과가 있는지 확인
-    json_pattern = r'```json\n(.*?)\n```'
-    json_matches = re.findall(json_pattern, output, re.DOTALL)
-    
-    if json_matches:
-        try:
-            return json.loads(json_matches[0])
-        except json.JSONDecodeError:
-            pass
-    
-    # 기존 결과가 없으면 새로 생성
-    if not existing_results:
-        existing_results = {}
-    
-    # 결과 복사 (기존 결과를 유지하기 위해)
-    final_results = {k: v for k, v in existing_results.items()}
-    
-    # 계산 단계 추출
-    steps = []
-    step_pattern = r'(?:步骤|step)\s*\d+[.:]\s*(.+?)(?=(?:步骤|step)|$)'
-    step_matches = re.findall(step_pattern, output, re.DOTALL)
-    if step_matches:
-        steps = [step.strip() for step in step_matches]
-    
-    # 단계가 추출됐으면 추가
-    if steps:
-        if "steps" not in final_results:
-            final_results["steps"] = []
-        final_results["steps"].extend(steps)
-    
-    # 문제 유형 정보 추가
-    problem_type = final_results.get("problem_type", {})
-    if isinstance(problem_type, dict):
-        if "triangle" in output.lower() or "三角形" in output:
-            problem_type["triangle"] = True
-        if "circle" in output.lower() or "圆" in output:
-            problem_type["circle"] = True
-        if "angle" in output.lower() or "角" in output:
-            problem_type["angle"] = True
-        if "coordinate" in output.lower() or "坐标" in output:
-            problem_type["coordinate"] = True
-        if "area" in output.lower() or "面积" in output:
-            problem_type["area"] = True
-        if "measurement" in output.lower() or "测量" in output:
-            problem_type["measurement"] = True
-    
-    if problem_type:
-        final_results["problem_type"] = problem_type
-    
-    # 종합 결론 추출
-    conclusion = re.search(r'(?:结论|conclusion)[：:]\s*(.*?)(?=\n\n|\Z)', output, re.DOTALL)
-    if conclusion:
-        final_results["conclusion"] = conclusion.group(1).strip()
-    
-    return final_results
 
 def calculation_result_merger_agent(state: GeometryState) -> GeometryState:
     """
@@ -129,10 +61,23 @@ def calculation_result_merger_agent(state: GeometryState) -> GeometryState:
         "agent_scratchpad": ""
     })
     
-    # 최종 결과 생성
-    final_results = parse_merger_result(result.content, state.calculation_results)
+    # JSON 결과 추출
+    json_pattern = r'```json\n(.*?)\n```'
+    json_matches = re.findall(json_pattern, result.content, re.DOTALL)
     
-    # 상태 업데이트
-    state.calculations = final_results
+    if json_matches:
+        try:
+            # JSON 파싱
+            final_results = json.loads(json_matches[0])
+            
+            # construction_plan 분리
+            construction_plan = final_results.pop("construction_plan", {})
+            
+            # 상태 업데이트
+            state.calculations = final_results
+            state.construction_plan = construction_plan
+        except json.JSONDecodeError:
+            # JSON 파싱 실패 시 기존 결과 유지
+            pass
     
     return state 

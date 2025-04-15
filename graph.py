@@ -24,8 +24,9 @@ def create_geometry_solver_graph():
         analysis_agent,
         explanation_agent,
         geogebra_command_agent,
+        geogebra_command_retrieval_agent,
         validation_agent,
-        alternative_solution_agent,
+        command_regeneration_agent,
     )
 
     from agents.calculation import (
@@ -54,10 +55,11 @@ def create_geometry_solver_graph():
     workflow.add_node("calculation_manager_agent", calculation_manager_agent)
     workflow.add_node("calculation_result_merger_agent", calculation_result_merger_agent)
 
-
+    workflow.add_node("geogebra_command_retrieval_agent", geogebra_command_retrieval_agent)
     workflow.add_node("geogebra_command_agent", geogebra_command_agent)
     workflow.add_node("validation_agent", validation_agent)
-    workflow.add_node("alternative_agent", alternative_solution_agent)   
+    workflow.add_node("command_regeneration_agent", command_regeneration_agent)
+
     workflow.add_node("explanation_agent", explanation_agent)
     
     # 에이전트 간 전환 규칙 설정
@@ -69,14 +71,15 @@ def create_geometry_solver_graph():
         if state.requires_calculation:
             return "calculation_manager_agent"
         else:
-            return "geogebra_command_agent"
+            # 계산이 필요 없는 경우 바로 retrieval로 이동
+            return "geogebra_command_retrieval_agent"
     
     workflow.add_conditional_edges(
         "analysis_agent",
         route_after_analysis,
         {
             "calculation_manager_agent": "calculation_manager_agent",
-            "geogebra_command_agent": "geogebra_command_agent"
+            "geogebra_command_retrieval_agent": "geogebra_command_retrieval_agent"
         }
     )
     
@@ -176,10 +179,14 @@ def create_geometry_solver_graph():
         }
     )
     
-    # 결과 병합 후 해결책 생성
-    workflow.add_edge("calculation_result_merger_agent", "geogebra_command_agent")
+    # 결과 병합 후 명령어 검색
+    workflow.add_edge("calculation_result_merger_agent", "geogebra_command_retrieval_agent")
+    
+    # 명령어 검색 후 명령어 생성
+    workflow.add_edge("geogebra_command_retrieval_agent", "geogebra_command_agent")
+    
+    # 명령어 생성 후 검증
     workflow.add_edge("geogebra_command_agent", "validation_agent")
-
 
     # 검증 후 조건부 엣지 추가
     workflow.add_conditional_edges(
@@ -187,19 +194,22 @@ def create_geometry_solver_graph():
         route_after_validation,
         {
             "success": "explanation_agent",
-            "failure": "alternative_agent"
+            "regenerate": "command_regeneration_agent"
         }
     )
     
-    # 대체 해법에서 명령어 생성으로 돌아가는 조건부 엣지
-    workflow.add_conditional_edges(
-        "alternative_agent",
-        route_after_alternative_solution,
-        {
-            "retry": "geogebra_command_agent",
-            "give_up": "explanation_agent"
-        }
-    )
+    # 명령어 재생성 후 다시 검증
+    workflow.add_edge("command_regeneration_agent", "validation_agent")
+    
+    # # 대체 해법에서 명령어 생성으로 돌아가는 조건부 엣지
+    # workflow.add_conditional_edges(
+    #     "alternative_agent",
+    #     route_after_alternative_solution,
+    #     {
+    #         "retry": "geogebra_command_agent",
+    #         "give_up": "explanation_agent"
+    #     }
+    # )
     
     # 시작점과 종료점 설정
     workflow.set_entry_point("parsing_agent")
@@ -209,8 +219,13 @@ def create_geometry_solver_graph():
 
 def route_after_validation(state: GeometryState) -> str:
     """검증 결과에 따른 라우팅 결정"""
-    return "success" if state.is_valid else "failure"
-
-def route_after_alternative_solution(state: GeometryState) -> str:
-    """대체 해법 탐색 후 라우팅 결정"""
-    return "give_up" if state.attempt_count >= MAX_ATTEMPTS else "retry" 
+    if state.is_valid:
+        return "success"
+    
+    # 최대 재생성 시도 횟수 초과 시 그냥 설명으로 넘어감
+    if state.command_regeneration_attempts >= MAX_ATTEMPTS:
+        print(f"[WARNING] 최대 명령어 재생성 시도 횟수({MAX_ATTEMPTS})를 초과했습니다. 설명으로 넘어갑니다.")
+        state.is_valid = True  # 강제로 유효하다고 설정
+        return "success"
+    
+    return "regenerate"

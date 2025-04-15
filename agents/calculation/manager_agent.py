@@ -104,13 +104,11 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
             tasks_list = parsed_result.get("tasks", [])
             completed_ids = parsed_result.get("completed_task_ids", [])
             next_calc_type = parsed_result.get("next_calculation_type")
-            skip_calculations = parsed_result.get("skip_calculations", [])
         else:
             # Pydantic 모델 객체인 경우
             tasks_list = parsed_result.tasks
             completed_ids = parsed_result.completed_task_ids
             next_calc_type = parsed_result.next_calculation_type
-            skip_calculations = parsed_result.skip_calculations if hasattr(parsed_result, "skip_calculations") else []
         
         # 기존 큐에 새로운 작업 병합
         for task_info in tasks_list:
@@ -134,6 +132,31 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
                     existing_task.geogebra_alternatives = task_info["geogebra_alternatives"]
                 if "geogebra_command" in task_info:
                     existing_task.geogebra_command = task_info["geogebra_command"]
+                
+                # GeoGebra 대체 가능 작업은 완료된 것으로 처리
+                if existing_task.geogebra_alternatives and existing_task.geogebra_command:
+                    if existing_task.task_id not in state.calculation_queue.completed_task_ids:
+                        state.calculation_queue.completed_task_ids.append(existing_task.task_id)
+                    existing_task.status = "completed"
+                    
+                    # 결과 정보에 GeoGebra 명령어 저장
+                    if "geogebra_direct_commands" not in state.calculation_results:
+                        state.calculation_results["geogebra_direct_commands"] = []
+                    
+                    # 이미 저장된 명령어인지 확인
+                    command_exists = False
+                    for cmd in state.calculation_results.get("geogebra_direct_commands", []):
+                        if cmd.get("task_id") == existing_task.task_id:
+                            command_exists = True
+                            break
+                    
+                    if not command_exists:
+                        state.calculation_results["geogebra_direct_commands"].append({
+                            "task_id": existing_task.task_id,
+                            "task_type": existing_task.task_type,
+                            "parameters": existing_task.parameters,
+                            "geogebra_command": existing_task.geogebra_command
+                        })
             else:
                 # 새 작업 추가
                 new_task = CalculationTask(
@@ -146,51 +169,46 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
                     geogebra_alternatives=task_info.get("geogebra_alternatives", False),
                     geogebra_command=task_info.get("geogebra_command")
                 )
+                
+                # GeoGebra 대체 가능 작업은 바로 완료된 것으로 처리
+                if new_task.geogebra_alternatives and new_task.geogebra_command:
+                    if new_task.task_id not in state.calculation_queue.completed_task_ids:
+                        completed_ids.append(new_task.task_id)
+                    new_task.status = "completed"
+                    
+                    # 결과 정보에 GeoGebra 명령어 저장
+                    if "geogebra_direct_commands" not in state.calculation_results:
+                        state.calculation_results["geogebra_direct_commands"] = []
+                    
+                    state.calculation_results["geogebra_direct_commands"].append({
+                        "task_id": new_task.task_id,
+                        "task_type": new_task.task_type,
+                        "parameters": new_task.parameters,
+                        "geogebra_command": new_task.geogebra_command
+                    })
+                
                 state.calculation_queue.tasks.append(new_task)
         
         # 완료된 작업 ID 업데이트
         for task_id in completed_ids:
             if task_id not in state.calculation_queue.completed_task_ids:
                 state.calculation_queue.completed_task_ids.append(task_id)
-        
-        # 건너뛸 계산 작업들 (GeoGebra 명령어로 대체 가능) 완료된 것으로 처리
-        for task_id in skip_calculations:
-            if task_id not in state.calculation_queue.completed_task_ids:
-                # 해당 작업 찾기
+                
+                # 해당 작업의 상태도 completed로 변경
                 for task in state.calculation_queue.tasks:
                     if task.task_id == task_id:
-                        # GeoGebra 명령어로 대체 가능한지 확인
-                        if task.geogebra_alternatives:
-                            # 작업 완료 표시
-                            task.status = "completed"
-                            if task_id not in state.calculation_queue.completed_task_ids:
-                                state.calculation_queue.completed_task_ids.append(task_id)
-                            
-                            # 결과 정보에 GeoGebra 명령어 저장
-                            if state.calculation_results is None:
-                                state.calculation_results = {}
-                            
-                            if "geogebra_direct_commands" not in state.calculation_results:
-                                state.calculation_results["geogebra_direct_commands"] = []
-                            
-                            state.calculation_results["geogebra_direct_commands"].append({
-                                "task_id": task_id,
-                                "task_type": task.task_type,
-                                "parameters": task.parameters,
-                                "geogebra_command": task.geogebra_command
-                            })
-                            
-                            print(f"[DEBUG] Task {task_id} skipped and marked as completed. Will be replaced with GeoGebra command: {task.geogebra_command}")
+                        task.status = "completed"
+                        break
         
         # 다음 계산 유형 설정 및 현재 작업 설정
         if next_calc_type:
             state.next_calculation = next_calc_type
             
-            # 건너뛰기 목록에 없는 해당 유형의 첫 번째 대기 중인 작업 찾기
+            # 완료되지 않은 해당 유형의 첫 번째 대기 중인 작업 찾기
             for task in state.calculation_queue.tasks:
                 if (task.task_type == next_calc_type and 
                     task.status == "pending" and 
-                    task.task_id not in skip_calculations):
+                    task.task_id not in state.calculation_queue.completed_task_ids):
                     state.calculation_queue.current_task_id = task.task_id
                     task.status = "running"
                     print(f"[DEBUG] Setting current_task_id to {task.task_id} and status to running")

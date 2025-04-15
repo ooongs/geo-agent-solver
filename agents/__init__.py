@@ -8,14 +8,15 @@ from agents.parsing_agent import parsing_agent
 from agents.analysis_agent import analysis_agent
 from agents.explanation_agent import explanation_agent
 from agents.geogebra_command_agent import geogebra_command_agent
+from agents.geogebra_command_retrieval_agent import geogebra_command_retrieval_agent
 from agents.validation_agent import validation_agent
-from agents.alternative_agent import alternative_solution_agent
-
+from agents.command_regeneration_agent import command_regeneration_agent
 __all__ = [
     "parsing_agent",
     "analysis_agent",
     "explanation_agent",
     "geogebra_command_agent",
+    "geogebra_command_retrieval_agent",
+    "command_regeneration_agent",
     "validation_agent",
-    "alternative_solution_agent"
 ]

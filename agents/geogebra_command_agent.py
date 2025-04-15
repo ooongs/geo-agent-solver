@@ -4,7 +4,6 @@ from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from utils.prompts import GEOGEBRA_COMMAND_PROMPT
-from utils.geogebra_validator import validate_geogebra_syntax
 from utils.llm_manager import LLMManager
 import re
 import json
@@ -38,6 +37,8 @@ def geogebra_command_agent(state):
         problem_analysis = state.problem_analysis
     elif "problem_type" in calculations:
         problem_analysis = {"problem_type": calculations["problem_type"]}
+
+    construction_plan = getattr(state, "construction_plan", {})
     
     # 에이전트 생성
     agent = create_openai_functions_agent(llm, tools, GEOGEBRA_COMMAND_PROMPT)
@@ -46,9 +47,9 @@ def geogebra_command_agent(state):
     # 에이전트 실행
     result = agent_executor.invoke({
         "problem": state.input_problem,
-        "parsed_elements": str(state.parsed_elements),
-        "calculations": str(calculations),
         "problem_analysis": str(problem_analysis),
+        "construction_plan": str(construction_plan),
+        "calculations": str(calculations),
         "agent_scratchpad": ""
     })
     

@@ -39,6 +39,7 @@ class ProblemType(BaseModel):
     circle: bool = Field(False, description="问题是否与圆相关")
     angle: bool = Field(False, description="问题是否与角度相关")
     coordinate: bool = Field(False, description="问题是否与坐标相关")
+    area: bool = Field(False, description="问题是否与面积相关")
     proof: bool = Field(False, description="问题是否为证明题")
     construction: bool = Field(False, description="问题是否为作图题")
     measurement: bool = Field(False, description="问题是否为计算题")
@@ -73,6 +74,7 @@ class ParsedElements(BaseModel):
         default_factory=AnalyzedConditions,
         description="问题条件分析结果"
     )
+    approach: Optional[str] = Field(None, description="作图方法（尺规作图/GeoGebra作图等）")
 
 def parsing_agent(state):
     """
@@ -105,7 +107,7 @@ def parsing_agent(state):
         
         # 추가 처리가 필요한 경우 여기서 수행
         _enhance_with_keywords(parsed_elements_dict, state.input_problem)
-        
+
     except Exception as e:
         # 파싱 실패 시 수동 파싱 시도
         print(f"구조화된 파싱 실패, 수동 파싱 시도: {str(e)}")
@@ -128,6 +130,13 @@ def parsing_agent(state):
                 "targets": {},
                 "error": f"파싱 오류: {str(e)}"
             }
+        
+        # 수동 파싱한 결과에도 problem_type과 approach 추가
+        if "problem_type" not in parsed_elements_dict:
+            parsed_elements_dict["problem_type"] = {}
+        
+        _enhance_with_keywords(parsed_elements_dict, state.input_problem)
+        parsed_elements_dict["approach"] = "GeoGebra作图"
     
     # 항상 딕셔너리 형태로 반환
     return {"parsed_elements": parsed_elements_dict}
@@ -272,6 +281,9 @@ def _enhance_with_keywords(parsed_elements: Dict[str, Any], problem: str) -> Non
     if "坐标" in problem or "平面直角坐标系" in problem:
         problem_type["coordinate"] = True
     
+    if "面积" in problem or "面積" in problem:
+        problem_type["area"] = True
+    
     # 문제 목표 분석
     if "证明" in problem or "求证" in problem:
         problem_type["proof"] = True
@@ -303,4 +315,4 @@ def _enhance_with_keywords(parsed_elements: Dict[str, Any], problem: str) -> Non
         for keyword in keywords:
             if keyword in problem:
                 conditions[condition] = True
-                break 
+                break

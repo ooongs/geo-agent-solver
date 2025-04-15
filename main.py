@@ -37,7 +37,6 @@ def solve_geometry_problem(problem_text: str, output_file: Optional[str] = None)
         "problem": problem_text,
         "geogebra_commands": result_dict.get("geogebra_commands"),
         "explanation": result_dict.get("explanation"),
-        "difficulty": result_dict.get("difficulty"),
         "parsed_elements": result_dict.get("parsed_elements"),
         "error": result_dict.get("errors")
     }
@@ -84,17 +83,40 @@ def save_result(result: dict, output_dir: str = "output"):
     
     # GeoGebra 명령어 저장
     with open(f"{output_dir}/{base_filename}.txt", "w", encoding="utf-8") as f:
-        f.write("\n".join(result["geogebra_commands"]))
+        # 실제 GeoGebra 명령어만 추출하여 저장
+        real_commands = []
+        commands_started = False
+        
+        for cmd in result["geogebra_commands"]:
+            # 명령어 정리 (따옴표 제거)
+            if cmd.startswith("\"") and cmd.endswith("\","):
+                cmd = cmd[1:-2]  # 시작 따옴표와 끝의 따옴표+쉼표 제거
+            elif cmd.startswith("\"") and cmd.endswith("\""):
+                cmd = cmd[1:-1]  # 시작과 끝의 따옴표만 제거
+            
+            # commands 섹션이 시작되면 플래그 설정
+            if cmd == "commands": 
+                commands_started = True
+                continue
+            
+            # 다음과 같은 경우는 스킵
+            if cmd.startswith("analysis") or cmd.startswith("fixed_issues") or cmd == "]" or cmd == "[":
+                continue
+                
+            real_commands.append(cmd)
+        
+        # 명령어들을 하나의 문자열로 합쳐서 저장
+        f.write("\n".join(real_commands))
     
     # 해설 저장 (마크다운)
     with open(f"{output_dir}/{base_filename}.md", "w", encoding="utf-8") as f:
         f.write(result["explanation"])
     
-    print(f"\n결과가 {output_dir} 디렉토리에 저장되었습니다.")
+    print(f"\nResults saved in {output_dir} directory.")
 
 def main():
     """메인 실행 함수"""
-    print("\n기하학 문제 해결 시스템 (GeoGebra 명령어 생성)\n")
+    print("\nGeometry problem solver (GeoGebra command generation)\n")
     
     # 명령줄 인수 확인
     if len(sys.argv) > 1:
@@ -102,7 +124,7 @@ def main():
         problem_text = sys.argv[1]
     else:
         # 문제 입력 또는 예제 선택
-        use_example = input("예제 문제를 사용하시겠습니까? (y/n): ").lower() == 'y'
+        use_example = input("Use example problem? (y/n): ").lower() == 'y'
         
         if use_example:
             # 예제 문제 목록
@@ -111,21 +133,22 @@ def main():
                 "已知圆O的半径为5，点P在圆上，点Q是直径OP上的中点，求PQ的长度。",
                 "在坐标平面中，点A(1,2)，点B(4,6)，求线段AB的中点坐标。",
                 "已知等边三角形ABC的边长为6，求三角形的高和面积。",
-                "在平面直角坐标系中，点A(0,0)，点B(3,0)，点C(0,4)，证明△ABC是直角三角形，并求其面积。"
+                "在平面直角坐标系中，点A(0,0)，点B(3,0)，点C(0,4)，证明△ABC是直角三角形，并求其面积。",
+                "△ABC为正三角形，D、E为BC上的点，且有∠CAD=∠DAE=∠EAB,取AD的中点F，连接BF交AE于G"
             ]
             
-            print("\n예제 문제 목록:")
+            print("\nExample problem list:")
             for i, example in enumerate(examples):
                 print(f"{i+1}. {example}")
             
-            choice = int(input("\n선택할 예제 번호 (1-5): ")) - 1
+            choice = int(input("\nSelect example number (1-6): ")) - 1
             problem_text = examples[choice]
         else:
             # 사용자 직접 입력
-            problem_text = input("\n중국어 기하학 문제를 입력하세요: ")
+            problem_text = input("\nEnter Chinese geometry problem: ")
     
     # 문제 해결
-    print("\n문제 해결 중...")
+    print("\nSolving problem...")
     result = solve_geometry_problem(problem_text)
     
     # 결과 출력
@@ -134,9 +157,9 @@ def main():
     # 결과 저장 (명령줄 인수로 넘어왔을 때는 자동 저장)
     if len(sys.argv) > 1:
         save_result(result)
-        print(f"\n결과가 output 디렉토리에 저장되었습니다.")
+        print(f"\nResults saved in output directory.")
     else:
-        save = input("\n결과를 저장하시겠습니까? (y/n): ").lower() == 'y'
+        save = input("\nSave results? (y/n): ").lower() == 'y'
         if save:
             save_result(result)
 

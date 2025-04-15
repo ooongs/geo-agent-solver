@@ -38,8 +38,8 @@ MANAGER_JSON_TEMPLATE = '''
     }
   ],
   "next_calculation_type": "triangle",
-  "completed_task_ids": [],
-  "skip_calculations": ["midpoint_1"]
+  "completed_task_ids": ["midpoint_1"],
+  "skip_calculations": []
 }
 '''
 
@@ -68,10 +68,11 @@ CALCULATION_MANAGER_PROMPT = ChatPromptTemplate.from_template("""
 4. 确定哪些计算可以被GeoGebra命令直接替代:
    - 中点计算: 可以用 Midpoint(A, B) 命令替代
    - 线的交点: 可以用 Intersect(a, b) 命令替代
-   - 角平分线: 可以用 AngleBisector(A, B, C) 命令替代
    - 垂直线/平行线: 可以用 Perpendicular/Parallel 命令替代
    - 各种特殊点: 可以用相应的GeoGebra命令替代
-5. 将可以被GeoGebra命令替代的计算任务标记为 geogebra_alternatives: true 并添加到 skip_calculations 列表
+5. 处理任务的GeoGebra替代方案:
+   - 对于已有 geogebra_alternatives = true 的任务，应将其加入 completed_task_ids
+   - 对于新识别的可被GeoGebra命令替代的任务，设置 geogebra_alternatives = true 和对应的 geogebra_command
 6. 确定下一个要执行的作图类型，优先考虑：
    - 必须通过计算获得的基础点坐标和值
    - 没有依赖的任务
@@ -95,7 +96,7 @@ CALCULATION_MANAGER_PROMPT = ChatPromptTemplate.from_template("""
 |-----|-------|---------|------|
 | 1 | 问题需要哪些作图类型？ | 分析问题描述和已知条件 | 列出所需的作图类型 |
 | 2 | 作图任务之间的依赖关系是什么？ | 分析作图顺序和依赖 | 确定任务依赖关系 |
-| 3 | 哪些计算可以直接用GeoGebra命令替代？ | 分析计算任务特性 | 识别可跳过的计算任务 |
+| 3 | 哪些计算可以直接用GeoGebra命令替代？ | 分析计算任务特性 | 识别可跳过的计算任务并设置geogebra_alternatives=true |
 | 4 | 下一个执行哪个作图任务？ | 检查依赖关系和优先级 | 选择下一个任务 |
 
 重要提示：你必须返回一个有效的JSON对象，格式如下：

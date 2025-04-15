@@ -1,0 +1,1275 @@
+[
+    {
+        "command": "Circumference",
+        "category": "3D Commands",
+        "usage": [
+            {
+                "syntax": "Circumference(Conic)",
+                "description": "If the given conic is a circle or ellipse, this command returns its circumference. Otherwise the result is undefined.",
+                "example": ["Circumference(x^2 + 2y^2 = 1) yields 5.4."],
+                "related": ["Conic"]
+            }
+        ]
+    },
+    {
+        "command": "Bottom",
+        "category": "3D Commands",
+        "usage": [
+            {
+                "syntax": "Bottom( <Quadric> )",
+                "description": "Creates the bottom of the limited quadric.",
+                "example": ["Bottom(cylinder) yields a circle."],
+                "related": ["Quadric"]
+            }
+        ]   
+    },
+    {
+        "command": "Center",
+        "category": "3D Commands",
+        "usage": [
+            {
+                "syntax": "Center( <Conic> )",
+                "description": "Returns the center of a circle, ellipse, or hyperbola.",
+                "example": ["Center(x^2 + 4 y^2 + 2x - 8y + 1 = 0) returns point A = (-1, 1)"],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Center( <Quadric> )",
+                "description": "Creates the center of a quadric (e.g. sphere, cone, etc.).",
+                "example": ["Center(x^2 + (y-1)^2 + (z-2)^2 = 1) yields (0, 1, 2)"],
+                "related": ["Quadric"]
+            }
+        ]
+    },    {
+        "command": "Axes",
+        "category": "3D Commands",
+        "usage": [
+            {
+                "syntax": "Axes( <Conic> )",
+                "description": "Returns the equations of the major and minor axes of a conic section.",
+                "example": [],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Axes( <Quadric> )",
+                "description": "Creates the 3 axes of the given quadric.",
+                "example": ["Axes(x^2 + y^2 + z^2= 3) returns the three lines a: X = (0, 0, 0) + λ (1, 0, 0), b: X = (0, 0, 0) + λ (0, 1, 0) and c: X = (0, 0, 0) + λ (0, 0, 1)"],
+                "related": ["Quadric"]
+            }
+        ]
+    },
+    {
+        "command": "Angle",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Angle( <Conic> )",
+                "description": "Returns the angle of twist of a conic section’s major axis (see command Axes)",
+                "example": ["Angle(x²/4+y²/9=1) yields 90° or 1.57 if the default angle unit is radians."],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Angle( <Vector> )",
+                "description": "Returns the angle between the x‐axis and given vector.",
+                "example": ["Angle(Vector((1, 1))) yields 45° or the corresponding value in radians."],
+                "related": ["Vector"]
+            },
+            {
+                "syntax": "Angle( <Point> )",
+                "description": "Returns the angle between the x‐axis and the position vector of the given point.",
+                "example": ["Angle((1, 1)) yields 45° or the corresponding value in radians."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Angle( <Number> )",
+                "description": "Converts the number into an angle (result in [0,360°] or [0,2π] depending on the default angle unit).",
+                "example": ["Angle(20) yields 65.92° when the default unit for angles is degrees."],
+                "related": ["Number"]
+            },
+            {
+                "syntax": "Angle( <Polygon> )",
+                "description": "Creates all angles of a polygon in mathematically positive orientation (counter clockwise).",
+                "example": ["Angle(Polygon((4, 1), (2, 4), (1, 1))) yields 56.31°, 52.13° and 71.57° or the corresponding values in radians."],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Angle( <Vector>, <Vector> )",
+                "description": "Returns the angle between two vectors (result in [0,360°] or [0,2π] depending on the default angle unit).",
+                "example": ["Angle(Vector((1, 1)), Vector((2, 5))) yields 23.2° or the corresponding value in radians."],
+                "related": ["Vector"]
+            },
+            {
+                "syntax": "Angle( <Line>, <Line> )",
+                "description": "Returns the angle between the direction vectors of two lines (result in [0,360°] or [0,2π] depending on the default angle unit).",
+                "example": ["Angle(y = x + 2, y = 2x + 3) yields 18.43° or the corresponding value in radians.","Angle(Line((-2, 0, 0), (0, 0, 2)), Line((2, 0, 0), (0, 0, 2))) yields 90° or the corresponding value in radians.",""],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "Angle( <Line>, <Plane> )",
+                "description": "Returns the angle between the line and the plane.",
+                "example": ["Angle(Line((1, 2, 3),(-2, -2, 0)), z = 0) yields 30.96° or the corresponding value in radians."],
+                "related": ["Line", "Plane"]
+            },
+            {
+                "syntax": "Angle( <Line>, <Plane> )",
+                "description": "Returns the angle between the line and the plane.",
+                "example": ["Angle(Line((1, 2, 3),(-2, -2, 0)), z = 0) yields 30.96° or the corresponding value in radians."],
+                "related": ["Line", "Plane"]
+            },
+            {
+                "syntax": "Angle( <Plane>, <Plane> )",
+                "description": "Returns the angle between the two given planes.",
+                "example": ["Angle(2x - y + z = 0, z = 0) yields 114.09° or the corresponding value in radians."],
+                "related": ["Plane"]
+            },
+            {
+                "syntax": "Angle( <Point>, <Apex>, <Point> )",
+                "example": ["Angle((1, 1), (1, 4), (4, 2)) yields 56.31° or the corresponding value in radians."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Angle( <Point>, <Apex>, <Angle> )",
+                "description": "Returns the angle of size α drawn from point with apex.",
+                "example": ["Angle((0, 0), (3, 3), 30°) yields 30° and the point (1.9, -1.1)."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Angle( <Point>, <Point>, <Point>, <Direction> )",
+                "description": "Returns the angle defined by the points and the given Direction, that may be a line or a plane (result in [0,360°] or [0,2π] depending on the default angle unit).",
+                "example": ["Angle((1, -1, 0),(0, 0, 0),(-1, -1, 0), zAxis) yields 270° and Angle((-1, -1, 0),(0, 0, 0),(1, -1, 0), zAxis) yields 90° or the corresponding values in radians."],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "AngleBisector",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AngleBisector( <Line>, <Line> )",
+                "description": "Returns both angle bisectors of the lines.",
+                "example": ["AngleBisector(x + y = 1, x - y = 2) yields a: x = 1.5 and b: y = -0.5."],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "AngleBisector( <Point>, <Point>, <Point> )",
+                "description": "Returns the angle bisector of the angle defined by the three points.",
+                "example": ["AngleBisector((1, 1), (4, 4), (7, 1)) yields a: x = 4."],
+                "note": "The second point is apex of this angle.",
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Arc",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Arc( <Circle>, <Point M >, <Point N> )",
+                "description": "Returns the directed arc (counterclockwise) of the given circle, with endpoints M and N.",
+                "example": [],
+                "related": ["Circle"]
+            },
+            {
+                "syntax": "Arc( <Ellipse>, <Point M>, <Point N> )",
+                "description": "Returns the directed arc (counterclockwise) of the given ellipse, with endpoints M and N.",
+                "example": [],
+                "related": ["Ellipse"]
+            },
+            {
+                "syntax": "Arc( <Circle>, <Parameter Value>, <Parameter Value> )",
+                "description": "Returns the circle arc of the given circle, whose endpoints are identified by the specified values of the parameter.",
+                "example": [],
+                "note": "Internally the following parametric forms are used:Circle: (r cos(t), r sin(t)) where r is the circle’s radius.",
+                "related": ["Circle"]
+            },
+            {
+                "syntax": "Arc( <Ellipse>, <Parameter Value>, <Parameter Value> )",
+                "description": "Returns the circle arc of the given ellipse, whose endpoints are identified by the specified values of the parameter.",
+                "example": [],
+                "note": "Internally the following parametric forms are used:Ellipse: (a cos(t), b sin(t)) where a and b are the lengths of the semimajor and semiminor axes.",
+                "related": ["Ellipse"]
+            }
+        ]
+    },
+    {
+        "command": "Area",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Area( <Point>, …​, <Point> )",
+                "description": "Calculates the area of the polygon defined by the given points.",
+                "example": ["Area((0, 0), (3, 0), (3, 2), (0, 2)) yields 6."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Area( <Conic> )",
+                "description": "Calculates the area of a conic section (circle or ellipse).",
+                "example": ["Area(x^2 + y^2 = 2) yields 6.28."],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Area( <Polygon> )",
+                "description": "Calculates the area of the polygon.",
+                "example": [],
+                "note": "for Polygons, the absolute value of the Algebraic Area is calculated (which gives unexpected answers for self-intersecting polygons)",
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "AreCollinear",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreCollinear( <Point>, <Point>, <Point> )",
+                "description": "Decides if the points are collinear.",
+                "example": ["AreCollinear((1, 2), (3, 4), (5, 6)) yields true since all the three points lying on the same line."],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "AreConcurrent",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreConcurrent( <Line>, <Line>, <Line> )",
+                "description": "Decides if the lines are concurrent. If the lines are parallel, they considered to have a common point in infinity, thus this command returns true in this case.",
+                "example": ["AreConcurrent(Line((1, 2), (3, 4)), Line((1, 2), (3, 5)), Line((1, 2), (3, 6))) yields true since all three lines contain the point (1,2)."],
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "AreConcyclic",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreConcyclic( <Point>, <Point>, <Point>, <Point> )",
+                "description": "Decides if the points are concyclic.",
+                "example": ["AreConcyclic((1, 2), (3, 4), (1, 4), (3, 2)) yields true since the points are lying on the same circle."],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "AreCongruent",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreCongruent( <Object>, <Object> )",
+                "description": "Decides if the objects are congruent.",
+                "example": ["AreCongruent(Circle((0, 0),1),x^2+y^2=1) and AreCongruent(Circle((1, 1),1),x^2+y^2=1) yield true since the two circles have the same radius."],
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "AreEqual",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreEqual( <Object>, <Object> )",
+                "description": "Decides if the objects are equal.",
+                "example": ["AreEqual(Circle((0, 0),1),x^2+y^2=1) yields true since the two circles have the same center and radius."],
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "AreParallel",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "AreParallel( <Line>, <Line> )",
+                "description": "Decides if the lines are parallel.",
+                "example": ["AreParallel(Line[(1, 2), (3, 4)), Line((5, 6),(7,8))) yields true since the given lines are parallel."],
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "ArePerpendicular",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "ArePerpendicular( <Line>, <Line> )",
+                "description": "Decides if the lines are perpendicular.",
+                "example": ["ArePerpendicular(Line[(1, 2), (3, 4)), Line((5, 6),(7,8))) yields true since the given lines are perpendicular."],
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "Centroid",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Centroid( <Polygon> )",
+                "description": "Returns the centroid of the polygon.",
+                "example": ["Let A = (1, 4), B = (1, 1), C = (5, 1) and D = (5, 4) be the vertices of a polygon. Polygon(A, B, C, D) yields poly1 = 12. Centroid(poly1) yields the centroid E = (3, 2.5)."],
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "Circumference",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Circumference( <Conic> )",
+                "description": "If the given conic is a circle or ellipse, this command returns its circumference. Otherwise the result is undefined.",
+                "example": ["Circumference(x^2 + 2y^2 = 1) yields 5.4."],
+                "related": ["Conic"]
+            }
+        ]
+    },
+    {
+        "command": "ClosestPoint",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "ClosestPoint( <Path>, <Point> )",
+                "description": "Returns a new point on a path which is the closest to a selected point.",
+                "example": [],
+                "note": "For Functions, this command now uses closest point (rather than vertical point). This works best for polynomials; for other functions the numerical algorithm is less stable.",
+                "related": ["Path", "Point"]
+            },
+            {
+                "syntax": "ClosestPoint( <Line>, <Line> )",
+                "description": "Returns a new point on the first line which is the closest to the second line.",
+                "example": [],
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "ClosestPointRegion",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "ClosestPointRegion( <Region>, <Point> )",
+                "description": "Returns a new point on the region which is the closest to a selected point.",
+                "example": [],
+                "related": ["Region", "Point"]
+            }
+        ]
+    },
+    {
+        "command": "Cubic",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Cubic( <Point>, <Point>, <Point>, <Number> )",
+                "description": "Gives n-th triangle cubic of the given triangle ABC.",
+                "example": ["Let A = (0, 1), B = (2, 1) and C = (1, 2). Cubic(A, B, C, 2) yields the implicit curve -x³ + 3x² + 5x y² - 14x y + 7x - 5y² + 14y = 9."],
+                "note": "This command is in development, set of supported index n is changing. Some common triangle cubics: (1 : Neuberg Cubic, 2 : Thomson Cubic, 3 : McCay Cubic, 4 : Darboux Cubic, 5 : Napoleon/Feuerbach Cubic, 7 : Lucas Cubic, 17 : 1st Brocard Cubic, 18 : 2nd Brocard Cubic)",
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Difference",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Difference( <Polygon>, <Polygon> )",
+                "description": "Finds the difference of the two polygons.",
+                "example": [],
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "Direction",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Direction( <Line> )",
+                "description": "Yields the direction vector of the line.",
+                "example": ["Direction(-2x + 3y + 1 = 0) yields the vector 𝑢=(3, 2)"],
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "Distance",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Distance( <Point>, <Object> )",
+                "description": "Yields the shortest distance between a point and an object.",
+                "example": ["Distance((2, 1), x^2 + (y - 1)^2 = 1) yields 1", "Distance((2, 1, 2), (1, 3, 0)) yields 3", "Let f be a function and A be a point. Distance(A, f) yields the distance between A and (x(A), f(x(A))), that is the distance between point A and ClosestPoint(f, A)."],
+                "note": "The command works for points, segments, lines, conics, functions, and implicit curves. For functions, it uses a numerical algorithm which works better for polynomials.",
+                "related": ["Point", "Object"]
+            },
+            {
+                "syntax": "Distance( <Line>, <Line> )",
+                "description": "Yields the distance between two lines.",
+                "example": ["Distance(y = x + 3, y = x + 1) yields 1.41", "Distance(y = 3x + 1, y = x + 1) yields 0", "Let a: X = (-4, 0, 0) + λ*(4, 3, 0) and b: X = (0, 0, 0) + λ*(0.8, 0.6, 0).  Distance(a, b) yields 2.4"],
+                "note": "The distance between intersecting lines is 0. Thus, this command is only meaningful for parallel lines.",
+                "related": ["Line"]
+            },
+            {
+                "syntax": "Distance( <Plane>, <Plane> )",
+                "description": "Yields the distance between the two planes.",
+                "example": ["Let eq1: x + y + 2z = 1 and eq2: 2x + 2y + 4z = -2.  Distance(eq1, eq2) yields 0.82"],
+                "note": "The distance between intersecting planes is 0. Thus, this command is only meaningful for parallel planes.",
+                "related": ["Plane"]
+            }
+        ]
+    },
+    {
+        "command": "Envelope",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Envelope( <Path>, <Point> )",
+                "description": "Creates the envelope equation of a set of output paths while the moving point is bound to another object.",
+                "example": [],
+                "note": "An envelope is a curve that is tangent to each member of the family of the output paths at some point. The contour of its trace will be the envelope of the ladder. Strictly speaking, GeoGebra computes the envelope of the entire line containing the ladder as a segment. Only such envelopes can be computed where the appropriate construction leads to an algebraic equation system.",
+                "related": ["Path", "Point"]
+            }
+        ]
+    },
+    {
+        "command": "InteriorAngles",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "InteriorAngles( <Polygon> )",
+                "description": "Creates all the interior angles of the given polygon.",
+                "example": [],
+                "related": ["Polygon"]
+            }
+        ]
+    },
+    {
+        "command": "Intersect",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Intersect( <Object>, <Object> )",
+                "description": "Yields the intersection points of two objects.",
+                "example":[
+                    "Let a: -3x + 7y = -10 be a line and c: x^2 + 2y^2 = 8 be an ellipse. Intersect(a, c) yields the intersection points E = (-1.02, -1,87) and F = (2.81, -0.22) of the line and the ellipse.",
+                    "Intersect(y = x + 3, Curve(t, 2t, t, 0, 10)) yields A=(3,6).",
+                    "Intersect(Curve(2s, 5s, s,-10, 10), Curve(t, 2t, t, -10, 10)) yields A=(0,0)."
+                ],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Intersect( <Object>, <Object>, <Index of Intersection Point> )",
+                "description": "Yields the nth intersection point of two objects. Each object must be a line, conic, polynomial function or implicit curve.",
+                "example": [
+                    "Let a(x) = x^3 + x^2 - x be a function and b: -3x + 5y = 4 be a line. Intersect(a, b, 2) yields the intersection point C = (-0.43, 0.54) of the function and the line."
+                ],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Intersect( <Object>, <Object>, <Initial Point> )",
+                "description": "Yields an intersection point of two objects by using a numerical, iterative method with initial point.",
+                "example": ["Let a(x) = x^3 + x^2 - x be a function, b: -3x + 5y = 4 be a line, and C = (0, 0.8) be the initial point. Intersect(a, b, C) yields the intersection point D = (-0.43, 0.54) of the function and the line by using a numerical, iterative method."],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Intersect( <Object>, <Object>, <Start x-Value>, <End x-Value> )",
+                "description": "Yields the intersection points numerically for the two functions in the given interval.",
+                "example": ["Let f(x) = x^3 + x^2 - x and g(x) = 4 / 5 + 3 / 5 x be two functions. Intersect(f, g, -1, 2) yields the intersection points A = (-0.43, 0.54) and B = (1.1, 1.46) of the two functions in the interval [ -1, 2 ]."],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Intersect( <Curve 1>, <Curve 2>, <Parameter 1>, <Parameter 2> )",
+                "description": "Finds one intersection point using a numerical, iterative method starting at the given parameters.",
+                "example": ["Let a = Curve(cos(t), sin(t), t, 0, π) and b = Curve(cos(t) + 1, sin(t), t, 0, π). Intersect(a, b, 0, 2) yields the intersection point A = (0.5, 0.87)."],
+                "related": ["Curve"]
+            }
+        ]
+    },
+    {
+        "command": "IntersectPath",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "IntersectPath( <Line>, <Polygon> )",
+                "description": "Creates the intersection path between line and polygon.",
+                "example": ["IntersectPath(a, triangle) creates a segment between the first and second intersection point of line a and polygon triangle."],
+                "related": ["Line", "Polygon"]
+            },
+            {
+                "syntax": "IntersectPath( <Polygon>, <Polygon> )",
+                "description": "Creates the intersection polygon between two given polygons.",
+                "example": ["IntersectPath(quadrilateral, triangle) creates a new polygon as intersection of the two given polygons."],
+                "note": "The new polygon can either be a quadrilateral, a pentagon or a hexagon. This depends on the position of the vertices of the given polygons.",
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "IntersectPath( <Plane>, <Polygon> )",
+                "description": "Creates the intersection path between plane and polygon.",
+                "example": ["IntersectPath(a, triangle) creates a segment between the first and second intersection point of plane a and polygon triangle in the plane of the polygon."],
+                "related": ["Plane", "Polygon"]
+            },
+            {
+                "syntax": "IntersectPath( <Plane>, <Quadric> )",
+                "description": "Creates the intersection path between plane and quadric.",
+                "example": ["IntersectPath(a, sphere) creates a circle as intersection between plane a and quadric sphere."],
+                "related": ["Plane", "Quadric"]
+            }
+        ]
+    },
+    {
+        "command": "IsInRegion",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "IsInRegion( <Point>, <Region> )",
+                "description": "Returns true if the point is in given region and false otherwise.",
+                "example": ["IsInRegion((1,2), Polygon((0,0), (2,0), (1,3))) returns true."],
+                "related": ["Point", "Region"]
+            }
+        ]
+    },
+    {
+        "command": "IsTangent",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "IsTangent( <Line>, <Conic> )",
+                "description": "Decides if the line is tangent to the conic.",
+                "example": ["IsTangent(Line((0,0),(1,0)),Circle((0,1),1)) yields true."],
+                "note": "Normally this command computes the result numerically. This behavior can be changed by using the Prove command.",
+                "related": ["Line", "Conic"]
+            }
+        ]
+    },
+    {
+        "command": "Length",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Length( <Object> )",
+                "description": "Yields the length of the object. Object can be a vector, point, list, text, locus, function, curve, or arc.",
+                "example": [
+                    "Length( <Vector> ) yields the length of the vector.",
+                    "Length( <Point> ) yields the length of the position vector of the given point.",
+                    "Length( <List> ) yields the length of the list, which is the number of elements in the list.",
+                    "Length( <Text> ) yields the number of characters in the text.",
+                    "Length( <Locus> ) returns the number of points that the given locus is made up of. Use Perimeter(Locus) to get the length of the locus itself. For details see the article about First Command.",
+                    "Length( <Arc> ) returns the arc length (i.e. just the length of the curved section) of an arc or sector."
+                ],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Length( <Function>, <Start x-Value>, <End x-Value> )",
+                "description": "Yields the length of the function graph in the given interval.",
+                "example": ["Length(2x, 0, 1) returns 2.236067977, about √5."],
+                "related": ["Function"]
+            },
+            {
+                "syntax": "Length( <Function>, <Start Point>, <End Point> )",
+                "description": "Yields the length of the function graph between the two points. If the given points do not lie on the function graph, their x‐coordinates are used to determine the interval.",
+                "example": [],
+                "note": "If the given points do not lie on the function graph, their x‐coordinates are used to determine the interval.",
+                "related": ["Function"]
+            },
+            {
+                "syntax": "Length( <Curve>, <Start t-Value>, <End t-Value> )",
+                "description": "Yields the length of the curve between the two values of the parameter.",
+                "example": [],
+                "related": ["Curve"]
+            },
+            {
+                "syntax": "Length( <Curve>, <Start Point>, <End Point> )",
+                "description": "Yields the length of the curve between the two points that lie on the curve.",
+                "example": [],
+                "related": ["Curve"]
+            }
+        ]
+    },
+    {
+        "command": "Locus",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Locus( <Point Creating Locus Line Q>, <Point P>)",
+                "description": "Returns the locus curve of the point Q, which depends on the point P. Point P needs to be a point on an object (e. g. line, segment, circle).",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Locus( <Point Creating Locus Line Q>, <Slider t>)",
+                "description": "Returns the locus curve of the point Q, which depends on the values assumed by the slider t.",
+                "example": [],
+                "related": ["Slider"]
+            },
+            {
+                "syntax": "Locus( <Slopefield>, <Point> )",
+                "description": "Returns the locus curve which equates to the slopefield at the given point.",
+                "example": [],
+                "related": ["Slopefield"]
+            },
+            {
+                "syntax": "Locus( <f(x, y)>, <Point> )",
+                "description": "Returns the locus curve which equates to the solution of the differential equation 𝑑𝑦/𝑑𝑥=𝑓(𝑥,𝑦) in the given point. The solution is calculated numerically.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Midpoint",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Midpoint( <Segment> )",
+                "description": "Returns the midpoint of the segment.",
+                "example": ["Let s = Segment((1, 1), (1, 5)). Midpoint(s) yields (1, 3)."],
+                "related": ["Segment"]
+            },
+            {
+                "syntax": "Midpoint( <Conic> )",
+                "description": "Returns the center of the conic.",
+                "example": ["Midpoint(x^2 + y^2 = 4) yields (0, 0)."],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Midpoint( <Interval> )",
+                "description": "Returns the midpoint of the interval (as number).",
+                "example": ["Midpoint(2 < x < 4) yields 3."],
+                "related": ["Interval"]
+            },
+            {
+                "syntax": "Midpoint( <Point>, <Point> )",
+                "description": "Returns the midpoint of two points.",
+                "example": ["Midpoint((1, 1), (5, 1)) yields (3, 1)."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Midpoint( <Quadric> )",
+                "description": "Returns the midpoint of the given quadric (e.g. sphere, cone, etc.)",
+                "example": ["Midpoint(x^2 + y^2 + z^2 = 1) yields (0, 0, 0)."],
+                "related": ["Quadric"]
+            }
+        ]
+    },
+    {
+        "command": "PathParameter",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "PathParameter( <Point On Path> )",
+                "description": "Returns the parameter (i.e. a number ranging from 0 to 1) of the point that belongs to a path.",
+                "example": ["Let f(x) = x² + x - 1 and A is a point attached to this function with coordinates (1,1) (you can create such point using the point on object tool or A=Point(f), SetCoords(A,1,1) commands). Then PathParameter(A) yields a = 0.47."],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Perimeter",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Perimeter( <Polygon> )",
+                "description": "Returns the perimeter of the polygon.",
+                "example": ["Perimeter(Polygon((1, 2), (3, 2), (4, 3))) yields 6.58."],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "Perimeter( <Conic> )",
+                "description": "If the given conic is a circle or ellipse, this command returns its perimeter. Otherwise the result is undefined.",
+                "example": ["Perimeter(x^2 + 2y^2 = 1) yields 5.4."],
+                "related": ["Conic"]
+            },
+            {
+                "syntax": "Perimeter( <Locus> )",
+                "description": "If the given locus is finite, this command returns its approximate perimeter. Otherwise the result is undefined.",
+                "example": [],
+                "related": ["Locus"]
+            }
+        ]
+    },
+    {
+        "command": "PerpendicularBisector",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "PerpendicularBisector( <Segment> )",
+                "description": "Yields the perpendicular bisector of a segment.",
+                "example": [],
+                "related": ["Segment"]
+            },
+            {
+                "syntax": "PerpendicularBisector( <Point>, <Point> )",
+                "description": "Yields the perpendicular bisector of a line segment between two points.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "PerpendicularBisector( <Point>, <Point>, <Direction> )",
+                "description": "Yields the perpendicular bisector of a line segment between two points which is perpendicular to the direction. <Direction> can either be a vector, an axis, a line or a segment.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            }
+        ]
+    },
+    {
+        "command": "PerpendicularLine",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "PerpendicularLine( <Point>, <Line> )",
+                "description": "Creates a line through the point perpendicular to the given line.",
+                "example": ["Let c: -3x + 4y = -6 be a line and A = (-2, -3) a point. PerpendicularLine(A, c) yields the line d: -4x - 3y = 17."],
+                "note": "For 3D objects a third argument is added to this command to specify the behavior: if 2D view is active, plane z=0 is used as third argument, if 3D view is active, space is used instead. See PerpendicularLine( <Point>, <Line>, <Context> ) further below for details.",
+                "related": ["Point", "Line"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Segment> )",
+                "description": "Creates a line through the point perpendicular to the given segment.",
+                "example": ["Let c be the segment between the two points A = (-3, 3) and B = (0, 1). PerpendicularLine(A, c) yields the line d: -3x + 2y = 15."],
+                "related": ["Point", "Segment"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Vector> )",
+                "description": "Creates a line through the point perpendicular to the given vector.",
+                "example": ["Let u = Vector((5, 3), (1, 1)) and A = (-2, 0) a point. PerpendicularLine(A, u) yields the line c: 2x + y = -4."],
+                "related": ["Point", "Vector"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Plane> )",
+                "description": "Creates a perpendicular line to the plane through the given point.",
+                "example": [],
+                "related": ["Point", "Plane"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Line>, <Line> )",
+                "description": "Creates a perpendicular line to the given lines through the intersection point of the two lines.",
+                "example": [],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Direction>, <Direction> )",
+                "description": "Creates a perpendicular line to the given directions (that can be lines or vectors) through the given point.",
+                "example": [],
+                "related": ["Point", "Direction"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Line>, <Plane> ) ",
+                "description": "Creates a perpendicular line to the given line through the point and parallel to the plane.",
+                "example": [],
+                "related": ["Point", "Line", "Plane"]
+            },
+            {
+                "syntax": "PerpendicularLine( <Point>, <Line>, space )",
+                "description": "Creates a perpendicular line to the given line through the point. The two lines have an intersection point. This command yields undefined if the point is on the line in 3D.",
+                "example": [],
+                "related": ["Point", "Line", "Space"]
+            }
+        ]
+    },
+    {
+        "command": "Point",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Point( <Object> )",
+                "description": "Returns a point on the geometric object(e.g. line, segment, circle, etc.). The resulting point can be moved along the path.",
+                "example": [],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Point( <Line> )",
+                "description": "Returns a point on the line.",
+                "example": [],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "Point( <Segment> )",
+                "description": "Returns a point on the segment.",
+                "example": [],
+                "related": ["Segment"]
+            },
+            {
+                "syntax": "Point( <Circle> )",
+                "description": "Returns a point on the circle.",
+                "example": [],
+                "related": ["Circle"]
+            },
+            {
+                "syntax": "Point( <Object>, <Parameter> )",
+                "description": "Returns a point on the geometric object with given path parameter.",
+                "example": [],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "Point( <List> )",
+                "description": "Converts a list containing two numbers into a Point.",
+                "example": ["Point({1, 2}) yields (1, 2)."],
+                "related": ["List"]
+            }
+        ]
+    },
+    {
+        "command": "PointIn",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "PointIn( <Region> )",
+                "description": "Returns a point restricted to given region. (polygon, conic, arc, two variable inequality, etc.)",
+                "example": [],
+                "related": ["Region"]
+            }
+        ]
+    },
+    {
+        "command": "Polyline",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Polyline( <List of Points> )",
+                "description": "Creates an open polygonal chain (i.e. a connected series of segments) having the initial vertex in the first point of the list, and the final vertex in the last point of the list.",
+                "example": [],
+                "note": "The polygonal chain length is displayed in the Menu view algebra.svg Algebra View.",
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Polyline( <Point>, …​, <Point> )",
+                "description": "Creates an open polygonal chain (i.e. a connected series of segments) having the initial vertex in the first entered point, and the final vertex in the last entered point.",
+                "example": [],
+                "note": "The polygonal chain length is displayed in the Menu view algebra.svg Algebra View.",
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Radius",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Radius( <Conic> )",
+                "description": "Returns the radius of a conic.",
+                "example": [
+                    "Returns the radius of a circle c (e.g. c:(x - 1)² + (y - 1)² = 9) Radius(c) yields a = 3.",
+                    "Returns the radius of a circle formula Radius((x - 2)² + (y - 2)² = 16) yields a = 4."
+                ],
+                "related": ["Conic"]
+            }
+        ]
+    },
+    {
+        "command": "RandomPointIn",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "RandomPointIn( <Region> )",
+                "description": "Creates a random point inside a given polygon or closed conic.",
+                "example": ["RandomPointIn(Polygon(A,B,C)) gives random point inside triangle ABC."],
+                "related": ["Region"]
+            },
+            {
+                "syntax": "RandomPointIn( <List of Points> )",
+                "description": "Returns a random point inside the polygon with given vertices.",
+                "example": ["RandomPointIn(A,B,C) gives random point inside triangle ABC."],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "RandomPointIn( <xMin>, <xMax>, <yMin>, <yMax> )",
+                "description": "Creates a random point with x-coordinate from interval [xMin,xMax] and y-coordinate from interval [yMin, yMax].",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Ray",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Ray( <Start Point>, <Point> )",
+                "description": "Creates a ray starting at a point through a point.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "Ray( <Start Point>, <Direction Vector> )",
+                "description": "Creates a ray starting at the given point which has the direction vector.",
+                "example": [],
+                "related": ["Point", "Vector"]
+            }
+        ]
+    },
+    {
+        "command": "RigidPolygon",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "RigidPolygon( <Polygon> )",
+                "description": "Creates a copy of any polygon that can only be translated by dragging its first vertex and rotated by dragging its second vertex.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "RigidPolygon( <Polygon>, <Offset x>, <Offset y> )",
+                "description": "Creates a copy of any polygon with the given offset that can only be translated by dragging its first vertex and rotated by dragging its second vertex.",
+                "example": [],
+                "related": ["Polygon"]
+            },
+            {
+                "syntax": "RigidPolygon( <Free Point>, …​, <Free Point> )",
+                "description": "Creates polygon whose shape cannot be changed. This polygon can be translated by dragging its first vertex and rotated by dragging its second vertex.",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Slope",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Slope( <Line> )",
+                "description": "Returns the slope of the given line.",
+                "example": [],
+                "note": "This command also draws the slope triangle whose size may be changed on tab Style of the Properties Dialog.",
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "Slider",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Slider( <Min>, <Max>, <Increment>, <Speed>, <Width>,<Is Angle>, <Horizontal>, <Animating>, <Boolean Random>)",
+                "description": "Creates a slider. The parameters settings can be as follows:  * Min, Max: set the range of the slider - These parameters are compulsory. * Increment: set the increment of the slider’s value - default: 0.1 * Speed: set the slider speed during animations - default: 1 * Width: sets the slider width in pixels - default: 100 * Is Angle: sets if the slider is related to an angle. This parameter can be true or false - default: false * Horizontal: sets whether the slider is shown as an horizontal (true) or vertical (false) segment - default: true * Animating: sets the automatic animation of the slider - default: false * Random: sets if the slider assumes continuous values in the [Min, Max] range (false), or random values in the same interval (true) - default: false",
+                "example": [],
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "Tangent",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "Tangent( <Point>, <Conic> )",
+                "description": "Creates (all) tangents through the point to the conic section.",
+                "example": ["Tangent((5, 4), 4x^2 - 5y^2 = 20) yields x - y = 1."],
+                "related": ["Point", "Conic"]
+            },
+            {
+                "syntax": "Tangent( <Point>, <Function> )",
+                "description": "Creates the tangent to the function at x = x(A).",
+                "example": ["Tangent((1, 0), x^2) yields y = 2x - 1."],
+                "note": "x(A) is the x-coordinate of the given point A.",
+                "related": ["Point", "Function"]
+            },
+            {
+                "syntax": "Tangent( <Point on Curve>, <Curve> )",
+                "description": "Creates the tangent to the curve in the given point.",
+                "example": ["Tangent((0, 1), Curve(cos(t), sin(t), t, 0, π)) yields y = 1."],
+                "related": ["Point", "Curve"]
+            },
+            {
+                "syntax": "Tangent( <x-Value>, <Function> )",
+                "description": "Creates the tangent to the function at x-Value.",
+                "example": ["Tangent(1, x^2) yields y = 2x - 1."],
+                "related": ["x-Value", "Function"]
+            },
+            {
+                "syntax": "Tangent( <Line>, <Conic> )",
+                "description": "Creates (all) tangents to the conic section that are parallel to the given line.",
+                "example": ["Tangent(y = 4, x^2 + y^2 = 4) yields y = 2 and y = -2."],
+                "related": ["Line", "Conic"]
+            },
+            {
+                "syntax": "Tangent( <Circle>, <Circle> )",
+                "description": "Creates the common tangents to the two Circles (up to 4).",
+                "example": ["Tangent(x^2 + y^2 = 4, (x - 6)^2 + y^2 = 4) yields y = 2, y = -2, 1.49x + 1.67y = 4.47 and -1.49x + 1.67y = -4.47."],
+                "related": ["Circle", "Circle"]
+            },
+            {
+                "syntax": "Tangent( <Point>, <Spline> )",
+                "description": "Creates the tangent to the spline in the given point.",
+                "example": ["Let A = (0, 1), B = (4, 4) and C = (0, 4). Tangent(A, Spline({A, B, C})) yields line a: y = 0.59x + 1."],
+                "related": ["Point", "Spline"]
+            },
+            {
+                "syntax": "Tangent( <Point>, <Implicit Curve> )",
+                "description": "Creates the tangent to the implicit curve in the given point.",
+                "example": ["Tangent((1,1), x^2+y^2=1)) yields lines x=1 and y=1."],
+                "related": ["Point", "Implicit Curve"]
+            }
+        ]
+    },
+    {
+        "command": "TriangleCenter",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 1 )",
+                "description": "Returns the incenter of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 2 )",
+                "description": "Returns the centroid of the triangle.",
+                "example": ["Let A = (1, -2), B = (6, 1) and C = (4, 3). TriangleCenter(A, B, C, 2) yields the centroid D = (3.67, 0.67) of the triangle ABC."],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 3 )",
+                "description": "Returns the circumcenter of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 4 )",
+                "description": "Returns the orthocenter of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 5 )",
+                "description": "Returns the nine-point center of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 6 )",
+                "description": "Returns the symmedian point of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 7 )",
+                "description": "Returns the Gergonne point of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 8 )",
+                "description": "Returns the Nagel point of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            },
+            {
+                "syntax": "TriangleCenter( <Point>, <Point>, <Point>, 13 )",
+                "description": "Returns the first isogonic center of the triangle.",
+                "example": [],
+                "related": ["Triangle"]
+            }
+        ]
+    },
+    {
+        "command": "TriangleCurve",
+        "category": "Geometry Commands",
+        "usage": [
+            {
+                "syntax": "TriangleCurve( <Point P>, <Point Q>, <Point R>, <Equation in A, B, C> )",
+                "description": "Creates implicit polynomial, whose equation in barycentric coordinates with respect to points P, Q, R is given by the fourth parameter; the barycentric coordinates are referred to as A, B, C.",
+                "example": [
+                    "If P, Q, R are points, TriangleCurve(P, Q, R, (A - B)*(B - C)*(C - A) = 0) gives a cubic curve consisting of the medians of the triangle PQR.",
+                    "TriangleCurve(A, B, C, A*C = 1/8) creates a hyperbola such that tangent, through A or C, to this hyperbola splits triangle ABC in two parts of equal area.",
+                    "TriangleCurve(A, B, C, A² + B² + C² - 2B C - 2C A - 2A B = 0) creates the Steiner inellipse of the triangle ABC, and TriangleCurve(A, B, C, B C + C A + A B = 0) creates the Steiner circumellipse of the triangle ABC."
+                ],
+                "note": "The input points can be called A, B or C, but in this case you cannot use e.g. x(A) in the equation, because A is interpreted as the barycentric coordinate.",
+                "related": ["Point"]
+            }
+        ]
+    },
+    {
+        "command": "UnitVector",
+        "category": "Vector Commands",    
+        "usage": [
+            {
+                "syntax": "UnitVector( <Vector> )",
+                "description": "Yields a vector with length 1, which has the same direction and orientation as the given vector. The vector must be defined first.",
+                "example": ["Let v=(3, 4). UnitVector(v) yields (0.6, 0.8)."],
+                "related": ["Vector"]
+            },
+            {
+                "syntax": "UnitVector( <Line> )",
+                "description": "Yields the direction vector of the given line with length 1.",
+                "example": ["UnitVector(3x + 4y = 5) yields (0.8, -0.6)."],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "UnitVector( <Segment> )",
+                "description": "Yields the direction vector of the given segment with length 1.",
+                "example": ["Let s = Segment((1,1),(4,5)). UnitVector(s) yields (0.6, 0.8)."],
+                "related": ["Segment"]
+            }
+        ]
+    },
+    {
+        "command": "Transpose",
+        "category": "Matrix Commands",
+        "usage": [
+            {
+                "syntax": "Transpose( <Matrix> )",
+                "description": "Returns the transpose of the given matrix.",
+                "example": [],
+                "related": ["Matrix"]
+            }
+        ]
+    },
+    {
+        "command": "PerpendicularVector",
+        "category": "Vector Commands",
+        "usage": [
+            {
+                "syntax": "PerpendicularVector( <Line> )",
+                "description": "Returns one of the perpendicular vector to the line.",
+                "example": ["Let Line((1, 4), (5, -3)) be the line j. PerpendicularVector(j) yields vector u=(7, 4)."],
+                "note": "The components of the perpendicular vector to a line of equation ax + by = c are (a, b).",
+                "related": ["Line"]
+            },
+            {
+                "syntax": "PerpendicularVector( <Segment> )",
+                "description": "Returns one of the perpendicular vector to the segment, having the same length.",
+                "example": ["Let Segment((3, 2), (14, 5)) be the segment k. PerpendicularVector(k) yields vector u=(-3, 11)."],
+                "related": ["Segment"]
+            },
+            {
+                "syntax": "PerpendicularVector( <Vector> )",
+                "description": "Returns one of the perpendicular vector to the given vector.",
+                "example": ["Let Vector((-12, 8)) be the vector u. PerpendicularVector(u) yields vector v=(-8, -12)."],
+                "note": "If a point is specified in the definition of the line, segment, or vector, the perpendicular vector will originate from that point. Otherwise, the origin will be at (0, 0).",
+                "related": ["Vector"]
+            },
+            {
+                "syntax": "PerpendicularVector( <Plane> )",
+                "description": "Creates a vector orthogonal to the plane, with starting point at (0,0,0).",
+                "example": ["PerpendicularVector(xOyPlane) yields the perpendicular vector u=(0, 0, 1) to the xOy plane."],
+                "related": ["Plane"]
+            }
+        ]
+    },
+    {
+        "command": "Invert",
+        "category": "Vector Commands",
+        "usage": [
+            {
+                "syntax": "Invert( <Matrix> )",
+                "description": "Inverts the given matrix.",
+                "example": [],
+                "related": ["Matrix"]
+            }
+        ]
+    },
+    {
+        "command": "SetColor",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetColor( <Object>, <Red>, <Green>, <Blue> )",
+                "description": "Changes the color of given object. The red, green and blue represent amount of corresponding color component, 0 being minimum and 1 maximum. Number t exceeding this interval is mapped to it using function 2∣∣𝑡2−r𝑜𝑢𝑛𝑑(𝑡2)∣∣.",
+                "example": [],
+                "related": ["Object"]
+            },
+            {
+                "syntax": "SetColor( <Object>, <Color> )",
+                "description": "Changes the color of given object. The color is entered as text, that may be: an English color name. An hexadecimal string of the type #AARRGGBB or #RRGGBB, where AA defines transparency (01 full transparency to FF full opacity), RR defines the red component, GG the green one and BB the blue one.",
+                "example": ["SetColor(text1, \"#80FF0000\") sets the color of existing text1 as red, with a 50% white transparency."],
+                "note": "You can use the following colors: Black, Dark Gray, Gray, Dark Blue, Blue, Dark Green, Green, Maroon, Crimson, Red, Magenta, Indigo, Purple, Brown, Orange, Gold, Lime, Cyan, Turquoise, Light Blue, Aqua, Silver, Light Gray, Pink, Violet, Yellow, Light Yellow, Light Orange, Light Violet, Light Purple, Light Green, White",
+                "related": ["Object"]
+            }
+        ]
+    },  
+    {
+        "command": "SetConditionToShowObject",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetConditionToShowObject( <Object>, <Condition> )",
+                "description": "Sets the condition to show given object.",
+                "example": [],
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "SetValue",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetValue( <Boolean>, <0|1> )",
+                "description": "Sets the state of a boolean / check box : 1 = true, 0 = false",
+                "example": ["If b is a boolean, SetValue(b,1) sets the boolean b as true."],
+                "related": ["Boolean"]
+            },
+            {
+                "syntax": "SetValue( <Object>, <Object> )",
+                "description": "Let A be the first and B the second object. If A is a free object or a Point restricted to Path or Region, its value is set to current value of B (i.e. A doesn’t change value if B is changed afterwards).",
+                "example": ["Let P = Point(AB). SetValue(P,(4,0)) yields P = (4,0).", "If f is a function, SetValue(f, RandomElement({cos(x), 3x+2, ln(x)})) defines, at random, f as being one of the functions proposed in the list."],
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "SetCoords",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetCoords( <Object>, <x>, <y> )",
+                "description": "Sets the cartesian coordinates of free objects in a 2D View as the given coordinates. This command uses the coordinates values, not their definitions, therefore the object stays free.",
+                "example": [],
+                "note": "This also works for points on paths and in regions. The point will be moved to the closest possible position. This command works also for sliders, buttons, checkboxes, input Boxes and Images.",
+                "related": ["Object"]
+            },
+            {
+                "syntax": "SetCoords( <Object>, <x>, <y>, <z> )",
+                "description": "Sets the cartesian coordinates of free objects in the 3D View as the given coordinates. This command uses the coordinates values, not their definitions, therefore the object stays free.",
+                "example": [],
+                "note": "This also works for points on paths and in regions. The point will be moved to the closest possible position. This command works also for sliders, buttons, checkboxes, input Boxes and Images.",
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "SetPointSize",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetPointSize( <Point>, <Number> )",
+                "description": "Changes the size of the given point to the given number.",
+                "example": [],
+                "related": ["Point"]
+            },
+            {
+                "syntax": "SetPointSize( <Object>, <Number> )",
+                "description": "Changes the size of the vertices of an object. The object can be any 2D or 3D one with vertices, e.g. a polygon, a polyhedron, a net…​",
+                "note": "The command is also applicable to lists of (unlabeled) points, e.g. if list={(1, 2), (3, 4)}, then SetPointSize(list,5) changes the size of the listed points.",
+                "related": ["Object"]
+            }
+        ]
+    },
+    {
+        "command": "SetLineStyle",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetLineStyle( <Line>, <Number> )",
+                "description": "Changes the line style of given object according to following table (numbers out of range [0,4] are treated as 0). 0 - Full, 1 - Dashed long, 2 - Dashed short, 3 - Dotted, 4 - Dash-dot",
+                "example": [],
+                "note": "",
+                "related": ["Line"]
+            }
+        ]
+    },
+    {
+        "command": "SetCaption",
+        "category": "Scripting Commands",
+        "usage": [
+            {
+                "syntax": "SetCaption( <Object>, <Text> )",
+                "description": "Changes the caption of the given object. Text must be enclosed in double quotes",
+                "example": [],
+                "related": ["Object"]
+            }
+        ]
+    }
+]
