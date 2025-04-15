@@ -1,7 +1,0 @@
-sqlalchemy
-psycopg2-binary
-pgvector
-sentence-transformers
-numpy
-python-dotenv
-sqlalchemy-utils

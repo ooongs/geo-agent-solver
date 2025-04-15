@@ -163,29 +163,9 @@ def main():
         if save:
             save_result(result)
 
-def test_with_examples():
-    """예제 문제로 테스트 수행"""
-    examples = [
-        "在△ABC中，∠C=90°，AB=5，BC=3，求AC的长度。",
-        "已知圆O的半径为5，点P在圆上，点Q是直径OP上的中点，求PQ的长度。"
-    ]
-    
-    results = []
-    for example in examples:
-        print(f"\n테스트 중: {example}")
-        result = solve_geometry_problem(example)
-        results.append(result)
-        display_result(result)
-    
-    # 결과 저장
-    for result in results:
-        save_result(result, "test_output")
-    
-    print(f"\n모든 테스트 결과가 test_output 디렉토리에 저장되었습니다.")
 
 if __name__ == "__main__":
     # 메인 함수 실행
     main()
     
     # 테스트 실행 (주석 처리)
-    # test_with_examples() 

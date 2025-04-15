@@ -258,7 +258,7 @@ GeoGebra命令: {commands}
         "task_type": "point_construction/line_construction/etc",
         "geometric_elements": ["A", "B", "Line_AB"],
         "geogebra_command": "Point/Line/Segment/etc",
-        "parameters": {
+        "parameters": {{
           "param1": "value1"
         }}                            
     ],
