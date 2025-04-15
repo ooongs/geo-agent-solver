@@ -134,6 +134,8 @@ def command_selection_agent(state, reranker_agent_input):
     try:
         # JSON 형식 응답 추출
         response_text = result.content
+
+        retrieved_commands = []
         
         # JSON 부분 추출
         start_idx = response_text.find("{")
@@ -177,13 +179,15 @@ def command_selection_agent(state, reranker_agent_input):
                                 "score": selected_cmd.get("score", 0),
                                 "selection_reason": reason
                             }
-                            
+                            retrieved_commands.append(selected_command)
+
                             # ConstructionStep의 selected_command에 저장
                             step.selected_command = selected_command
                         else:
                             # 첫 번째 명령어를 기본값으로 선택
                             if retrieved_commands:
                                 step.selected_command = retrieved_commands[0]
+                                state.retrieved_commands.append(retrieved_commands[0])
                     else:
                         print(f"[WARN] step_id {step_id}에 해당하는 단계를 찾을 수 없습니다.")
             else:
@@ -193,6 +197,8 @@ def command_selection_agent(state, reranker_agent_input):
             print(f"[WARN] JSON 응답을 찾을 수 없습니다: {response_text}")
             # 모든 단계에 첫 번째 명령어를 기본값으로 선택
             _select_default_commands(state, reranker_agent_input)
+            
+        state.retrieved_commands = retrieved_commands
             
     except json.JSONDecodeError as e:
         print(f"[ERROR] JSON 파싱 오류: {e}, 응답: {response_text}")

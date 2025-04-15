@@ -161,6 +161,7 @@ GEOGEBRA_COMMAND_PROMPT = ChatPromptTemplate.from_messages([
 - 问题分析: {problem_analysis}
 - 作图计划: {construction_plan}
 - 计算结果: {calculations}
+- 检索到的命令: {retrieved_commands}
 
 分析输入数据，注意以下几点：
 1. 如果提供了具体的坐标和度量值，请使用这些精确值
@@ -170,11 +171,19 @@ GEOGEBRA_COMMAND_PROMPT = ChatPromptTemplate.from_messages([
 5. 对于不确定的值，使用合理的默认值（如默认半径、默认角度等）
 6. 作图计划中会包含每个步骤可用的命令和其语法、示例等信息，请严格使用作图计划中的命令生成GeoGebra命令
 7. 请确保生成的命令严格遵守指令的依赖关系，在某一步骤指令中使用其他步骤的命令时，请确保其他步骤的命令已经生成
-8. 指令的正确用法为 <Object Name> : <CommandName> (<Parameter1>, <Parameter2>, ...) 或者 <Object Name> = <CommandName> [<Parameter1>, <Parameter2>, ...]，例如，a:Segment(B,C)、a=Segment(B,C)、a:Segment[B,C]、a=Segment[B,C]都是合法的
-9. 定义一个点时，点的对象名为大写字母，并用括号括起来，例如，A=(1,2)，B=(3,4)，C=(5,6)等
-10. 定义一个向量时，向量的对象名为小写字母，并用括号括起来，例如，v=(1,2)，u=(3,4)，w=(5,6)等
-11. 如果作图计划中要求生成一个点或向量并提供可参考的指令，而其值已经确定，请直接定义该点或向量，不要使用 Point 或 Vector 命令
-12. 如果需要定义一个对象上的点，且还没有确定其坐标，请使用 <Object Name> = Point(<Object>) 命令生成动态点。如果最后能够预测或确定其坐标，则最后使用 SetCoords(<Object>, <x>, <y>) 命令确定其坐标，并保证定义的动态点和 SetCoords 命令的参数对象是同一个对象
+8. 指令的正确用法为 <Object Name> : <CommandName> (<Parameter1>, <Parameter2>, ...) 或者 <Object Name> = <CommandName> [<Parameter1>, <Parameter2>, ...]，例如，`a:Segment(B,C)`、`a=Segment(B,C)`、`a:Segment[B,C]`、`a=Segment[B,C]`都是合法的
+9. 定义一个点时，点的对象名为大写字母，并用括号括起来，例如，`A=(1,2)`、`B=(3,4)`、`C=(5,6)`等
+10. 定义一个向量时，向量的对象名为小写字母，并用括号括起来，例如，`v=(1,2)`、`u=(3,4)`、`w=(5,6)`等
+11. 定义一个线段时，线段的对象名使用小写字母，例如，`a=Segment(B,C)`、`b=Segment(A,C)`、`c=Segment(A,B)`等
+12. 定义一个正多边形时，最好使用 `Polygon(A,B,C,...)` 命令，不要使用 `Polygon(A,B,<Number of Vertices>)` 命令，因为此命令无法使用正多边形的其余顶点
+13. 角度可以用度数或弧度表示，例如，30°或π/6
+13. 如果作图计划中要求生成一个点或向量并提供可参考的指令，而其值已经确定，请直接定义该点或向量，不要使用 Point 或 Vector 命令
+14. 如果需要定义一个对象上的点，且还没有确定其坐标，请使用 <Object Name> = Point(<Object>) 命令生成动态点。如果最后能够预测或确定其坐标，则最后使用 SetCoords(<Object>, <x>, <y>) 命令确定其坐标，并保证定义的动态点和 SetCoords 命令的参数对象是同一个对象
+15. 错误命令的示例：
+   - 命令名称错误：`RegularPolygon(A,B,C)` 命令不存在，正确应为 `Polygon(A,B,C)` 命令等
+   - 使用不存在的命令：例如，`Triangle(A,B,C)` 命令不存在，正确应为 `Polygon(A,B,C)` 命令
+    - 命令语法错误：例如，使用 `AngleBisector(A, B, C, 3)` 命令生成角平分线，正确应为 `AngleBisector(A, B, C)` 或类似形式
+   - 对象依赖关系错误：例如，使用 `Polygon(A, B, C)` 命令生成三角形 ABC，需要保证此命令前A、B、C三个点已经定义
 
      
 你的输出必须符合以下JSON格式:
@@ -196,14 +205,16 @@ VALIDATION_PROMPT = ChatPromptTemplate.from_template("""
 问题: {problem}
 作图计划: {construction_plan}
 GeoGebra命令: {commands}
-
+检索到的命令: {retrieved_commands}
 请按照以下具体步骤严格验证每一条命令:
 
 1. **命令语法检查**：
    - 每条命令的语法是否完全符合GeoGebra规范
    - 命令名称是否存在且正确（例如Polygon, Point, Segment等）
    - 参数数量和类型是否正确
-   - 示例：`Polygon(A, B, 3)`是错误语法，正确应为`Polygon(A, B, C)`或类似形式
+   - 示例：`AngleBisector(A, B, C, 3)`是错误语法，正确应为`AngleBisector(A, B, C)`或类似形式
+   - 示例：`RegularPolygon(A,B,C)`命令不存在，正确应为`Polygon(A,B,C)`命令
+   - 示例：`Triangle(A,B,C)`命令不存在，正确应为`Polygon(A,B,C)`命令
 
 2. **对象定义顺序验证**：
    - 严格检查每个对象在使用前是否已定义
@@ -237,12 +248,22 @@ GeoGebra命令: {commands}
   "warnings": ["警告1", "警告2", ...],  // 潜在问题或不优雅的实现
   "suggestions": ["建议1", "建议2", ...],  // 改进建议，即使命令正确也可以提供优化建议
   "command_by_command_analysis": [  // 每条命令的详细分析
-    {{
-      "command": "命令1",
-      "is_valid": boolean,
-      "issues": ["问题1", "问题2", ...],
-      "explanation": "详细解释"
-    }},
+  "construction_plan": {{ // 重新规划的作图计划
+    "title": "作图计划标题",
+    "description": "作图计划整体描述",
+    "steps": [
+      {{
+        "step_id": "step_1",
+        "description": "步骤描述",
+        "task_type": "point_construction/line_construction/etc",
+        "geometric_elements": ["A", "B", "Line_AB"],
+        "geogebra_command": "Point/Line/Segment/etc",
+        "parameters": {
+          "param1": "value1"
+        }}                            
+    ],
+    "final_result": "预期最终结果"
+  }},
     // ... 更多命令分析
   ]
 }}
@@ -251,31 +272,44 @@ GeoGebra命令: {commands}
 
 # GeoGebra 명령어 재생성 에이전트 프롬프트 추가
 COMMAND_REGENERATION_PROMPT = ChatPromptTemplate.from_template("""
-你是一个GeoGebra命令重新生成专家。你的任务是根据验证失败的原因，重新生成正确的GeoGebra命令。
+你是一个专业的GeoGebra命令重新生成专家。你的任务是根据验证失败的原因，重新生成正确的GeoGebra命令，确保修复所有验证问题并遵循GeoGebra的标准语法规范。
 
 问题: {problem}
-作图计划: {construction_plan}
+原始作图计划: {construction_plan}
 原始GeoGebra命令: {original_commands}
 验证结果: {validation_result}
+检索到的命令: {retrieved_commands}
 当前重新生成尝试次数: {attempt_count}
 
-请按照以下步骤进行：
-1. 分析验证失败的具体原因
-2. 识别需要修正的命令
-3. 保留正确的命令，修正或重新生成有问题的命令
-4. 确保命令的顺序逻辑正确，依赖关系明确
-5. 检查生成的命令是否解决了验证中指出的所有问题
+请严格按照以下步骤进行：
+1. 详细分析验证失败的具体原因，特别关注语法错误、对象依赖关系和命令顺序问题
+2. 明确识别每一个需要修正的命令及其问题
+3. 严格保留正确的命令，仅修正或重新生成有问题的命令
+4. 重新组织命令顺序，确保所有依赖关系正确（对象在使用前必须先定义）
+5. 对照验证结果检查修改后的命令是否解决了全部问题
 
-注意：
-- 保持命令简洁明了
-- 确保命令间的依赖关系正确
-- 避免之前命令中出现的错误
-- 必须生成完整的命令列表，而不仅是修改部分
-- 适当调整命令顺序，确保前面的命令不依赖后面尚未定义的对象
+命令编写规则：
+1. 使用标准的GeoGebra命令语法，确保命令名称和参数格式正确
+2. 指令的正确用法为 <Object Name> : <CommandName> (<Parameter1>, <Parameter2>, ...) 或者 <Object Name> = <CommandName> [<Parameter1>, <Parameter2>, ...]
+   - 例如，`a:Segment(B,C)`、`a=Segment(B,C)`、`a:Segment[B,C]`、`a=Segment[B,C]`都是合法的
+3. 定义点时，点的对象名使用大写字母，例如：`A=(1,2)`、`B=(3,4)`
+4. 定义一个对象上的动态点时，使用 `<Object Name> = Point(<Object>)`
+5. 定义一个线段时，线段的对象名使用小写字母，例如，`a=Segment(B,C)`
+6. 所有几何对象必须先定义后使用，特别注意点、线段和多边形等基本元素的定义顺序
+
+避免常见错误：
+1. 命令名称错误：例如使用不存在的命令如`RegularPolygon(A,B,C)`，正确应为`Polygon(A,B,C)`
+2. 参数数量错误：例如使用`AngleBisector(A,B,C,3)`，正确应为`AngleBisector(A,B,C)`
+3. 参数类型错误：例如使用`AngleBisector(<angle>,<Point>,<Point>)`，正确应为`AngleBisector(<Point>,<Point>,<Point>)`
+4. 对象依赖错误：使用未定义的对象，如在定义点A、B、C之前使用`Polygon(A,B,C)`
+4. 点定义错误：未先定义点的坐标就使用该点
+5. 命令顺序错误：命令的执行顺序必须考虑对象的依赖关系
+
+请生成完整的命令列表，而不仅是修改部分。确保每条命令都语法正确、逻辑合理且与问题要求一致。
 
 请以以下JSON格式输出：
 {{
-  "analysis": "对验证失败原因的分析（用 Markdown 格式，详细分析）",
+  "analysis": "对验证失败原因的详细分析（用Markdown格式，逐条分析问题）",
   "fixed_issues": ["修复的问题1", "修复的问题2", ...],
   "commands": ["GeoGebra命令1", "GeoGebra命令2", ...]
 }}

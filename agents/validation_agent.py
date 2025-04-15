@@ -25,6 +25,7 @@ def validation_agent(state):
         "problem": state.input_problem,
         "commands": str(state.geogebra_commands),
         "construction_plan": str(state.construction_plan),
+        "retrieved_commands": str(state.retrieved_commands),
         "agent_scratchpad": ""
     })
     

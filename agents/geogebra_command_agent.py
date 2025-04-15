@@ -50,6 +50,7 @@ def geogebra_command_agent(state):
         "problem_analysis": str(problem_analysis),
         "construction_plan": str(construction_plan),
         "calculations": str(calculations),
+        "retrieved_commands": str(state.retrieved_commands),
         "agent_scratchpad": ""
     })
     

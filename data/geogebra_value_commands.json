@@ -111,12 +111,6 @@
                 "related": ["Line", "Plane"]
             },
             {
-                "syntax": "Angle( <Line>, <Plane> )",
-                "description": "Returns the angle between the line and the plane.",
-                "example": ["Angle(Line((1, 2, 3),(-2, -2, 0)), z = 0) yields 30.96° or the corresponding value in radians."],
-                "related": ["Line", "Plane"]
-            },
-            {
                 "syntax": "Angle( <Plane>, <Plane> )",
                 "description": "Returns the angle between the two given planes.",
                 "example": ["Angle(2x - y + z = 0, z = 0) yields 114.09° or the corresponding value in radians."],
@@ -153,9 +147,9 @@
             },
             {
                 "syntax": "AngleBisector( <Point>, <Point>, <Point> )",
-                "description": "Returns the angle bisector of the angle defined by the three points.",
+                "description": "Returns the angle bisector of the angle defined by the three points. The second point is apex of this angle.",
                 "example": ["AngleBisector((1, 1), (4, 4), (7, 1)) yields a: x = 4."],
-                "note": "The second point is apex of this angle.",
+                "note": "Can only bisect angles, cannot divide into multiple angles.",
                 "related": ["Point"]
             }
         ]
@@ -458,6 +452,22 @@
                     "Intersect(Curve(2s, 5s, s,-10, 10), Curve(t, 2t, t, -10, 10)) yields A=(0,0)."
                 ],
                 "related": ["Object"]
+            },
+            {
+                "syntax": "Intersect( <Line>, <Line> )",
+                "description": "Yields the intersection points of two lines.",
+                "example":[
+                    "Let a: -3x + 7y = -10 be a line and b: 2x + 3y = 1 be another line. Intersect(a, b) yields the intersection."
+                ],
+                "related": ["Line"]
+            },
+            {
+                "syntax": "Intersect( <Segment>, <Segment> )",
+                "description": "Yields the intersection points of two segments.",
+                "example": [
+                    "Let a = Segment((1, 1), (1, 5)) and b = Segment((1, 1), (5, 1)) be two segments. Intersect(a, b) yields the intersection point (1, 1)."
+                ],
+                "related": ["Segment"]
             },
             {
                 "syntax": "Intersect( <Object>, <Object>, <Index of Intersection Point> )",

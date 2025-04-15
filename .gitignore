@@ -21,3 +21,6 @@ __pycache__
 *.pycache/*.*
 *.pycache/*.*.*
 *.pycache/*.*.*.*
+
+output/*
+test_output/*

@@ -605,6 +605,7 @@
                 "syntax": "Polygon( <Point>, <Point>, <Number of Vertices> )",
                 "description": "Creates a regular polygon with n vertices.",
                 "example": ["Polygon((1, 1), (4, 1), 6) yields a hexagon."],
+                "note": "Other points are automatically created to form a regular polygon. Thus, if you want to use vertices as point object, you should use the command Polygon( <Point>, <Point>, <Point>, ... ) instead.",
                 "related": ["Point"]
             },
             {
@@ -751,45 +752,6 @@
                 "note": "End Value must be greater than or equal to Start Value and both must be finite. x, y and z cannot be used as parameter variables.",
                 "example": ["Curve(cos(t), sin(t), t, t, 0, 10π) creates a 3D spiral"],
                 "related": []
-            }
-        ]
-    },
-    {
-        "command": "Intersect",
-        "category": "Geometry Commands",
-        "class": "Point",
-        "link": "https://geogebra.github.io/docs/manual/en/commands/Intersect/",
-        "description": "Yields the intersection points of two objects.",
-        "usage": [
-            {
-                "syntax": "Intersect( <Object>, <Object> )",
-                "description": "Yields the intersection points of two objects.",
-                "example": ["Let a: -3x + 7y = -10 be a line and c: x^2 + 2y^2 = 8 be an ellipse. Intersect(a, c) yields the intersection points E = (-1.02, -1,87) and F = (2.81, -0.22) of the line and the ellipse.", "Intersect(y = x + 3, Curve(t, 2t, t, 0, 10)) yields A=(3,6).", "Intersect(Curve(2s, 5s, s,-10, 10), Curve(t, 2t, t, -10, 10)) yields A=(0,0)"],
-                "related": ["Line", "Conic", "Curve"]
-            },
-            {
-                "syntax": "Intersect( <Object>, <Object>, <Index of Intersection Point> )",
-                "description": "Yields the nth intersection point of two objects. Each object must be a line, conic, polynomial function or implicit curve.",
-                "example": ["Let a(x) = x^3 + x^2 - x be a function and b: -3x + 5y = 4 be a line. Intersect(a, b, 2) yields the intersection point C = (-0.43, 0.54) of the function and the line."],
-                "related": ["Line", "Conic", "Function"]
-            },
-            {
-                "syntax": "Intersect( <Object>, <Object>, <Initial Point> )",
-                "description": "Yields an intersection point of two objects by using a numerical, iterative method with initial point.",
-                "example": ["Let a(x) = x^3 + x^2 - x be a function, b: -3x + 5y = 4 be a line, and C = (0, 0.8) be the initial point. Intersect(a, b, C) yields the intersection point D = (-0.43, 0.54) of the function and the line by using a numerical, iterative method."],
-                "related": ["Point", "Line", "Function"]
-            },
-            {
-                "syntax": "Intersect( <Function>, <Function>, <Start x-Value>, <End x-Value> )",
-                "description": "Yields the intersection points numerically for the two functions in the given interval.",
-                "example": ["Let f(x) = x^3 + x^2 - x and g(x) = 4 / 5 + 3 / 5 x be two functions. Intersect(f, g, -1, 2) yields the intersection points A = (-0.43, 0.54) and B = (1.1, 1.46) of the two functions in the interval [ -1, 2 ]."],
-                "related": ["Function"]
-            },
-            {
-                "syntax": "Intersect( <Curve 1>, <Curve 2>, <Parameter 1>, <Parameter 2> )",
-                "description": "Finds one intersection point using a numerical, iterative method starting at the given parameters.",
-                "example": ["Let a = Curve(cos(t), sin(t), t, 0, π) and b = Curve(cos(t) + 1, sin(t), t, 0, π). Intersect(a, b, 0, 2) yields the intersection point A = (0.5, 0.87)."],
-                "related": ["Curve"]
             }
         ]
     }

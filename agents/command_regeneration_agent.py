@@ -40,6 +40,7 @@ def command_regeneration_agent(state):
         "original_commands": str(original_commands),
         "validation_result": str(state.validation),
         "attempt_count": state.command_regeneration_attempts,
+        "retrieved_commands": str(state.retrieved_commands),
         "agent_scratchpad": ""
     })
     
