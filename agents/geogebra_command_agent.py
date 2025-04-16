@@ -3,7 +3,7 @@ from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
-from utils.prompts import GEOGEBRA_COMMAND_PROMPT
+from llm_message.prompts import GEOGEBRA_COMMAND_PROMPT
 from utils.llm_manager import LLMManager
 import re
 import json
@@ -50,7 +50,7 @@ def geogebra_command_agent(state):
         "problem_analysis": str(problem_analysis),
         "construction_plan": str(construction_plan),
         "calculations": str(calculations),
-        "retrieved_commands": str(state.retrieved_commands),
+        "retrieved_commands": json.dumps(state.retrieved_commands),
         "agent_scratchpad": ""
     })
     

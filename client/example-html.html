@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기하학 문제 해결기</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .input-section {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    .progress-container {
+      width: 100%;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    
+    #progress-bar {
+      height: 20px;
+      background-color: #4CAF50;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    #status-text {
+      text-align: center;
+      margin: 10px 0;
+      font-style: italic;
+      color: #666;
+    }
+    
+    .result-section {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      display: none;
+    }
+    
+    .commands-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .command-item {
+      background-color: #eee;
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    
+    .explanation-title {
+      font-weight: bold;
+      margin: 20px 0 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>기하학 문제 해결기</h1>
+  
+  <div class="container">
+    <div class="input-section">
+      <h2>문제 입력</h2>
+      <textarea id="problem-input" placeholder="여기에 기하학 문제를 입력하세요..."></textarea>
+      <button id="submit-button">문제 해결</button>
+    </div>
+    
+    <div class="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+    <div id="status-text">준비 완료</div>
+    
+    <div id="result-section" class="result-section">
+      <h2>해결 결과</h2>
+      
+      <div class="commands-title">GeoGebra 명령어:</div>
+      <div id="commands-container"></div>
+      
+      <div class="explanation-title">설명:</div>
+      <div id="explanation"></div>
+    </div>
+  </div>
+
+  <script>
+    // Socket.IO 인스턴스
+    const socket = io('http://localhost:8000');
+    let currentTaskId = null;
+    
+    // 연결 이벤트
+    socket.on('connect', () => {
+      console.log('서버에 연결되었습니다.');
+      updateStatus('준비 완료');
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('서버와 연결이 끊어졌습니다.');
+      updateStatus('서버 연결 끊김');
+    });
+    
+    // 작업 상태 업데이트 처리
+    socket.on('task_update', (data) => {
+      if (currentTaskId && data.task_id === currentTaskId) {
+        console.log(`작업 상태 업데이트: ${data.status}`);
+        
+        if (data.status === 'processing') {
+          updateProgressBar(50);
+          updateStatus('문제를 분석 중입니다...');
+        }
+      }
+    });
+    
+    // 작업 완료 처리
+    socket.on('task_completed', (data) => {
+      if (currentTaskId && data.task_id === currentTaskId) {
+        console.log('작업이 완료되었습니다.', data.result);
+        updateProgressBar(100);
+        updateStatus('완료!');
+        
+        // 결과 표시
+        displayResult(data.result);
+      }
+    });
+    
+    // 오류 처리
+    socket.on('task_error', (data) => {
+      if (currentTaskId && data.task_id === currentTaskId) {
+        console.error('작업 처리 중 오류가 발생했습니다:', data.error);
+        updateProgressBar(0);
+        updateStatus(`오류: ${data.error}`);
+      }
+    });
+    
+    // 제출 버튼 이벤트 리스너
+    document.getElementById('submit-button').addEventListener('click', async () => {
+      const problemText = document.getElementById('problem-input').value.trim();
+      
+      if (!problemText) {
+        alert('문제를 입력해주세요.');
+        return;
+      }
+      
+      // 결과 섹션 숨기기
+      document.getElementById('result-section').style.display = 'none';
+      
+      // 진행 상태 초기화
+      updateProgressBar(10);
+      updateStatus('작업을 제출 중입니다...');
+      
+      try {
+        // 서버에 작업 제출
+        const response = await fetch('http://localhost:8000/generate-commands', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: 'user',
+                content: problemText
+              }
+            ]
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentTaskId = data.task_id;
+          updateStatus(`작업이 제출되었습니다. 작업 ID: ${currentTaskId}`);
+          updateProgressBar(30);
+        } else {
+          updateStatus(`작업 제출 실패: ${data.detail || '알 수 없는 오류'}`);
+          updateProgressBar(0);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        updateStatus(`오류 발생: ${error.message}`);
+        updateProgressBar(0);
+      }
+    });
+    
+    // UI 업데이트 함수
+    function updateProgressBar(percent) {
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+    }
+    
+    function updateStatus(text) {
+      document.getElementById('status-text').textContent = text;
+    }
+    
+    // 결과 표시 함수
+    function displayResult(result) {
+      const resultSection = document.getElementById('result-section');
+      const commandsContainer = document.getElementById('commands-container');
+      const explanationElement = document.getElementById('explanation');
+      
+      // 명령어 표시
+      commandsContainer.innerHTML = '';
+      result.geogebra_commands.forEach(cmd => {
+        const cmdElement = document.createElement('div');
+        cmdElement.textContent = cmd;
+        cmdElement.className = 'command-item';
+        commandsContainer.appendChild(cmdElement);
+      });
+      
+      // 설명 표시
+      explanationElement.textContent = result.explanation || '설명이 제공되지 않았습니다.';
+      
+      // 결과 섹션 표시
+      resultSection.style.display = 'block';
+    }
+  </script>
+</body>
+</html> 

@@ -1,8 +1,7 @@
-from typing import Dict, List, Any, Optional
-from langchain.agents import AgentExecutor, create_openai_functions_agent
-from utils.prompts import COMMAND_REGENERATION_PROMPT
+from typing import List
+from llm_message.prompts import COMMAND_REGENERATION_PROMPT
 from utils.llm_manager import LLMManager
-from utils.json_parser import parse_llm_json_output, safe_parse_llm_json_output
+from utils.json_parser import safe_parse_llm_json_output
 from models.validation_models import RegenerationResult
 import json
 import re
@@ -40,7 +39,7 @@ def command_regeneration_agent(state):
         "original_commands": str(original_commands),
         "validation_result": str(state.validation),
         "attempt_count": state.command_regeneration_attempts,
-        "retrieved_commands": str(state.retrieved_commands),
+        "retrieved_commands": json.dumps(state.retrieved_commands),
         "agent_scratchpad": ""
     })
     

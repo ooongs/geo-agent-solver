@@ -20,7 +20,7 @@ PARSING_PROMPT = ChatPromptTemplate.from_template("""
 {format_instructions}
 """)
 
-ANALYSIS_JSON_TEMPLATE = '''
+PLANNER_JSON_TEMPLATE = '''
 {
   "requires_calculation": boolean,
   "calculation_types": {
@@ -69,7 +69,7 @@ ANALYSIS_JSON_TEMPLATE = '''
 
 
 # 분석 에이전트 프롬프트
-ANALYSIS_PROMPT = ChatPromptTemplate.from_template("""
+PLANNER_PROMPT = ChatPromptTemplate.from_template("""
 你是一个几何问题作图分析专家。你的任务是分析几何问题的特点，确定解决问题的最佳作图方法。
 注意：解析元素中已包含problem_type和approach的分析结果，请优先考虑这些已有的分析结果。
 

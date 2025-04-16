@@ -21,7 +21,7 @@ def create_geometry_solver_graph():
     """
     from agents import (
         parsing_agent,
-        analysis_agent,
+        planner_agent,
         explanation_agent,
         geogebra_command_agent,
         geogebra_command_retrieval_agent,
@@ -44,7 +44,7 @@ def create_geometry_solver_graph():
     workflow = StateGraph(GeometryState)
 
     workflow.add_node("parsing_agent", parsing_agent)
-    workflow.add_node("analysis_agent", analysis_agent)
+    workflow.add_node("planner_agent", planner_agent)
 
     workflow.add_node("triangle_calculation_agent", triangle_calculation_agent)
     workflow.add_node("circle_calculation_agent", circle_calculation_agent)
@@ -64,10 +64,10 @@ def create_geometry_solver_graph():
     
     # 에이전트 간 전환 규칙 설정
     workflow.set_entry_point("parsing_agent")
-    workflow.add_edge("parsing_agent", "analysis_agent")
+    workflow.add_edge("parsing_agent", "planner_agent")
     
     # 분석 결과에 따른 라우팅 설정
-    def route_after_analysis(state: GeometryState):
+    def route_after_planner(state: GeometryState):
         if state.requires_calculation:
             return "calculation_manager_agent"
         else:
@@ -75,8 +75,8 @@ def create_geometry_solver_graph():
             return "geogebra_command_retrieval_agent"
     
     workflow.add_conditional_edges(
-        "analysis_agent",
-        route_after_analysis,
+        "planner_agent",
+        route_after_planner,
         {
             "calculation_manager_agent": "calculation_manager_agent",
             "geogebra_command_retrieval_agent": "geogebra_command_retrieval_agent"
@@ -215,7 +215,10 @@ def create_geometry_solver_graph():
     workflow.set_entry_point("parsing_agent")
     workflow.set_finish_point("explanation_agent")
     
-    return workflow.compile()
+    # 모든 에이전트들이 비동기 처리를 지원하도록 설정
+    compiled_graph = workflow.compile()
+    
+    return compiled_graph
 
 def route_after_validation(state: GeometryState) -> str:
     """검증 결과에 따른 라우팅 결정"""

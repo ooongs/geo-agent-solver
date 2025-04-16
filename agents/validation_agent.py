@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from utils.prompts import VALIDATION_PROMPT
+from llm_message.prompts import VALIDATION_PROMPT
 from utils.llm_manager import LLMManager
 from utils.json_parser import parse_llm_json_output, safe_parse_llm_json_output
 from models.validation_models import ValidationResult
@@ -21,14 +21,15 @@ def validation_agent(state):
     
     # 입력 데이터 준비
     chain = VALIDATION_PROMPT | llm
+    print(f"[DEBUG] Validation agent start")
     result = chain.invoke({
         "problem": state.input_problem,
         "commands": str(state.geogebra_commands),
         "construction_plan": str(state.construction_plan),
-        "retrieved_commands": str(state.retrieved_commands),
+        "retrieved_commands": json.dumps(state.retrieved_commands),
         "agent_scratchpad": ""
     })
-    
+    print(f"[DEBUG] Validation agent end")
     # 결과 분석
     output = result.content if hasattr(result, 'content') else result["output"]
     

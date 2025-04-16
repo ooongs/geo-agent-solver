@@ -33,7 +33,7 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
         更新后的状态对象
     """
     print("[DEBUG] Starting calculation_manager_agent")
-    print(f"[DEBUG] Initial state: {state}")
+
     # 출력 파서 생성
     output_parser = JsonOutputParser(pydantic_object=CalculationTaskCreation)
     
@@ -88,16 +88,10 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
         "agent_scratchpad": ""
     })
     
-    print(f"[DEBUG] Parsed elements: {parsed_elements}")
-    print(f"[DEBUG] Problem analysis: {problem_analysis}")
-    print(f"[DEBUG] Result from chain: {result}")
-    
     # 에이전트 응답 분석하여 작업 큐 업데이트
     try:
         # 유틸리티 함수를 사용하여 JSON 출력 파싱
         parsed_result = safe_parse_llm_json_output(result, CalculationTaskCreation, output_parser)
-        
-        print(f"[DEBUG] Parsed result: {parsed_result}")
         
         # 파싱된 결과가 딕셔너리인지 확인하고 작업 병합
         if isinstance(parsed_result, dict):
@@ -227,5 +221,4 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
     if not state.next_calculation:
         determine_next_calculation(state)
     
-    print(f"[DEBUG] Updated state: {state}")
     return state 

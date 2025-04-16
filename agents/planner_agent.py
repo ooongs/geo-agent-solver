@@ -1,14 +1,12 @@
-from typing import Dict, Any, List
 from langchain_core.output_parsers import JsonOutputParser
-from pydantic import BaseModel, Field
-from models.state_models import CalculationQueue, CalculationTask, AnalysisResult, ConstructionPlan, ConstructionStep
+from models.state_models import CalculationQueue, CalculationTask, PlannerResult, ConstructionPlan, ConstructionStep
 from utils.llm_manager import LLMManager
-from llm_message.prompts import ANALYSIS_PROMPT, PLANNER_JSON_TEMPLATE
+from llm_message.prompts import PLANNER_PROMPT, PLANNER_JSON_TEMPLATE
 from utils.construction_util import build_construction_plan
 
 
 
-def analysis_agent(state):
+def planner_agent(state):
     """
     기하학 문제 분석 에이전트
     
@@ -19,17 +17,17 @@ def analysis_agent(state):
         분석 정보가 추가된 상태 딕셔너리
     """
     # LLM 설정
-    llm = LLMManager.get_analysis_agent_llm()
+    llm = LLMManager.get_planner_llm()
     
     # JSON 출력 파서 생성
-    parser = JsonOutputParser(pydantic_object=AnalysisResult)
+    parser = JsonOutputParser(pydantic_object=PlannerResult)
     
     # 파싱 에이전트에서 이미 처리한 정보 활용
     existing_problem_type = state.parsed_elements.get("problem_type", {})
     existing_approach = state.parsed_elements.get("approach", "GeoGebra作图")
     
     # 프롬프트 체인 생성 및 실행
-    chain = ANALYSIS_PROMPT | llm | parser
+    chain = PLANNER_PROMPT | llm | parser
     result = chain.invoke({
         "problem": state.input_problem,
         "parsed_elements": str(state.parsed_elements),

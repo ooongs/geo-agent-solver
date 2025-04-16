@@ -3,6 +3,7 @@ import json
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import sys
+import asyncio
 
 from graph import create_geometry_solver_graph
 from models import GeometryState
@@ -10,7 +11,7 @@ from models import GeometryState
 # 환경 변수 로드
 load_dotenv()
 
-def solve_geometry_problem(problem_text: str, output_file: Optional[str] = None) -> Dict[str, Any]:
+async def solve_geometry_problem(problem_text: str, output_file: Optional[str] = None) -> Dict[str, Any]:
     """
     기하학 문제를 해결하고 GeoGebra 명령어와 해설을 제공하는 메인 함수
     
@@ -27,8 +28,8 @@ def solve_geometry_problem(problem_text: str, output_file: Optional[str] = None)
     # 초기 상태 설정
     initial_state = GeometryState(input_problem=problem_text)
     
-    # 그래프 실행
-    result = solver_graph.invoke(initial_state)
+    # 그래프 실행 (비동기로 실행)
+    result = await solver_graph.ainvoke(initial_state)
     
     # 결과 반환
     # result 객체를 딕셔너리로 변환하여 접근
@@ -114,8 +115,8 @@ def save_result(result: dict, output_dir: str = "output"):
     
     print(f"\nResults saved in {output_dir} directory.")
 
-def main():
-    """메인 실행 함수"""
+async def main_async():
+    """비동기 메인 실행 함수"""
     print("\nGeometry problem solver (GeoGebra command generation)\n")
     
     # 명령줄 인수 확인
@@ -149,7 +150,7 @@ def main():
     
     # 문제 해결
     print("\nSolving problem...")
-    result = solve_geometry_problem(problem_text)
+    result = await solve_geometry_problem(problem_text)
     
     # 결과 출력
     display_result(result)
@@ -162,6 +163,11 @@ def main():
         save = input("\nSave results? (y/n): ").lower() == 'y'
         if save:
             save_result(result)
+
+
+def main():
+    """메인 함수 - 비동기 함수 호출을 위한 래퍼"""
+    asyncio.run(main_async())
 
 
 if __name__ == "__main__":

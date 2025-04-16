@@ -18,6 +18,10 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[Message]
+    system_prompt: Optional[str] = None
+    temperature: Optional[float] = 0.7
+    top_p: Optional[float] = 0.9
+    max_tokens: Optional[int] = 2048
 
 # 응답 모델 정의
 class SearchResult(BaseModel):
@@ -32,11 +36,32 @@ class SearchResponse(BaseModel):
     results: List[SearchResult]
 
 class ChatResponse(BaseModel):
-    content: str
-    model: str
-    commands: List[str] = []  # 추출된 명령어 목록
+    problem: str
+    geogebra_commands: List[str]
+    explanation: Optional[str] = None
+    parsed_elements: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
 
 # WebSocket 메시지 모델
 class WSMessage(BaseModel):
     type: str
     data: Dict[str, Any]
+
+# 작업 관련 스키마 추가
+class TaskResponse(BaseModel):
+    """비동기 작업 생성 응답"""
+    task_id: str
+    status: str
+
+class TaskStatusResponse(BaseModel):
+    """작업 상태 응답"""
+    task_id: str
+    status: str
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+class TaskCompletedResponse(BaseModel):
+    """작업 완료 응답"""
+    task_id: str
+    status: str
+    result: Dict[str, Any]

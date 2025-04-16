@@ -42,7 +42,6 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
         更新后的状态对象
     """
     print("[DEBUG] Starting angle_calculation_agent")
-    print(f"[DEBUG] Initial state: {state}")
     
     # 현재 작업 ID 가져오기
     current_task_id = state.calculation_queue.current_task_id
@@ -74,8 +73,6 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
     if not current_task:
         print(f"[DEBUG] Could not find task with ID {current_task_id}. Returning state.")
         return state
-    
-    print(f"[DEBUG] Current task: {current_task}")
     
     # 도구 생성
     tools = [
@@ -175,8 +172,6 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
         "agent_scratchpad": ""
     })
     
-    print(f"[DEBUG] Result from agent: {result}")
-    
     # 계산 결과 파싱 및 저장
     try:
         parsed_result = output_parser.parse(result["output"])
@@ -186,7 +181,6 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
         # 파싱 실패 시 결과 텍스트 그대로 저장
         current_task.result = {"raw_output": result["output"]}
     
-    print(f"[DEBUG] Parsed result: {current_task.result}")
     
     # 작업 상태 업데이트 - 완료로 설정
     current_task.status = "completed"
@@ -207,8 +201,6 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
     
     # 전체 계산 결과에 추가
     _update_calculation_results(state, current_task)
-    
-    print(f"[DEBUG] Updated state: {state}")
     
     return state
 

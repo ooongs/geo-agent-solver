@@ -95,7 +95,7 @@ class SuggestedTask(BaseModel):
     geogebra_command: Optional[str] = None
 
 
-class AnalysisResult(BaseModel):
+class PlannerResult(BaseModel):
     """분석 결과 모델"""
 
     requires_calculation: bool = Field(description="是否需要复杂计算")
@@ -130,7 +130,7 @@ class GeometryState(BaseModel):
     explanation: Optional[str] = Field(default=None, description="中文解释")
     errors: Optional[List[str]] = Field(default=None, description="出现的错误")
     is_valid: bool = Field(default=False, description="解决方案有效性")
-    retrieved_commands: Optional[List[str]] = Field(default=None, description="检索到的GeoGebra命令")
+    retrieved_commands: Optional[List[Dict[str, Any]]] = Field(default=None, description="检索到的GeoGebra命令")
 
     # 작도 계획 필드 추가
     construction_plan: Optional[ConstructionPlan] = Field(default=None, description="几何作图计划")

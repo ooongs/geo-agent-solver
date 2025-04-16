@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional, Type, TypedDict
 from langchain_openai import ChatOpenAI
-from utils.prompts import PARSING_PROMPT
+from llm_message.prompts import PARSING_PROMPT
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 import json

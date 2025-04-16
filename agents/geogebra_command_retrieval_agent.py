@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from db.retrieval import CommandRetrieval
 from utils.llm_manager import LLMManager
 import json
-from utils.prompts import COMMAND_SELECTION_PROMPT
+from llm_message.prompts import COMMAND_SELECTION_PROMPT
 def geogebra_command_retrieval_agent(state):
     """
     GeoGebra 명령어 검색 에이전트
@@ -23,6 +23,9 @@ def geogebra_command_retrieval_agent(state):
     
     # 검색 객체 초기화
     retrieval = CommandRetrieval()
+    
+    # 명령어 저장 리스트 초기화
+    state.retrieved_commands = []
     
     # construction_plan이 없는 경우 예외 처리
     if not hasattr(state, "construction_plan") or not state.construction_plan:
@@ -161,10 +164,10 @@ def command_selection_agent(state, reranker_agent_input):
                     # step_id에 해당하는 ConstructionStep 찾기
                     step = next((s for s in state.construction_plan.steps if s.step_id == step_id), None)
                     if step and step_id in step_commands:
-                        retrieved_commands = step_commands[step_id]
+                        step_retrieved_commands = step_commands[step_id]
                         
                         # command_id에 해당하는 명령어 찾기
-                        selected_cmd = next((cmd for cmd in retrieved_commands if cmd.get("command_id") == command_id), None)
+                        selected_cmd = next((cmd for cmd in step_retrieved_commands if cmd.get("command_id") == command_id), None)
                         
                         if selected_cmd:
                             # 선택된 명령어 정보 복사
@@ -185,9 +188,9 @@ def command_selection_agent(state, reranker_agent_input):
                             step.selected_command = selected_command
                         else:
                             # 첫 번째 명령어를 기본값으로 선택
-                            if retrieved_commands:
-                                step.selected_command = retrieved_commands[0]
-                                state.retrieved_commands.append(retrieved_commands[0])
+                            if step_retrieved_commands:
+                                step.selected_command = step_retrieved_commands[0]
+                                retrieved_commands.append(step_retrieved_commands[0])
                     else:
                         print(f"[WARN] step_id {step_id}에 해당하는 단계를 찾을 수 없습니다.")
             else:
@@ -221,6 +224,9 @@ def _select_default_commands(state, reranker_agent_input):
     for step_data in reranker_agent_input["steps"]:
         step_commands[step_data["step_id"]] = step_data["retrieved_commands"]
     
+    # 선택된 명령어를 저장할 리스트
+    retrieved_commands = []
+    
     # 모든 단계에 대해 첫 번째 명령어 선택
     for step in state.construction_plan.steps:
         if step.step_id in step_commands and step_commands[step.step_id]:
@@ -241,4 +247,10 @@ def _select_default_commands(state, reranker_agent_input):
             
             # ConstructionStep의 selected_command에 저장
             step.selected_command = selected_command
+            
+            # retrieved_commands 리스트에 추가
+            retrieved_commands.append(selected_command)
+    
+    # 상태 객체에 retrieved_commands 설정
+    state.retrieved_commands = retrieved_commands
             
