@@ -8,11 +8,8 @@
 from typing import Dict, Any
 import re
 import json
-from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_openai import ChatOpenAI
-
 from models.state_models import GeometryState
-from agents.calculation.prompts.merger_prompt import RESULT_MERGER_PROMPT, MERGER_JSON_TEMPLATE
+from geo_prompts import RESULT_MERGER_PROMPT, MERGER_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 
 def calculation_result_merger_agent(state: GeometryState) -> GeometryState:

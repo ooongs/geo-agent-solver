@@ -200,6 +200,32 @@ def calculate_angle_bisector_wrapper(point1: List[float], vertex: List[float], p
         }
     except Exception as e:
         raise ToolException(f"计算角平分线时出错：{str(e)}")
+    
+def calculate_angle_trisection_wrapper(point1: List[float], vertex: List[float], point2: List[float]) -> dict:
+    """
+    각도를 세 등분하는 래퍼 함수
+    
+    Args:
+        point1: 첫 번째 점 좌표 [x1, y1]
+        vertex: 각의 꼭지점 좌표 [x2, y2]
+        point2: 두 번째 점 좌표 [x3, y3]
+        
+    Returns:
+        세 등분 결과와 설명
+    """
+    try:
+        p1 = tuple(point1)
+        p2 = tuple(vertex)  # 각의 꼭지점
+        p3 = tuple(point2)
+        
+        trisection = AngleTools.calculate_angle_trisection(p1, p2, p3)
+        
+        return {
+            "trisection": trisection,
+            "explanation": f"点 {p1}、{p2}（角的顶点）和 {p3} 形成的角的三等分线方程是 l1: {trisection[0][0]}x + {trisection[0][1]}y + {trisection[0][2]} = 0, l2: {trisection[1][0]}x + {trisection[1][1]}y + {trisection[1][2]} = 0, l3: {trisection[2][0]}x + {trisection[2][1]}y + {trisection[2][2]} = 0"
+        }
+    except Exception as e:
+        raise ToolException(f"计算三等分线时出错：{str(e)}")
 
 def angle_classification_wrapper(angle_deg: float) -> dict:
     """

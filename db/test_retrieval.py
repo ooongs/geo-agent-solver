@@ -26,13 +26,13 @@ def test_search_by_command(retrieval, command):
         print(f"  설명: {result['description']}")
         print(f"  점수: {result['score']:.4f}")
 
-def test_hybrid_search(retrieval, query, category=None):
+def test_cosine_search(retrieval, query, category=None):
     """
     하이브리드 검색 기능 테스트
     """
     print(f"\n==== '{query}' 하이브리드 검색 테스트 ====")
     
-    results = retrieval.hybrid_search(query)
+    results = retrieval.cosine_search(query)
     
     if not results:
         print(f"'{query}' 에 대한 검색 결과가 없습니다.")
@@ -93,7 +93,7 @@ def main():
         test_search_by_command(retrieval, args.command)
     
     if args.mode == 'hybrid' or args.mode == 'all':
-        test_hybrid_search(retrieval, args.query, args.command)
+        test_cosine_search(retrieval, args.query, args.command)
     
 if __name__ == "__main__":
     main() 

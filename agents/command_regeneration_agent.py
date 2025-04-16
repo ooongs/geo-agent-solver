@@ -1,5 +1,5 @@
 from typing import List
-from llm_message.prompts import COMMAND_REGENERATION_PROMPT
+from geo_prompts import COMMAND_REGENERATION_PROMPT, COMMAND_REGENERATION_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 from utils.json_parser import safe_parse_llm_json_output
 from models.validation_models import RegenerationResult
@@ -39,6 +39,7 @@ def command_regeneration_agent(state):
         "original_commands": str(original_commands),
         "validation_result": str(state.validation),
         "attempt_count": state.command_regeneration_attempts,
+        "json_template": COMMAND_REGENERATION_JSON_TEMPLATE,
         "retrieved_commands": json.dumps(state.retrieved_commands),
         "agent_scratchpad": ""
     })

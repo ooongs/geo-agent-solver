@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 from pydantic import BaseModel, Field
 
 class CalculationResult(BaseModel):
@@ -12,6 +12,7 @@ class CalculationResult(BaseModel):
     circle_properties: Optional[Dict[str, Union[float, List[float]]]] = Field(None, description="圆的属性信息")
     ratios: Optional[Dict[str, float]] = Field(None, description="比例信息")
     other_results: Optional[Dict[str, Union[float, List[float], str]]] = Field(None, description="其他计算结果")
+    geogebra_direct_commands: Optional[List[Dict[str, Any]]] = Field(None, description="GeoGebra直接命令")
 
     def update_with(self, other: Dict) -> None:
         """用其他结果更新当前结果。"""

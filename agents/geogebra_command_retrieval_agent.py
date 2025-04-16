@@ -8,7 +8,8 @@ from typing import Dict, Any, List, Optional
 from db.retrieval import CommandRetrieval
 from utils.llm_manager import LLMManager
 import json
-from llm_message.prompts import COMMAND_SELECTION_PROMPT
+from geo_prompts import COMMAND_SELECTION_PROMPT, COMMAND_SELECTION_TEMPLATE
+
 def geogebra_command_retrieval_agent(state):
     """
     GeoGebra 명령어 검색 에이전트
@@ -58,8 +59,8 @@ def geogebra_command_retrieval_agent(state):
             query += f" {step.command_type}"
         
         # SentenceBERT로 검색 실행
-        search_results = retrieval.hybrid_search(
-            query, top_k=3
+        search_results = retrieval.cosine_search(
+            query, top_k=5
         )
         
         if search_results:
@@ -130,6 +131,7 @@ def command_selection_agent(state, reranker_agent_input):
     # LLM 호출하여 명령어 선택
     chain = COMMAND_SELECTION_PROMPT | llm
     result = chain.invoke({
+        "json_template": COMMAND_SELECTION_TEMPLATE,
         "reranker_agent_input": reranker_agent_input
     })
     

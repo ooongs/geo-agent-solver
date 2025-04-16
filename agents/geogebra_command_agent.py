@@ -1,9 +1,7 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from langchain.tools import StructuredTool
 from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
-from llm_message.prompts import GEOGEBRA_COMMAND_PROMPT
+from geo_prompts import GEOGEBRA_COMMAND_PROMPT, COMMAND_GENERATION_TEMPLATE
 from utils.llm_manager import LLMManager
 import re
 import json
@@ -50,6 +48,7 @@ def geogebra_command_agent(state):
         "problem_analysis": str(problem_analysis),
         "construction_plan": str(construction_plan),
         "calculations": str(calculations),
+        "json_template": COMMAND_GENERATION_TEMPLATE,
         "retrieved_commands": json.dumps(state.retrieved_commands),
         "agent_scratchpad": ""
     })

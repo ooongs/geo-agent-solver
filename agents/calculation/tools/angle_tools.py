@@ -126,6 +126,52 @@ class AngleTools(GeometryToolBase):
         return (-slope, 1, -intercept)
     
     @staticmethod
+    def calculate_angle_trisection(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> List[Tuple[float, float, float]]:
+        """각도를 세 등분하는 두 직선의 방정식 계산 (p1-p2-p3 각도 제외)"""
+        # 두 벡터 계산
+        v1 = (p1[0] - p2[0], p1[1] - p2[1])
+        v3 = (p3[0] - p2[0], p3[1] - p2[1])
+        
+        # 벡터 정규화
+        norm1 = np.sqrt(v1[0]**2 + v1[1]**2)
+        norm3 = np.sqrt(v3[0]**2 + v3[1]**2)
+        
+        v1_unit = (v1[0] / norm1, v1[1] / norm1)
+        v3_unit = (v3[0] / norm3, v3[1] / norm3)
+        
+        # 두 벡터 사이의 각도 계산
+        dot_product = v1_unit[0] * v3_unit[0] + v1_unit[1] * v3_unit[1]
+        angle = np.arccos(max(min(dot_product, 1.0), -1.0))
+        
+        # 각도를 삼등분하여 두 개의 새로운 벡터 계산
+        trisection_lines = []
+        for i in range(1, 3):  # 1/3, 2/3 위치에 직선 생성
+            # 회전 각도 계산 (v1에서 시작하여 v3 방향으로)
+            rotation_angle = angle * i / 3
+            
+            # 단위 벡터 v1을 회전
+            cos_theta = np.cos(rotation_angle)
+            sin_theta = np.sin(rotation_angle)
+            
+            # v1을 기준으로 회전 변환 적용
+            # 2D 회전 변환: [cos θ, -sin θ; sin θ, cos θ] * [x; y]
+            rotated_x = v1_unit[0] * cos_theta - v1_unit[1] * sin_theta
+            rotated_y = v1_unit[0] * sin_theta + v1_unit[1] * cos_theta
+            
+            # 회전된 벡터
+            trisect_vector = (rotated_x, rotated_y)
+            
+            # 직선의 방정식 계산 (ax + by + c = 0)
+            # 방향 벡터가 (dx, dy)일 때, 직선의 법선 벡터는 (-dy, dx)
+            a = -trisect_vector[1]
+            b = trisect_vector[0]
+            c = trisect_vector[1] * p2[0] - trisect_vector[0] * p2[1]
+            
+            trisection_lines.append((a, b, c))
+        
+        return trisection_lines
+    
+    @staticmethod
     def is_angle_acute(angle: float) -> bool:
         """예각인지 확인"""
         return 0 < angle < np.pi / 2

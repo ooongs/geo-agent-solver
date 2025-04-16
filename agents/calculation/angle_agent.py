@@ -1,7 +1,6 @@
 from typing import Any
 from models.state_models import GeometryState
 from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_openai import ChatOpenAI
 from langchain.tools import StructuredTool
 from agents.calculation.tools.angle_tools import AngleTools
 from agents.calculation.wrappers.angle_wrappers import (
@@ -12,6 +11,7 @@ from agents.calculation.wrappers.angle_wrappers import (
     calculate_exterior_angles_triangle_wrapper,
     calculate_inscribed_angle_wrapper,
     calculate_angle_bisector_wrapper,
+    calculate_angle_trisection_wrapper,
     angle_classification_wrapper
 )
 from agents.calculation.schemas.angle_schemas import (
@@ -25,8 +25,8 @@ from agents.calculation.schemas.angle_schemas import (
     AngleClassificationInput
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models.calculation_result_model import CalculationResult
-from agents.calculation.prompts.angle_prompt import ANGLE_CALCULATION_PROMPT, ANGLE_JSON_TEMPLATE
+from models.calculation_result_model import CalculationResult
+from geo_prompts import ANGLE_CALCULATION_PROMPT, ANGLE_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 
 def angle_calculation_agent(state: GeometryState) -> GeometryState:
@@ -115,6 +115,13 @@ def angle_calculation_agent(state: GeometryState) -> GeometryState:
             name="calculate_angle_bisector",
             func=calculate_angle_bisector_wrapper,
             description="计算角平分线",
+            args_schema=AngleBetweenPointsInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_angle_trisection",
+            func=calculate_angle_trisection_wrapper,
+            description="计算角的三等分线",
             args_schema=AngleBetweenPointsInput,
             handle_tool_error=True
         ),

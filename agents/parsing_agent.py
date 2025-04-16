@@ -1,12 +1,11 @@
-from typing import Dict, Any, List, Optional, Type, TypedDict
-from langchain_openai import ChatOpenAI
-from llm_message.prompts import PARSING_PROMPT
+from typing import Dict, Any, List, Optional
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 import json
 import re
-from config import DEFAULT_MODEL
 from utils.llm_manager import LLMManager
+from geo_prompts import PARSING_PROMPT
+
 
 # 출력 구조 정의
 class GeometricObject(BaseModel):

@@ -26,8 +26,8 @@ from agents.calculation.schemas.length_schemas import (
     ArcLengthInput
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models.calculation_result_model import CalculationResult
-from agents.calculation.prompts.length_prompt import LENGTH_CALCULATION_PROMPT, LENGTH_JSON_TEMPLATE
+from models.calculation_result_model import CalculationResult
+from geo_prompts import LENGTH_CALCULATION_PROMPT, LENGTH_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 import json
 import re

@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from llm_message.prompts import VALIDATION_PROMPT
+from geo_prompts import VALIDATION_PROMPT, VALIDATION_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 from utils.json_parser import parse_llm_json_output, safe_parse_llm_json_output
 from models.validation_models import ValidationResult
@@ -26,7 +26,8 @@ def validation_agent(state):
         "problem": state.input_problem,
         "commands": str(state.geogebra_commands),
         "construction_plan": str(state.construction_plan),
-        "retrieved_commands": json.dumps(state.retrieved_commands),
+        # "retrieved_commands": json.dumps(state.retrieved_commands),
+        "json_template": VALIDATION_JSON_TEMPLATE,
         "agent_scratchpad": ""
     })
     print(f"[DEBUG] Validation agent end")

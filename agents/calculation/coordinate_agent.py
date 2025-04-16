@@ -1,7 +1,6 @@
 from typing import Dict, Any
 from models.state_models import GeometryState
 from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_openai import ChatOpenAI
 from langchain.tools import StructuredTool
 from agents.calculation.wrappers.coordinate_wrappers import (
     calculate_midpoint_wrapper,
@@ -26,8 +25,8 @@ from agents.calculation.schemas.coordinate_schemas import (
     PointOnSegmentInput
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models.calculation_result_model import CalculationResult
-from agents.calculation.prompts.coordinate_prompt import COORDINATE_CALCULATION_PROMPT, COORDINATE_JSON_TEMPLATE
+from models.calculation_result_model import CalculationResult
+from geo_prompts import COORDINATE_CALCULATION_PROMPT, COORDINATE_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 
 def coordinate_calculation_agent(state: GeometryState) -> GeometryState:

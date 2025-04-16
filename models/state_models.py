@@ -5,9 +5,8 @@
 또한 계산 관련 모델도 포함하여 원형 가져오기(circular import) 문제를 해결합니다.
 """
 
-from typing import Dict, List, Any, Optional, Literal, Union
-from pydantic import BaseModel, Field, field_validator, ConfigDict, model_validator
-from enum import Enum
+from typing import Dict, List, Any, Optional, Literal
+from pydantic import BaseModel, Field
 
 # 계산 작업 클래스 정의
 class CalculationTask(BaseModel):
@@ -99,7 +98,6 @@ class PlannerResult(BaseModel):
     """분석 결과 모델"""
 
     requires_calculation: bool = Field(description="是否需要复杂计算")
-    calculation_types: CalculationTypes = Field(description="需要的计算类型")
     reasoning: str = Field(description="分析理由")
     suggested_tasks: Optional[List[Dict[str, Any]]] = Field(description="建议的计算任务", default_factory=list)
     suggested_tasks_reasoning: Optional[str] = Field(description="建议的计算任务理由", default="")

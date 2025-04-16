@@ -11,9 +11,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 
 from models.state_models import GeometryState, CalculationQueue, CalculationTask, CalculationTaskCreation
-from agents.calculation.prompts.manager_prompt import CALCULATION_MANAGER_PROMPT, MANAGER_JSON_TEMPLATE
+from geo_prompts import CALCULATION_MANAGER_PROMPT, MANAGER_JSON_TEMPLATE
 from agents.calculation.utils.calculation_utils import (
-    process_calculation_tasks,
     update_calculation_queue,
     determine_next_calculation
 )
@@ -81,7 +80,6 @@ def calculation_manager_agent(state: GeometryState) -> GeometryState:
         "analyzed_conditions": str(analyzed_conditions),
         "approach": str(approach),
         "problem_analysis": str(problem_analysis),
-        "calculation_types": str(problem_analysis.get("calculation_types", {})) if problem_analysis else "{}",
         "calculation_queue": str(calculation_queue),
         "calculation_results": str(calculation_results),
         "json_template": MANAGER_JSON_TEMPLATE,

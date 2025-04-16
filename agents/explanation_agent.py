@@ -1,6 +1,4 @@
-from typing import Dict, Any, Optional
-from langchain_openai import ChatOpenAI
-from llm_message.prompts import EXPLANATION_PROMPT
+from geo_prompts import EXPLANATION_PROMPT
 from utils.llm_manager import LLMManager
 
 def explanation_agent(state):

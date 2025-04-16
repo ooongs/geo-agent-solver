@@ -57,7 +57,7 @@ retrieval = CommandRetrieval()
 results = retrieval.search_commands("두 점을 지나는 선", top_k=5)
 
 # 하이브리드 검색
-results = retrieval.hybrid_search("원의 중심과 반지름", top_k=5)
+results = retrieval.cosine_search("원의 중심과 반지름", top_k=5)
 
 # 문제 기반 명령어 추천
 problem = "두 점 A(0,0)와 B(4,0)이 있다. 이 두 점을 지름의 양 끝점으로 하는 원을 그리시오."

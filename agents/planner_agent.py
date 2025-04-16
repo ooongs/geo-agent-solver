@@ -1,9 +1,9 @@
 from langchain_core.output_parsers import JsonOutputParser
 from models.state_models import CalculationQueue, CalculationTask, PlannerResult, ConstructionPlan, ConstructionStep
 from utils.llm_manager import LLMManager
-from llm_message.prompts import PLANNER_PROMPT, PLANNER_JSON_TEMPLATE
+from geo_prompts import PLANNER_PROMPT, PLANNER_CALCULATION_JSON_TEMPLATE, PLANNER_NO_CALCULATION_JSON_TEMPLATE
 from utils.construction_util import build_construction_plan
-
+import yaml
 
 
 def planner_agent(state):
@@ -19,6 +19,10 @@ def planner_agent(state):
     # LLM 설정
     llm = LLMManager.get_planner_llm()
     
+    # 계산 결과 초기화
+    if state.calculation_results is None:
+        state.calculation_results = {}
+    
     # JSON 출력 파서 생성
     parser = JsonOutputParser(pydantic_object=PlannerResult)
     
@@ -28,19 +32,291 @@ def planner_agent(state):
     
     # 프롬프트 체인 생성 및 실행
     chain = PLANNER_PROMPT | llm | parser
-    result = chain.invoke({
-        "problem": state.input_problem,
-        "parsed_elements": str(state.parsed_elements),
-        "json_template": PLANNER_JSON_TEMPLATE
-    })
+    # result = chain.invoke({
+    #     "problem": state.input_problem,
+    #     "parsed_elements": yaml.dump(state.parsed_elements, allow_unicode=True, sort_keys=False),
+    #     "json_template1": PLANNER_CALCULATION_JSON_TEMPLATE,
+    #     "json_template2": PLANNER_NO_CALCULATION_JSON_TEMPLATE
+    # })
+    state.input_problem = "△ABC为正三角形，D、E为BC上的点，且有∠CAD=∠DAE=∠EAB,取AD的中点F，连接BF交AE于G"
+    state.parsed_elements = {
+      "geometric_objects": {
+        "A": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "B": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "C": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "D": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "E": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "F": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "G": {
+          "type": "point",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": None
+        },
+        "AB": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "A",
+            "B"
+          ]
+        },
+        "BC": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "B",
+            "C"
+          ]
+        },
+        "CA": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "C",
+            "A"
+          ]
+        },
+        "AD": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "A",
+            "D"
+          ]
+        },
+        "AE": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "A",
+            "E"
+          ]
+        },
+        "BF": {
+          "type": "line",
+          "vertices": None,
+          "center": None,
+          "radius": None,
+          "points": [
+            "B",
+            "F"
+          ]
+        },
+        "ABC": {
+          "type": "triangle",
+          "vertices": [
+            "A",
+            "B",
+            "C"
+          ],
+          "center": None,
+          "radius": None,
+          "points": None
+        }
+      },
+      "relations": {
+        "AB_BC_CA_equal": {
+          "type": "segment",
+          "elements": [
+            "AB",
+            "BC",
+            "CA"
+          ],
+          "length": None,
+          "target": False
+        },
+        "angle_CAD_DAE_EAB": {
+          "type": "angle",
+          "elements": [
+            "CAD",
+            "DAE",
+            "EAB"
+          ],
+          "length": None,
+          "target": False
+        },
+        "F_AD_midpoint": {
+          "type": "midpoint",
+          "elements": [
+            "F",
+            "AD"
+          ],
+          "length": None,
+          "target": False
+        },
+        "BF_intersect_AE_G": {
+          "type": "intersection",
+          "elements": [
+            "BF",
+            "AE"
+          ],
+          "length": None,
+          "target": True
+        }
+      },
+      "conditions": {
+        "ABC_equilateral": {
+          "type": "equality",
+          "measure": None,
+          "unit": None,
+          "elements": [
+            "AB",
+            "BC",
+            "CA"
+          ]
+        },
+        "angle_CAD_DAE_EAB_equal": {
+          "type": "angle",
+          "measure": None,
+          "unit": "degree",
+          "elements": [
+            "CAD",
+            "DAE",
+            "EAB"
+          ]
+        },
+        "F_AD_midpoint": {
+          "type": "midpoint",
+          "measure": None,
+          "unit": None,
+          "elements": [
+            "F",
+            "AD"
+          ]
+        },
+        "triangle_type": {
+          "type": "triangle_type",
+          "value": "equilateral"
+        }
+      },
+      "targets": {
+        "G": {
+          "type": "point",
+          "segment": None,
+          "angle": None,
+          "description": "Find the intersection point G of BF and AE"
+        }
+      },
+      "problem_type": {
+        "triangle": True,
+        "circle": False,
+        "angle": True,
+        "coordinate": False,
+        "area": False,
+        "proof": False,
+        "construction": False,
+        "measurement": False
+      },
+      "analyzed_conditions": {
+        "equal_sides": True,
+        "equal_angles": True,
+        "perpendicular": False,
+        "parallel": False,
+        "congruent": False,
+        "similar": False,
+        "tangent": False
+      },
+      "approach": "ruler-compass construction"
+    }
+
+    result = {
+    "requires_calculation": True,
+    "reasoning": "The problem involves dividing an angle into three equal parts (trisection) and finding the intersection point of lines constructed based on these angles. Angle trisection is not generally possible with just a ruler and compass, which means advanced calculations or geometric properties must be used to determine the positions of points D and E, and subsequently point G.",
+    "suggested_tasks_reasoning": "To solve this problem, we need to determine the positions of points D and E on BC such that the angles CAD, DAE, and EAB are equal. This requires angle calculations or trigonometric methods. Once D and E are determined, we can find the midpoint F of AD, draw BF, and find its intersection with AE to locate G.",
+    "suggested_tasks": [
+        {
+        "task_type": "angle",
+        "operation_type": "angleTrisection",
+        "parameters": {
+            "point1": "C",
+            "point2": "A",
+            "point3": "B"
+        },
+        "dependencies": [],
+        "description": "Divide angle CAB into three equal parts to locate points D and E",
+        "geogebra_alternatives": False,
+        },
+        {
+        "task_type": "length",
+        "operation_type": "midpoint",
+        "parameters": {
+            "point1": "A",
+            "point2": "D"
+        },
+        "dependencies": ["D"],
+        "description": "Find the midpoint F of AD",
+        "geogebra_alternatives": True,
+        "geogebra_command": "Midpoint[A, D]"
+        },
+        {
+        "task_type": "line",
+        "operation_type": "intersect",
+        "parameters": {
+            "line1": "BF",
+            "line2": "AE"
+        },
+        "dependencies": ["F", "E"],
+        "description": "Find the intersection point G of BF and AE",
+        "geogebra_alternatives": True,
+        "geogebra_command": "Intersect[BF, AE]"
+        }
+    ]
+    }
     
     # 상태 업데이트 - 파싱 에이전트에서 이미 분석한 problem_type과 approach 사용
     state.problem_analysis = {
         "problem_type": existing_problem_type,
         "approach": existing_approach,
-        "calculation_types": result["calculation_types"],
-        "reasoning": result["reasoning"],
-        "suggested_tasks": result["suggested_tasks"],
+        "reasoning": result.get("reasoning", ""),
+        "suggested_tasks": result.get("suggested_tasks", []),
         "suggested_tasks_reasoning": result.get("suggested_tasks_reasoning", "")
     }
     
@@ -82,12 +358,6 @@ def planner_agent(state):
             current_task_id=None,
             completed_task_ids=[]
         )
-        
-        # 초기 계산 유형 설정 (우선순위에 따라)
-        for calc_type, needed in result["calculation_types"].items():
-            if needed:
-                state.next_calculation = calc_type
-                break
         
         # 초기 계산 작업 추가 (제안된 작업이 있는 경우)
         if result["suggested_tasks"]:

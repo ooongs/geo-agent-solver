@@ -1,8 +1,6 @@
-from typing import Dict, Any, List, Optional, Union, Tuple
-from pydantic import BaseModel, Field
+from typing import Any
 from models.state_models import GeometryState
 from langchain.agents import AgentExecutor, create_openai_functions_agent
-from langchain_openai import ChatOpenAI
 from langchain.tools import StructuredTool
 from agents.calculation.wrappers.triangle_wrappers import (
     calculate_area_wrapper,
@@ -24,8 +22,8 @@ from agents.calculation.schemas.triangle_schemas import (
     TriangleVerticesInput
 )
 from langchain_core.output_parsers import JsonOutputParser
-from agents.calculation.models.calculation_result_model import CalculationResult
-from agents.calculation.prompts.triangle_prompt import TRIANGLE_CALCULATION_PROMPT, TRIANGLE_JSON_TEMPLATE
+from models.calculation_result_model import CalculationResult
+from geo_prompts import TRIANGLE_CALCULATION_PROMPT, TRIANGLE_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
 
 

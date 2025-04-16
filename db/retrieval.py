@@ -58,7 +58,7 @@ class CommandRetrieval:
             command_embedding = self.generate_embedding(command)
             
             # ORM 쿼리 생성
-            distance = GeogebraCommand.embedding.l2_distance(command_embedding)
+            distance = GeogebraCommand.embedding.cosine_distance(command_embedding)
             score = func.power(1.0 + distance, -1)
             
             query = (
@@ -104,7 +104,7 @@ class CommandRetrieval:
         finally:
             session.close()
         
-    def hybrid_search(self, 
+    def cosine_search(self, 
                      query: str, 
                      top_k: int = 5) -> List[Dict[str, Any]]:
         """
@@ -125,31 +125,11 @@ class CommandRetrieval:
             # 쿼리 임베딩 생성
             query_embedding = self.generate_embedding(query)
             
-            # 키워드를 추출하여 텍스트 검색 조건 생성
-            keywords = [kw.strip() for kw in query.split() if len(kw.strip()) > 2]
+            # 벡터 거리 계산 (코사인 거리)
+            vector_distance = GeogebraCommand.embedding.cosine_distance(query_embedding)
             
-            # 벡터 거리 계산
-            vector_distance = GeogebraCommand.embedding.l2_distance(query_embedding)
-            
-            # 키워드 점수 계산
-            keyword_score = 0.0
-            if keywords:
-                keyword_score_cases = []
-                for kw in keywords:
-                    kw_pattern = f"%{kw}%"
-                    keyword_score_cases.append(
-                        case(
-                            (GeogebraCommand.description.ilike(kw_pattern), 0.5),
-                            (GeogebraCommand.command.ilike(kw_pattern), 0.3),
-                            else_=0
-                        )
-                    )
-                
-                if keyword_score_cases:
-                    keyword_score = sum(keyword_score_cases)
-            
-            # 총 점수 계산
-            total_score = func.power(1.0 + vector_distance, -1) + keyword_score
+            # 코사인 유사도 점수 계산 (거리의 역수)
+            similarity_score = func.power(1.0 + vector_distance, -1)
             
             # 기본 쿼리 구성
             query = (
@@ -163,14 +143,13 @@ class CommandRetrieval:
                     GeogebraCommand.note,
                     GeogebraCommand.related,
                     vector_distance.label('vector_distance'),
-                    keyword_score.label('keyword_score'),
-                    total_score.label('total_score')
+                    similarity_score.label('similarity_score')
                 )
             )
             
                 
             # 정렬 및 결과 제한
-            query = query.order_by(total_score.desc()).limit(top_k)
+            query = query.order_by(similarity_score.desc()).limit(top_k)
             
             # 쿼리 실행
             result = session.execute(query)
@@ -187,8 +166,8 @@ class CommandRetrieval:
                     "examples": row.examples,
                     "note": row.note,
                     "related": row.related,
-                    "score": float(row.total_score),
-                    "source": "sbert_search"
+                    "score": float(row.similarity_score),
+                    "source": "vector_search"
                 })
                 
             return commands[:top_k]

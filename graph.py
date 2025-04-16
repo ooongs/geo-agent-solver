@@ -63,8 +63,9 @@ def create_geometry_solver_graph():
     workflow.add_node("explanation_agent", explanation_agent)
     
     # 에이전트 간 전환 규칙 설정
-    workflow.set_entry_point("parsing_agent")
-    workflow.add_edge("parsing_agent", "planner_agent")
+    # workflow.set_entry_point("parsing_agent")
+    # workflow.add_edge("parsing_agent", "planner_agent")
+    workflow.set_entry_point("planner_agent")
     
     # 분석 결과에 따른 라우팅 설정
     def route_after_planner(state: GeometryState):
@@ -212,7 +213,6 @@ def create_geometry_solver_graph():
     # )
     
     # 시작점과 종료점 설정
-    workflow.set_entry_point("parsing_agent")
     workflow.set_finish_point("explanation_agent")
     
     # 모든 에이전트들이 비동기 처리를 지원하도록 설정

@@ -4,13 +4,18 @@ LLM 관리자 모듈
 이 모듈은 LLM 인스턴스를 중앙에서 관리하는 LLMManager 클래스를 정의합니다.
 """
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from langchain_deepseek import ChatDeepSeek
 from config import DEFAULT_MODEL, DEFAULT_TEMPERATURE, ADVANCED_MODEL
 import os
 import functools
-from llm_message.system_message import CALCULATION_SYSTEM_MESSAGES, DEFAULT_SYSTEM_MESSAGE, SYSTEM_MESSAGES
+from geo_prompts import (
+    CALCULATION_SYSTEM_MESSAGES, 
+    SYSTEM_MESSAGES, 
+    DEFAULT_SYSTEM_MESSAGE,
+    get_system_message,
+    get_calculation_system_message
+)
 
 class LLMManager:
     """
