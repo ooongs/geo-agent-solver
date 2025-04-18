@@ -1,64 +1,51 @@
 """
-좌표 관련 계산 도구
+Coordinate-related calculation tools
 
-이 모듈은 중국 중학교 수준의 좌표 기하학 문제를 해결하기 위한 도구를 제공합니다.
+This module provides tools for solving coordinate geometry problems at the middle school level.
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, Union
 import numpy as np
 from pydantic import BaseModel, Field
 from langchain_core.tools import ToolException
 from .base_tools import GeometryToolBase
 
 class CoordinateTools(GeometryToolBase):
-    """좌표 관련 계산 도구"""
+    """Coordinate-related calculation tools"""
+    
+    # === Math Tools ===
     
     @staticmethod
     def calculate_midpoint(p1: Tuple[float, float], p2: Tuple[float, float]) -> Tuple[float, float]:
-        """두 점의 중점 계산"""
+        """Calculate the midpoint of two points"""
         return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
     
     @staticmethod
     def calculate_slope(p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
-        """두 점을 지나는 직선의 기울기 계산"""
+        """Calculate the slope of a line passing through two points"""
         if abs(p2[0] - p1[0]) < 1e-10:
-            return float('inf')  # 무한대 (수직선)
+            return float('inf')  # Infinity (vertical line)
         return (p2[1] - p1[1]) / (p2[0] - p1[0])
     
     @staticmethod
     def calculate_line_equation(p1: Tuple[float, float], p2: Tuple[float, float]) -> Tuple[float, float, float]:
-        """두 점을 지나는 직선의 방정식 계산 (ax + by + c = 0 형태)"""
+        """Calculate the equation of a line passing through two points (in the form ax + by + c = 0)"""
         if abs(p2[0] - p1[0]) < 1e-10:
-            # 수직선: x = p1[0]
+            # Vertical line: x = p1[0]
             return (1, 0, -p1[0])
         
         slope = CoordinateTools.calculate_slope(p1, p2)
         if abs(slope) < 1e-10:
-            # 수평선: y = p1[1]
+            # Horizontal line: y = p1[1]
             return (0, 1, -p1[1])
         
-        # 일반적인 경우: y = slope * x + intercept
+        # General case: y = slope * x + intercept
         intercept = p1[1] - slope * p1[0]
-        return (-slope, 1, -intercept)  # ax + by + c = 0 형태로 변환
-    
-    @staticmethod
-    def are_points_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> bool:
-        """세 점이 일직선 위에 있는지 확인"""
-        return abs((p2[1] - p1[1]) * (p3[0] - p2[0]) - (p3[1] - p2[1]) * (p2[0] - p1[0])) < 1e-10
-    
-    @staticmethod
-    def are_lines_parallel(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> bool:
-        """두 직선이 평행한지 확인"""
-        # ax + by + c = 0 형태에서 기울기는 -a/b
-        if abs(line1[1]) < 1e-10 and abs(line2[1]) < 1e-10:
-            return True  # 두 직선 모두 수직선
-        if abs(line1[1]) < 1e-10 or abs(line2[1]) < 1e-10:
-            return False  # 한 직선만 수직선
-        return abs(line1[0] / line1[1] - line2[0] / line2[1]) < 1e-10
+        return (-slope, 1, -intercept)  # Convert to ax + by + c = 0 form
     
     @staticmethod
     def calculate_segment_division(p1: Tuple[float, float], p2: Tuple[float, float], ratio: float) -> Tuple[float, float]:
-        """선분을 특정 비율로 나누는 점 계산"""
+        """Calculate a point that divides a line segment by a given ratio"""
         return (
             p1[0] + ratio * (p2[0] - p1[0]),
             p1[1] + ratio * (p2[1] - p1[1])
@@ -66,9 +53,9 @@ class CoordinateTools(GeometryToolBase):
     
     @staticmethod
     def calculate_internal_division_point(p1: Tuple[float, float], p2: Tuple[float, float], m: float, n: float) -> Tuple[float, float]:
-        """선분을 내분하는 점 계산 (m:n 비율)"""
+        """Calculate a point that internally divides a line segment in the ratio m:n"""
         if abs(m + n) < 1e-10:
-            return p1  # 비율이 잘못된 경우
+            return p1  # Invalid ratio
         
         return (
             (m * p2[0] + n * p1[0]) / (m + n),
@@ -77,9 +64,9 @@ class CoordinateTools(GeometryToolBase):
     
     @staticmethod
     def calculate_external_division_point(p1: Tuple[float, float], p2: Tuple[float, float], m: float, n: float) -> Tuple[float, float]:
-        """선분을 외분하는 점 계산 (m:n 비율)"""
+        """Calculate a point that externally divides a line segment in the ratio m:n"""
         if abs(m - n) < 1e-10:
-            return p1  # 비율이 잘못된 경우
+            return p1  # Invalid ratio
         
         return (
             (m * p2[0] - n * p1[0]) / (m - n),
@@ -87,14 +74,156 @@ class CoordinateTools(GeometryToolBase):
         )
     
     @staticmethod
+    def calculate_vector(p1: Tuple[float, float], p2: Tuple[float, float]) -> Tuple[float, float]:
+        """Calculate the vector between two points"""
+        return (p2[0] - p1[0], p2[1] - p1[1])
+    
+    @staticmethod
+    def calculate_vector_length(vector: Tuple[float, float]) -> float:
+        """Calculate the length of a vector"""
+        return np.sqrt(vector[0]**2 + vector[1]**2)
+    
+    @staticmethod
+    def calculate_dot_product(v1: Tuple[float, float], v2: Tuple[float, float]) -> float:
+        """Calculate the dot product of two vectors"""
+        return v1[0] * v2[0] + v1[1] * v2[1]
+    
+    @staticmethod
+    def calculate_cross_product(v1: Tuple[float, float], v2: Tuple[float, float]) -> float:
+        """Calculate the cross product of two vectors (z component)"""
+        return v1[0] * v2[1] - v1[1] * v2[0]
+    
+    @staticmethod
+    def normalize_vector(vector: Tuple[float, float]) -> Tuple[float, float]:
+        """Normalize a vector"""
+        length = CoordinateTools.calculate_vector_length(vector)
+        if abs(length) < 1e-10:
+            raise ToolException("Cannot normalize zero vector")
+        return (vector[0] / length, vector[1] / length)
+    
+    @staticmethod
+    def calculate_distance_point_to_line(point: Tuple[float, float], line: Tuple[float, float, float]) -> float:
+        """Calculate the distance from a point to a line"""
+        a, b, c = line
+        return abs(a * point[0] + b * point[1] + c) / np.sqrt(a**2 + b**2)
+    
+    @staticmethod
+    def calculate_reflection_point(point: Tuple[float, float], line: Tuple[float, float, float]) -> Tuple[float, float]:
+        """Calculate the reflection of a point across a line"""
+        a, b, c = line
+        # Normal vector from a point on the line
+        normal = (a, b)
+        normal_length = np.sqrt(a**2 + b**2)
+        unit_normal = (a / normal_length, b / normal_length)
+        
+        # Distance from point to line
+        distance = CoordinateTools.calculate_distance_point_to_line(point, line)
+        
+        # Vector perpendicular from the point to the line
+        d = a * point[0] + b * point[1] + c
+        direction = 1 if d > 0 else -1
+        
+        # Calculate the reflection point
+        return (
+            point[0] - 2 * direction * unit_normal[0] * distance,
+            point[1] - 2 * direction * unit_normal[1] * distance
+        )
+    
+    @staticmethod
+    def calculate_line_intersection(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> Optional[Tuple[float, float]]:
+        """Calculate the intersection point of two lines"""
+        a1, b1, c1 = line1
+        a2, b2, c2 = line2
+        
+        det = a1 * b2 - a2 * b1
+        if abs(det) < 1e-10:  # Parallel or coincident
+            return None
+        
+        x = (b1 * c2 - b2 * c1) / det
+        y = (a2 * c1 - a1 * c2) / det
+        return (x, y)
+    
+    @staticmethod
+    def calculate_ray_intersection_with_segment(
+        ray_start: Tuple[float, float], 
+        ray_angle: float, 
+        segment_start: Tuple[float, float], 
+        segment_end: Tuple[float, float]
+    ) -> Optional[Tuple[float, float]]:
+        """Calculate the intersection of a ray and a line segment"""
+        # Direction vector of the ray
+        ray_direction = (np.cos(ray_angle), np.sin(ray_angle))
+        
+        # Vector of the segment
+        segment_vector = (segment_end[0] - segment_start[0], segment_end[1] - segment_start[1])
+        
+        # Vector from ray start to segment start
+        start_vector = (segment_start[0] - ray_start[0], segment_start[1] - ray_start[1])
+        
+        # Normal vector to the segment direction (rotated 90 degrees)
+        normal = (-segment_vector[1], segment_vector[0])
+        
+        # Dot product of ray and normal vector
+        dot_product = ray_direction[0] * normal[0] + ray_direction[1] * normal[1]
+        
+        # Check if parallel
+        if abs(dot_product) < 1e-10:
+            return None
+        
+        # Calculate intersection ratio
+        t = (start_vector[0] * normal[0] + start_vector[1] * normal[1]) / dot_product
+        
+        # Check ray direction
+        if t < 0:
+            return None
+        
+        # Calculate intersection point
+        intersection = (ray_start[0] + t * ray_direction[0], ray_start[1] + t * ray_direction[1])
+        
+        # Check if intersection point is on the segment
+        if CoordinateTools.is_point_on_segment(intersection, segment_start, segment_end):
+            return intersection
+            
+        return None
+    
+    # === Validation Tools ===
+    
+    @staticmethod
+    def are_points_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> bool:
+        """Check if three points are collinear"""
+        return abs((p2[1] - p1[1]) * (p3[0] - p2[0]) - (p3[1] - p2[1]) * (p2[0] - p1[0])) < 1e-10
+    
+    @staticmethod
+    def are_lines_parallel(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> bool:
+        """Check if two lines are parallel"""
+        # In the form ax + by + c = 0, the slope is -a/b
+        if abs(line1[1]) < 1e-10 and abs(line2[1]) < 1e-10:
+            return True  # Both lines are vertical
+        if abs(line1[1]) < 1e-10 or abs(line2[1]) < 1e-10:
+            return False  # Only one line is vertical
+        return abs(line1[0] / line1[1] - line2[0] / line2[1]) < 1e-10
+    
+    @staticmethod
+    def are_lines_perpendicular(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> bool:
+        """Check if two lines are perpendicular"""
+        # In the form ax + by + c = 0, the slope is -a/b
+        if abs(line1[1]) < 1e-10:  # First line is vertical
+            return abs(line2[0]) < 1e-10  # Perpendicular if second line is horizontal
+        if abs(line2[1]) < 1e-10:  # Second line is vertical
+            return abs(line1[0]) < 1e-10  # Perpendicular if first line is horizontal
+            
+        # General case: product of slopes is -1 if perpendicular
+        return abs(line1[0] / line1[1] * line2[0] / line2[1] + 1) < 1e-10
+    
+    @staticmethod
     def is_point_on_segment(p: Tuple[float, float], segment_start: Tuple[float, float], segment_end: Tuple[float, float]) -> bool:
-        """점이 선분 위에 있는지 확인"""
-        # 점이 직선 위에 있는지 확인
+        """Check if a point is on a line segment"""
+        # Check if the point is on the line
         if abs((p[1] - segment_start[1]) * (segment_end[0] - segment_start[0]) - 
                (p[0] - segment_start[0]) * (segment_end[1] - segment_start[1])) > 1e-10:
             return False
         
-        # 점이 선분의 범위 내에 있는지 확인
+        # Check if the point is within the segment bounds
         if min(segment_start[0], segment_end[0]) <= p[0] <= max(segment_start[0], segment_end[0]) and \
            min(segment_start[1], segment_end[1]) <= p[1] <= max(segment_start[1], segment_end[1]):
             return True
@@ -102,82 +231,18 @@ class CoordinateTools(GeometryToolBase):
         return False
     
     @staticmethod
-    def calculate_coordinate_tool(input_json: str) -> str:
-        """좌표 계산 도구 메인 함수"""
-        try:
-            data = CoordinateTools.parse_input(input_json)
+    def is_point_inside_triangle(p: Tuple[float, float], p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> bool:
+        """Check if a point is inside a triangle"""
+        def sign(p1, p2, p3):
+            return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
             
-            result = {}
-            
-            # 중점 계산
-            if "points" in data and len(data["points"]) == 2:
-                p1, p2 = data["points"]
-                result["midpoint"] = CoordinateTools.calculate_midpoint(p1, p2)
-                result["distance"] = CoordinateTools.calculate_distance(p1, p2)
-                
-                try:
-                    result["slope"] = CoordinateTools.calculate_slope(p1, p2)
-                    if result["slope"] == float('inf'):
-                        result["slope"] = "无穷大（垂直线）"
-                except:
-                    result["slope"] = "无穷大（垂直线）"
-                
-                result["line_equation"] = CoordinateTools.calculate_line_equation(p1, p2)
-            
-            # 세 점이 일직선 위에 있는지 확인
-            if "points" in data and len(data["points"]) == 3:
-                p1, p2, p3 = data["points"]
-                result["collinear"] = CoordinateTools.are_points_collinear(p1, p2, p3)
-                if not result["collinear"]:
-                    # 세 점이 일직선 상에 없으면 삼각형 정보 추가
-                    result["triangle_area"] = 0.5 * abs((p1[0]*(p2[1]-p3[1]) + p2[0]*(p3[1]-p1[1]) + p3[0]*(p1[1]-p2[1])))
-            
-            # 두 직선의 관계 확인
-            if "lines" in data and len(data["lines"]) == 2:
-                line1, line2 = data["lines"]
-                result["parallel"] = CoordinateTools.are_lines_parallel(line1, line2)
-                if not result["parallel"]:
-                    # 교점 계산
-                    a1, b1, c1 = line1
-                    a2, b2, c2 = line2
-                    det = a1*b2 - a2*b1
-                    if abs(det) < 1e-10:
-                        raise ToolException("两条直线平行或重合，无法计算交点")
-                    x = (b1*c2 - b2*c1) / det
-                    y = (a2*c1 - a1*c2) / det
-                    result["intersection"] = (x, y)
-            
-            # 선분 분할 계산
-            if "segment" in data and len(data["segment"]) == 2:
-                p1, p2 = data["segment"]
-                
-                if "division_ratio" in data:
-                    ratio = data["division_ratio"]
-                    result["division_point"] = CoordinateTools.calculate_segment_division(p1, p2, ratio)
-                
-                if "internal_ratio" in data:
-                    m, n = data["internal_ratio"]
-                    if m <= 0 or n <= 0:
-                        raise ToolException("内分比的两个数值必须为正数")
-                    result["internal_division_point"] = CoordinateTools.calculate_internal_division_point(p1, p2, m, n)
-                
-                if "external_ratio" in data:
-                    m, n = data["external_ratio"]
-                    if m <= 0 or n <= 0 or m == n:
-                        raise ToolException("外分比的两个数值必须为正数且不相等")
-                    result["external_division_point"] = CoordinateTools.calculate_external_division_point(p1, p2, m, n)
-            
-            # 점이 선분 위에 있는지 확인
-            if "check_point" in data and "segment" in data and len(data["segment"]) == 2:
-                p = data["check_point"]
-                p1, p2 = data["segment"]
-                result["is_on_segment"] = CoordinateTools.is_point_on_segment(p, p1, p2)
-            
-            if not result:
-                raise ToolException("请提供有效的坐标数据，可以是两点（计算中点、距离等）或三点（检查共线性）或两条直线（检查平行性）")
-                
-            return CoordinateTools.format_output(result)
-        except ToolException as e:
-            return CoordinateTools.format_output({"error": str(e)})
-        except Exception as e:
-            return CoordinateTools.format_output({"error": f"坐标计算时出现错误：{str(e)}"}) 
+        d1 = sign(p, p1, p2)
+        d2 = sign(p, p2, p3)
+        d3 = sign(p, p3, p1)
+        
+        has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
+        has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
+        
+        # Inside triangle if all signs are the same
+        return not (has_neg and has_pos)
+    

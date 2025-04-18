@@ -3,6 +3,8 @@ from geo_prompts import COMMAND_REGENERATION_PROMPT, COMMAND_REGENERATION_JSON_T
 from utils.llm_manager import LLMManager
 from utils.json_parser import safe_parse_llm_json_output
 from models.validation_models import RegenerationResult
+from agents.tools import get_common_tools
+from langchain.agents import AgentExecutor, create_openai_functions_agent
 import json
 import re
 from config import MAX_ATTEMPTS
@@ -28,49 +30,80 @@ def command_regeneration_agent(state):
     # LLM 초기화
     llm = LLMManager.get_geogebra_command_llm(temperature=0.2)  # 약간의 창의성 허용
     
+    # 공통 도구 가져오기
+    tools = get_common_tools()
+    
     # 원본 명령어 저장
     original_commands = state.geogebra_commands
     
-    # 입력 데이터 준비
-    chain = COMMAND_REGENERATION_PROMPT | llm
-    result = chain.invoke({
-        "problem": state.input_problem,
-        "construction_plan": str(state.construction_plan),
-        "original_commands": str(original_commands),
-        "validation_result": str(state.validation),
-        "attempt_count": state.command_regeneration_attempts,
-        "json_template": COMMAND_REGENERATION_JSON_TEMPLATE,
-        "retrieved_commands": json.dumps(state.retrieved_commands),
-        "agent_scratchpad": ""
-    })
+    # 에이전트 생성
+    agent = create_openai_functions_agent(llm, tools, COMMAND_REGENERATION_PROMPT)
+    agent_executor = AgentExecutor(agent=agent, tools=tools)
     
-    # 결과 분석
-    output = result.content if hasattr(result, 'content') else result["output"]
-    
+    # 에이전트 실행
     try:
-        # Pydantic 모델을 사용하여 파싱 시도
-        regeneration_result = safe_parse_llm_json_output(output, RegenerationResult)
+        result = agent_executor.invoke({
+            "problem": state.input_problem,
+            "original_commands": str(original_commands),
+            "validation_result": str(state.validation),
+            "attempt_count": state.command_regeneration_attempts,
+            "json_template": COMMAND_REGENERATION_JSON_TEMPLATE,
+            "agent_scratchpad": ""
+        })
         
-        if regeneration_result is None:
-            # JSON 형식으로 직접 파싱 시도
-            regeneration_dict = json.loads(output) if isinstance(output, str) else output
-            regeneration_result = RegenerationResult(**regeneration_dict)
+        # 결과 분석
+        output = result["output"] if "output" in result else result.get("content", "")
         
-        regenerated_commands = regeneration_result.commands
-        analysis = regeneration_result.analysis
-        fixed_issues = regeneration_result.fixed_issues
+        try:
+            # Pydantic 모델을 사용하여 파싱 시도
+            parsed_result = safe_parse_llm_json_output(output, dict)
+            
+            if not parsed_result:
+                # JSON 파싱 실패시 백업 파싱
+                print(f"[WARNING] safe_parse_llm_json_output 반환 값이 비어 있습니다")
+                regenerated_commands = _extract_commands_from_text(output)
+                analysis = "재생성 결과를 JSON 형식으로 파싱할 수 없어 텍스트에서 명령어를 추출했습니다."
+                fixed_issues = []
+            else:
+                # 성공적으로 파싱된 딕셔너리 사용
+                try:
+                    # commands 필드가 리스트인 경우 처리
+                    if 'commands' in parsed_result and isinstance(parsed_result['commands'], list):
+                        # 이미 리스트 형태이므로 그대로 사용, RegenerationResult 모델의 commands 필드는 List[str]임
+                        pass
+                        
+                    regeneration_result = RegenerationResult(**parsed_result)
+                    regenerated_commands = regeneration_result.commands
+                    analysis = regeneration_result.analysis
+                    fixed_issues = regeneration_result.fixed_issues
+                except Exception as e:
+                    print(f"[WARNING] 파싱된 결과를 RegenerationResult로 변환 실패: {str(e)}")
+                    # commands가 직접 리스트로 전달될 수 있음
+                    if isinstance(parsed_result.get('commands'), list):
+                        regenerated_commands = parsed_result.get('commands')
+                        analysis = parsed_result.get('analysis', "Analysis not available")
+                        fixed_issues = parsed_result.get('fixed_issues', [])
+                    else:
+                        regenerated_commands = _extract_commands_from_text(output)
+                        analysis = "재생성 결과에서 명령어를 추출할 수 없어 텍스트에서 명령어를 추출했습니다."
+                        fixed_issues = []
+        except Exception as e:
+            # 파싱 실패 시 텍스트에서 명령어 추출
+            print(f"[WARNING] JSON 파싱 실패: {str(e)}")
+            regenerated_commands = _extract_commands_from_text(output)
+            analysis = "재생성 결과를 JSON 형식으로 파싱할 수 없어 텍스트에서 명령어를 추출했습니다."
+            fixed_issues = []
         
-    except (json.JSONDecodeError, TypeError, ValueError) as e:
-        # 파싱 실패 시 텍스트에서 명령어 추출
-        print(f"[WARNING] JSON 파싱 실패: {str(e)}")
-        regenerated_commands = _extract_commands_from_text(output)
-        analysis = "재생성 결과를 JSON 형식으로 파싱할 수 없어 텍스트에서 명령어를 추출했습니다."
-        fixed_issues = []
-    
-    # 명령어가 추출되지 않았다면 원본 명령어 유지
-    if not regenerated_commands:
-        print("[WARNING] 재생성된 명령어가 없어 원본 명령어를 유지합니다.")
+        # 명령어가 추출되지 않았다면 원본 명령어 유지
+        if not regenerated_commands:
+            print("[WARNING] 재생성된 명령어가 없어 원본 명령어를 유지합니다.")
+            regenerated_commands = original_commands
+            
+    except Exception as e:
+        print(f"[ERROR] 명령어 재생성 에이전트 실행 오류: {str(e)}")
         regenerated_commands = original_commands
+        analysis = f"에이전트 실행 오류: {str(e)}"
+        fixed_issues = []
     
     # 상태 업데이트
     state.regenerated_commands = regenerated_commands

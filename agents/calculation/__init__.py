@@ -12,6 +12,7 @@ from agents.calculation.angle_agent import angle_calculation_agent
 from agents.calculation.length_agent import length_calculation_agent
 from agents.calculation.area_agent import area_calculation_agent
 from agents.calculation.coordinate_agent import coordinate_calculation_agent
+from agents.calculation.router_agent import calculation_router_agent
 
 __all__ = [
     "calculation_manager_agent",
@@ -21,5 +22,6 @@ __all__ = [
     "angle_calculation_agent",
     "length_calculation_agent",
     "area_calculation_agent",
-    "coordinate_calculation_agent"
+    "coordinate_calculation_agent",
+    "calculation_router_agent"
 ] 

@@ -1,8 +1,8 @@
 """
-삼각형 계산 래퍼 함수 모듈
+Triangle calculation wrapper module
 
-이 모듈은 삼각형 계산 도구의 래퍼 함수들을 제공합니다.
-각 함수는 입력을 검증하고 결과를 중국어로 설명합니다.
+This module provides wrapper functions for triangle calculation tools.
+Each function validates the input and explains the result in English.
 """
 
 from typing import Dict, Any, List, Tuple
@@ -11,184 +11,184 @@ from agents.calculation.tools import TriangleTools
 
 def calculate_area_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 면적을 계산하는 래퍼 함수 (좌표 사용)
+    Wrapper function for calculating the area of a triangle (using coordinates)
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        면적 계산 결과와 설명
+        Area calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         area = TriangleTools.calculate_area(vertex_tuples)
         
         return {
             "area": area,
-            "explanation": f"三角形 {vertex_tuples} 的面积是 {area}"
+            "explanation": f"The area of triangle {vertex_tuples} is {area}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形面积时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle area: {str(e)}")
 
 def calculate_area_from_sides_wrapper(side1: float, side2: float, side3: float) -> dict:
     """
-    삼각형 면적을 계산하는 래퍼 함수 (세 변의 길이 사용)
+    Wrapper function for calculating the area of a triangle (using three side lengths)
     
     Args:
-        side1: 첫 번째 변의 길이
-        side2: 두 번째 변의 길이
-        side3: 세 번째 변의 길이
+        side1: Length of the first side
+        side2: Length of the second side
+        side3: Length of the third side
         
     Returns:
-        면적 계산 결과와 설명
+        Area calculation result with explanation
     """
     try:
         area = TriangleTools.calculate_area_from_sides(side1, side2, side3)
         
         return {
             "area": area,
-            "explanation": f"边长为 {side1}, {side2}, {side3} 的三角形面积是 {area}"
+            "explanation": f"The area of the triangle with sides {side1}, {side2}, {side3} is {area}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形面积时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle area: {str(e)}")
 
 def calculate_perimeter_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 둘레를 계산하는 래퍼 함수
+    Wrapper function for calculating the perimeter of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        둘레 계산 결과와 설명
+        Perimeter calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         perimeter = TriangleTools.calculate_perimeter(vertex_tuples)
         
         return {
             "perimeter": perimeter,
-            "explanation": f"三角形 {vertex_tuples} 的周长是 {perimeter}"
+            "explanation": f"The perimeter of triangle {vertex_tuples} is {perimeter}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形周长时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle perimeter: {str(e)}")
 
 def is_right_triangle_wrapper(vertices: List[List[float]]) -> dict:
     """
-    직각삼각형 여부를 확인하는 래퍼 함수
+    Wrapper function for checking if a triangle is a right triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        확인 결과와 설명
+        Verification result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         is_right = TriangleTools.is_right_triangle(vertex_tuples)
         
         if is_right:
             return {
                 "is_right": True,
-                "explanation": f"三角形 {vertex_tuples} 是直角三角形"
+                "explanation": f"Triangle {vertex_tuples} is a right triangle"
             }
         else:
             return {
                 "is_right": False,
-                "explanation": f"三角形 {vertex_tuples} 不是直角三角形"
+                "explanation": f"Triangle {vertex_tuples} is not a right triangle"
             }
     except Exception as e:
-        raise ToolException(f"判断直角三角形时出错：{str(e)}")
+        raise ToolException(f"Error determining if triangle is right: {str(e)}")
 
 def is_isosceles_triangle_wrapper(vertices: List[List[float]]) -> dict:
     """
-    이등변삼각형 여부를 확인하는 래퍼 함수
+    Wrapper function for checking if a triangle is an isosceles triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        확인 결과와 설명
+        Verification result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         is_isosceles = TriangleTools.is_isosceles_triangle(vertex_tuples)
         
         if is_isosceles:
             return {
                 "is_isosceles": True,
-                "explanation": f"三角形 {vertex_tuples} 是等腰三角形"
+                "explanation": f"Triangle {vertex_tuples} is an isosceles triangle"
             }
         else:
             return {
                 "is_isosceles": False,
-                "explanation": f"三角形 {vertex_tuples} 不是等腰三角形"
+                "explanation": f"Triangle {vertex_tuples} is not an isosceles triangle"
             }
     except Exception as e:
-        raise ToolException(f"判断等腰三角形时出错：{str(e)}")
+        raise ToolException(f"Error determining if triangle is isosceles: {str(e)}")
 
 def is_equilateral_triangle_wrapper(vertices: List[List[float]]) -> dict:
     """
-    정삼각형 여부를 확인하는 래퍼 함수
+    Wrapper function for checking if a triangle is an equilateral triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        확인 결과와 설명
+        Verification result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         is_equilateral = TriangleTools.is_equilateral_triangle(vertex_tuples)
         
         if is_equilateral:
             return {
                 "is_equilateral": True,
-                "explanation": f"三角形 {vertex_tuples} 是等边三角形"
+                "explanation": f"Triangle {vertex_tuples} is an equilateral triangle"
             }
         else:
             return {
                 "is_equilateral": False,
-                "explanation": f"三角形 {vertex_tuples} 不是等边三角形"
+                "explanation": f"Triangle {vertex_tuples} is not an equilateral triangle"
             }
     except Exception as e:
-        raise ToolException(f"判断等边三角形时出错：{str(e)}")
+        raise ToolException(f"Error determining if triangle is equilateral: {str(e)}")
 
 def calculate_angles_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형의 세 각을 계산하는 래퍼 함수
+    Wrapper function for calculating the three angles of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        각도 계산 결과와 설명
+        Angle calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         angles_rad = TriangleTools.calculate_angles(vertex_tuples)
         angles_deg = [TriangleTools.radians_to_degrees(angle) for angle in angles_rad]
@@ -196,51 +196,51 @@ def calculate_angles_wrapper(vertices: List[List[float]]) -> dict:
         return {
             "angles_rad": angles_rad,
             "angles_deg": angles_deg,
-            "explanation": f"三角形 {vertex_tuples} 的内角分别是 {angles_deg[0]:.2f}°, {angles_deg[1]:.2f}°, {angles_deg[2]:.2f}°"
+            "explanation": f"The interior angles of triangle {vertex_tuples} are {angles_deg[0]:.2f}°, {angles_deg[1]:.2f}°, {angles_deg[2]:.2f}°"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形角度时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle angles: {str(e)}")
 
 def calculate_centroid_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 무게중심을 계산하는 래퍼 함수
+    Wrapper function for calculating the centroid of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        무게중심 계산 결과와 설명
+        Centroid calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         centroid = TriangleTools.calculate_centroid(vertex_tuples)
         
         return {
             "centroid": centroid,
-            "explanation": f"三角形 {vertex_tuples} 的重心是 {centroid}"
+            "explanation": f"The centroid of triangle {vertex_tuples} is {centroid}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形重心时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle centroid: {str(e)}")
 
 def calculate_circumcenter_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 외심을 계산하는 래퍼 함수
+    Wrapper function for calculating the circumcenter of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        외심 계산 결과와 설명
+        Circumcenter calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         circumcenter = TriangleTools.calculate_circumcenter(vertex_tuples)
         circumradius = TriangleTools.calculate_circumradius(vertex_tuples)
@@ -248,26 +248,26 @@ def calculate_circumcenter_wrapper(vertices: List[List[float]]) -> dict:
         return {
             "circumcenter": circumcenter,
             "circumradius": circumradius,
-            "explanation": f"三角形 {vertex_tuples} 的外心是 {circumcenter}，外接圆半径是 {circumradius}"
+            "explanation": f"The circumcenter of triangle {vertex_tuples} is {circumcenter} with radius {circumradius}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形外心时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle circumcenter: {str(e)}")
 
 def calculate_incenter_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 내심을 계산하는 래퍼 함수
+    Wrapper function for calculating the incenter of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        내심 계산 결과와 설명
+        Incenter calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         incenter = TriangleTools.calculate_incenter(vertex_tuples)
         inradius = TriangleTools.calculate_inradius(vertex_tuples)
@@ -275,61 +275,57 @@ def calculate_incenter_wrapper(vertices: List[List[float]]) -> dict:
         return {
             "incenter": incenter,
             "inradius": inradius,
-            "explanation": f"三角形 {vertex_tuples} 的内心是 {incenter}，内切圆半径是 {inradius}"
+            "explanation": f"The incenter of triangle {vertex_tuples} is {incenter} with inradius {inradius}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形内心时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle incenter: {str(e)}")
 
 def calculate_orthocenter_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 수심을 계산하는 래퍼 함수
+    Wrapper function for calculating the orthocenter of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        수심 계산 결과와 설명
+        Orthocenter calculation result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         orthocenter = TriangleTools.calculate_orthocenter(vertex_tuples)
         
-        # 고도 계산 (각 꼭지점에서 반대 변에 내린 수선)
-        heights = []
-        for i in range(3):
-            p1 = vertex_tuples[i]
-            p2 = vertex_tuples[(i+1)%3]
-            p3 = vertex_tuples[(i+2)%3]
-            height = TriangleTools.calculate_triangle_height(vertex_tuples, i)
-            heights.append(height)
+        # Check if the orthocenter is one of the vertices (in case of right triangle)
+        is_right = TriangleTools.is_right_triangle(vertex_tuples)
+        right_vertex_info = ""
+        if is_right:
+            right_vertex_info = " (this triangle is a right triangle, so the orthocenter is at one of the vertices)"
         
         return {
             "orthocenter": orthocenter,
-            "heights": heights,
-            "explanation": f"三角形 {vertex_tuples} 的垂心是 {orthocenter}，三个高分别是 {heights[0]:.2f}, {heights[1]:.2f}, {heights[2]:.2f}"
+            "explanation": f"The orthocenter of triangle {vertex_tuples} is {orthocenter}{right_vertex_info}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形垂心时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle orthocenter: {str(e)}")
 
 def calculate_triangle_centers_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형의 모든 중심을 계산하는 래퍼 함수
+    Wrapper function for calculating all centers of a triangle
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        모든 중심 계산 결과와 설명
+        All centers calculation results with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
         centroid = TriangleTools.calculate_centroid(vertex_tuples)
         circumcenter = TriangleTools.calculate_circumcenter(vertex_tuples)
@@ -341,56 +337,193 @@ def calculate_triangle_centers_wrapper(vertices: List[List[float]]) -> dict:
             "circumcenter": circumcenter,
             "incenter": incenter,
             "orthocenter": orthocenter,
-            "explanation": f"三角形 {vertex_tuples} 的重心是 {centroid}，外心是 {circumcenter}，内心是 {incenter}，垂心是 {orthocenter}"
+            "explanation": f"The centers of triangle {vertex_tuples} are:\n- Centroid: {centroid}\n- Circumcenter: {circumcenter}\n- Incenter: {incenter}\n- Orthocenter: {orthocenter}"
         }
     except Exception as e:
-        raise ToolException(f"计算三角形中心时出错：{str(e)}")
+        raise ToolException(f"Error calculating triangle centers: {str(e)}")
 
 def triangle_classification_wrapper(vertices: List[List[float]]) -> dict:
     """
-    삼각형 분류를 수행하는 래퍼 함수
+    Wrapper function for classifying a triangle by its sides and angles
     
     Args:
-        vertices: 삼각형 꼭지점 좌표 리스트 [[x1, y1], [x2, y2], [x3, y3]]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
         
     Returns:
-        분류 결과와 설명
+        Triangle classification result with explanation
     """
     try:
         vertex_tuples = [tuple(p) for p in vertices]
         
         if len(vertex_tuples) != 3:
-            raise ToolException("三角形必须有三个顶点")
+            raise ToolException("A triangle must have three vertices")
             
-        is_right = TriangleTools.is_right_triangle(vertex_tuples)
-        is_isosceles = TriangleTools.is_isosceles_triangle(vertex_tuples)
         is_equilateral = TriangleTools.is_equilateral_triangle(vertex_tuples)
-        is_acute = TriangleTools.is_acute_triangle(vertex_tuples)
-        is_obtuse = TriangleTools.is_obtuse_triangle(vertex_tuples)
+        is_isosceles = TriangleTools.is_isosceles_triangle(vertex_tuples)
+        is_right = TriangleTools.is_right_triangle(vertex_tuples)
+        angles_rad = TriangleTools.calculate_angles(vertex_tuples)
+        angles_deg = [TriangleTools.radians_to_degrees(angle) for angle in angles_rad]
         
-        classifications = []
+        # Classify by angles
+        angle_type = "acute"
+        for angle in angles_rad:
+            if angle > TriangleTools.HALF_PI + 1e-6:  # With tolerance for floating point errors
+                angle_type = "obtuse"
+                break
+            elif abs(angle - TriangleTools.HALF_PI) < 1e-6:  # Right angle with tolerance
+                angle_type = "right"
+                break
+                
+        # Classify by sides
+        side_type = "scalene"
         if is_equilateral:
-            classifications.append("等边三角形")
+            side_type = "equilateral"
         elif is_isosceles:
-            classifications.append("等腰三角形")
+            side_type = "isosceles"
             
-        if is_right:
-            classifications.append("直角三角形")
-        elif is_acute:
-            classifications.append("锐角三角形")
-        elif is_obtuse:
-            classifications.append("钝角三角形")
+        classification = f"{side_type} {angle_type} triangle"
+        if side_type == "equilateral":
+            classification = "equilateral triangle (all angles are 60°)"
             
-        triangle_type = "、".join(classifications) if classifications else "普通三角形"
-        
         return {
-            "is_right": is_right,
-            "is_isosceles": is_isosceles,
-            "is_equilateral": is_equilateral,
-            "is_acute": is_acute,
-            "is_obtuse": is_obtuse,
-            "triangle_type": triangle_type,
-            "explanation": f"三角形 {vertex_tuples} 是{triangle_type}"
+            "side_classification": side_type,
+            "angle_classification": angle_type,
+            "classification": classification,
+            "angles_deg": angles_deg,
+            "explanation": f"Triangle {vertex_tuples} is classified as a {classification} with angles {angles_deg[0]:.2f}°, {angles_deg[1]:.2f}°, {angles_deg[2]:.2f}°"
         }
     except Exception as e:
-        raise ToolException(f"分类三角形时出错：{str(e)}") 
+        raise ToolException(f"Error classifying triangle: {str(e)}")
+
+def calculate_inradius_wrapper(vertices: List[List[float]]) -> dict:
+    """
+    Wrapper function for calculating the inradius of a triangle (radius of the inscribed circle)
+    
+    Args:
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
+        
+    Returns:
+        Inradius calculation result with explanation
+    """
+    try:
+        vertex_tuples = [tuple(p) for p in vertices]
+        
+        if len(vertex_tuples) != 3:
+            raise ToolException("A triangle must have three vertices")
+            
+        inradius = TriangleTools.calculate_inradius(vertex_tuples)
+        
+        return {
+            "inradius": inradius,
+            "explanation": f"The inradius (radius of the inscribed circle) of triangle {vertex_tuples} is {inradius}"
+        }
+    except Exception as e:
+        raise ToolException(f"Error calculating triangle inradius: {str(e)}")
+
+def calculate_circumradius_wrapper(vertices: List[List[float]]) -> dict:
+    """
+    Wrapper function for calculating the circumradius of a triangle (radius of the circumscribed circle)
+    
+    Args:
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
+        
+    Returns:
+        Circumradius calculation result with explanation
+    """
+    try:
+        vertex_tuples = [tuple(p) for p in vertices]
+        
+        if len(vertex_tuples) != 3:
+            raise ToolException("A triangle must have three vertices")
+            
+        circumradius = TriangleTools.calculate_circumradius(vertex_tuples)
+        
+        return {
+            "circumradius": circumradius,
+            "explanation": f"The circumradius (radius of the circumscribed circle) of triangle {vertex_tuples} is {circumradius}"
+        }
+    except Exception as e:
+        raise ToolException(f"Error calculating triangle circumradius: {str(e)}")
+
+def calculate_median_lengths_wrapper(vertices: List[List[float]]) -> dict:
+    """
+    Wrapper function for calculating the median lengths of a triangle
+    
+    Args:
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
+        
+    Returns:
+        Median lengths calculation result with explanation
+    """
+    try:
+        vertex_tuples = [tuple(p) for p in vertices]
+        
+        if len(vertex_tuples) != 3:
+            raise ToolException("A triangle must have three vertices")
+            
+        median_lengths = TriangleTools.calculate_median_lengths(vertex_tuples)
+        
+        return {
+            "median_lengths": median_lengths,
+            "explanation": f"The lengths of the three medians of triangle {vertex_tuples} are {median_lengths[0]}, {median_lengths[1]}, and {median_lengths[2]}"
+        }
+    except Exception as e:
+        raise ToolException(f"Error calculating triangle median lengths: {str(e)}")
+
+def calculate_altitude_lengths_wrapper(vertices: List[List[float]]) -> dict:
+    """
+    Wrapper function for calculating the altitude lengths of a triangle
+    
+    Args:
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
+        
+    Returns:
+        Altitude lengths calculation result with explanation
+    """
+    try:
+        vertex_tuples = [tuple(p) for p in vertices]
+        
+        if len(vertex_tuples) != 3:
+            raise ToolException("A triangle must have three vertices")
+            
+        altitude_lengths = TriangleTools.calculate_altitude_lengths(vertex_tuples)
+        
+        return {
+            "altitude_lengths": altitude_lengths,
+            "explanation": f"The lengths of the three altitudes of triangle {vertex_tuples} are {altitude_lengths[0]}, {altitude_lengths[1]}, and {altitude_lengths[2]}"
+        }
+    except Exception as e:
+        raise ToolException(f"Error calculating triangle altitude lengths: {str(e)}")
+
+def is_point_inside_triangle_wrapper(point: List[float], vertices: List[List[float]]) -> dict:
+    """
+    Wrapper function for checking if a point is inside a triangle
+    
+    Args:
+        point: Coordinates of the point [x, y]
+        vertices: List of triangle vertex coordinates [[x1, y1], [x2, y2], [x3, y3]]
+        
+    Returns:
+        Check result with explanation
+    """
+    try:
+        point_tuple = tuple(point)
+        vertex_tuples = [tuple(p) for p in vertices]
+        
+        if len(vertex_tuples) != 3:
+            raise ToolException("A triangle must have three vertices")
+            
+        is_inside = TriangleTools.is_point_inside_triangle(point_tuple, vertex_tuples)
+        
+        if is_inside:
+            return {
+                "is_inside": True,
+                "explanation": f"Point {point_tuple} is inside triangle {vertex_tuples}"
+            }
+        else:
+            return {
+                "is_inside": False,
+                "explanation": f"Point {point_tuple} is not inside triangle {vertex_tuples}"
+            }
+    except Exception as e:
+        raise ToolException(f"Error checking if point is inside triangle: {str(e)}") 

@@ -1,5 +1,6 @@
 from geo_prompts import EXPLANATION_PROMPT
 from utils.llm_manager import LLMManager
+from utils.json_parser import extract_markdown_from_text
 
 def explanation_agent(state):
     """
@@ -30,6 +31,11 @@ def explanation_agent(state):
     
     # 결과 처리
     explanation = response.content
+    
+    # 마크다운 텍스트 추출 시도
+    markdown_text = extract_markdown_from_text(explanation)
+    if markdown_text:
+        explanation = markdown_text
     
     # 상태 업데이트
     state.explanation = explanation

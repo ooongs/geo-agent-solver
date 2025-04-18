@@ -17,17 +17,37 @@ from db.models import GeogebraCommand
 class CommandRetrieval:
     """GeoGebra 명령어 검색 클래스"""
     
-    def __init__(self, embedding_model_name: str = "BAAI/bge-m3"):
-        """
-        초기화
-        
-        Args:
-            embedding_model_name: SentenceBERT 모델 이름
-        """
-        self.db_manager = DatabaseManager()
-        self.embedding_model = SentenceTransformer(embedding_model_name)
+    # 클래스 변수로 모델과 데이터베이스 매니저를 저장
+    _embedding_model = None
+    _db_manager = None
+    _embedding_model_name = "BAAI/bge-m3"
     
-    def generate_embedding(self, text: str) -> np.ndarray:
+    @classmethod
+    def _get_embedding_model(cls) -> SentenceTransformer:
+        """
+        임베딩 모델을 가져오거나 초기화합니다.
+        
+        Returns:
+            SentenceTransformer 모델
+        """
+        if cls._embedding_model is None:
+            cls._embedding_model = SentenceTransformer(cls._embedding_model_name)
+        return cls._embedding_model
+    
+    @classmethod
+    def _get_db_manager(cls) -> DatabaseManager:
+        """
+        데이터베이스 매니저를 가져오거나 초기화합니다.
+        
+        Returns:
+            DatabaseManager 인스턴스
+        """
+        if cls._db_manager is None:
+            cls._db_manager = DatabaseManager()
+        return cls._db_manager
+    
+    @classmethod
+    def generate_embedding(cls, text: str) -> np.ndarray:
         """
         텍스트 임베딩 생성
         
@@ -37,9 +57,11 @@ class CommandRetrieval:
         Returns:
             임베딩 벡터
         """
-        return self.embedding_model.encode(text)
+        model = cls._get_embedding_model()
+        return model.encode(text)
     
-    def search_commands_by_command(self, command: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    @classmethod
+    def search_commands_by_command(cls, command: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """
         특정 명령어로 검색하고 description 유사도로 정렬
         
@@ -51,11 +73,12 @@ class CommandRetrieval:
             검색 결과 목록
         """
         # 세션 생성
-        session = self.db_manager.get_session()
+        db_manager = cls._get_db_manager()
+        session = db_manager.get_session()
         
         try:
             # 명령어 임베딩 생성 (설명 유사도 검색용)
-            command_embedding = self.generate_embedding(command)
+            command_embedding = cls.generate_embedding(command)
             
             # ORM 쿼리 생성
             distance = GeogebraCommand.embedding.cosine_distance(command_embedding)
@@ -104,7 +127,8 @@ class CommandRetrieval:
         finally:
             session.close()
         
-    def cosine_search(self, 
+    @classmethod
+    def cosine_search(cls, 
                      query: str, 
                      top_k: int = 5) -> List[Dict[str, Any]]:
         """
@@ -119,11 +143,12 @@ class CommandRetrieval:
             검색 결과 목록
         """
         # 세션 생성
-        session = self.db_manager.get_session()
+        db_manager = cls._get_db_manager()
+        session = db_manager.get_session()
         
         try:
             # 쿼리 임베딩 생성
-            query_embedding = self.generate_embedding(query)
+            query_embedding = cls.generate_embedding(query)
             
             # 벡터 거리 계산 (코사인 거리)
             vector_distance = GeogebraCommand.embedding.cosine_distance(query_embedding)

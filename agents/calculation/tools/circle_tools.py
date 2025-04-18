@@ -1,7 +1,7 @@
 """
-원 관련 계산 도구
+Circle-related calculation tools
 
-이 모듈은 중국 중학교 수준의 원 관련 기하학 문제를 해결하기 위한 도구를 제공합니다.
+This module provides tools for solving geometry problems related to circles at the middle school level.
 """
 
 from typing import Dict, Any, List, Tuple, Optional
@@ -13,77 +13,94 @@ from .base_tools import GeometryToolBase
 
 
 class CircleTools(GeometryToolBase):
-    """원 관련 계산 도구"""
+    """Tools for circle-related calculations"""
     
     @staticmethod
     def calculate_area(radius: float) -> float:
-        """원의 면적 계산"""
+        """Calculate the area of a circle"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         return np.pi * radius**2
     
     @staticmethod
     def calculate_circumference(radius: float) -> float:
-        """원의 둘레 계산"""
+        """Calculate the circumference of a circle"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         return 2 * np.pi * radius
     
     @staticmethod
     def calculate_chord_length(radius: float, angle: float) -> float:
-        """현의 길이 계산 (각도는 라디안)"""
+        """Calculate the length of a chord (angle in radians)"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         return 2 * radius * np.sin(angle / 2)
     
     @staticmethod
     def calculate_sector_area(radius: float, angle: float) -> float:
-        """부채꼴의 면적 계산 (각도는 라디안)"""
+        """Calculate the area of a sector (angle in radians)"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         return 0.5 * radius**2 * angle
     
     @staticmethod
     def calculate_segment_area(radius: float, angle: float) -> float:
-        """활꼴의 면적 계산 (각도는 라디안)"""
+        """Calculate the area of a segment (angle in radians)"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         sector_area = CircleTools.calculate_sector_area(radius, angle)
         triangle_area = 0.5 * radius**2 * np.sin(angle)
         return sector_area - triangle_area
     
     @staticmethod
     def is_point_inside_circle(center: Tuple[float, float], radius: float, point: Tuple[float, float]) -> bool:
-        """점이 원 내부에 있는지 확인"""
+        """Check if a point is inside a circle"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         distance = CircleTools.calculate_distance(center, point)
         return distance < radius
     
     @staticmethod
     def is_point_on_circle(center: Tuple[float, float], radius: float, point: Tuple[float, float]) -> bool:
-        """점이 원 위에 있는지 확인"""
+        """Check if a point is on a circle"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
         distance = CircleTools.calculate_distance(center, point)
         return abs(distance - radius) < 1e-10
     
     @staticmethod
-    def calculate_tangent_point(center: Tuple[float, float], radius: float, external_point: Tuple[float, float]) -> List[Tuple[float, float]]:
-        """외부 점에서 원에 그은 접선의 접점 계산"""
-        # 중심과 외부 점 사이의 거리
+    def calculate_tangent_points(center: Tuple[float, float], radius: float, external_point: Tuple[float, float]) -> List[Tuple[float, float]]:
+        """Calculate tangent points from an external point to a circle"""
+        if radius <= 0:
+            raise ToolException("Radius must be positive")
+        
+        # Distance between center and external point
         distance = CircleTools.calculate_distance(center, external_point)
         
-        # 외부 점이 원 내부에 있으면 접점 없음
+        # If external point is inside the circle, no tangent points exist
         if distance < radius:
             return []
         
-        # 외부 점이 원 위에 있으면 그 점이 접점
+        # If external point is on the circle, the point itself is the tangent point
         if abs(distance - radius) < 1e-10:
             return [external_point]
         
-        # 중심에서 외부 점으로 향하는 벡터
+        # Vector from center to external point
         dx = external_point[0] - center[0]
         dy = external_point[1] - center[1]
         
-        # 접선의 길이 (피타고라스 정리 이용)
+        # Length of the tangent (using Pythagorean theorem)
         tangent_length = np.sqrt(distance**2 - radius**2)
         
-        # 접점의 각도 계산
+        # Angle of tangent points
         angle = np.arccos(radius / distance)
         
-        # 벡터 회전
+        # Base angle of the vector
         base_angle = np.arctan2(dy, dx)
         angle1 = base_angle + angle
         angle2 = base_angle - angle
         
-        # 접점 계산
+        # Calculate tangent points
         tangent_point1 = (
             center[0] + radius * np.cos(angle1),
             center[1] + radius * np.sin(angle1)
@@ -99,36 +116,39 @@ class CircleTools(GeometryToolBase):
     @staticmethod
     def calculate_circle_intersection(center1: Tuple[float, float], radius1: float, 
                                      center2: Tuple[float, float], radius2: float) -> List[Tuple[float, float]]:
-        """두 원의 교점 계산"""
-        # 두 원의 중심 사이의 거리
+        """Calculate the intersection points of two circles"""
+        if radius1 <= 0 or radius2 <= 0:
+            raise ToolException("Radii must be positive")
+        
+        # Distance between circle centers
         d = CircleTools.calculate_distance(center1, center2)
         
-        # 교점이 없는 경우
+        # Check if circles have no intersection
         if d > radius1 + radius2 or d < abs(radius1 - radius2):
             return []
         
-        # 원이 같은 경우 (무한히 많은 교점)
+        # Check if circles are identical (infinite intersection points)
         if d < 1e-10 and abs(radius1 - radius2) < 1e-10:
             return []
         
-        # 원이 접하는 경우 (한 점에서 접함)
+        # Check if circles are tangent (one intersection point)
         if abs(d - (radius1 + radius2)) < 1e-10 or abs(d - abs(radius1 - radius2)) < 1e-10:
-            # 두 중심을 잇는 선 위의 점 계산
+            # Calculate point on the line between centers
             t = radius1 / d
             return [(
                 center1[0] + t * (center2[0] - center1[0]),
                 center1[1] + t * (center2[1] - center1[1])
             )]
         
-        # 두 원이 두 점에서 만나는 경우
+        # Calculate intersection points when circles intersect at two points
         a = (radius1**2 - radius2**2 + d**2) / (2 * d)
         h = np.sqrt(radius1**2 - a**2)
         
-        # 중간 점 계산
+        # Calculate midpoint
         x2 = center1[0] + a * (center2[0] - center1[0]) / d
         y2 = center1[1] + a * (center2[1] - center1[1]) / d
         
-        # 교점 계산
+        # Calculate intersection points
         x3 = x2 + h * (center2[1] - center1[1]) / d
         y3 = y2 - h * (center2[0] - center1[0]) / d
         
@@ -140,65 +160,176 @@ class CircleTools(GeometryToolBase):
     @staticmethod
     def calculate_circle_from_three_points(p1: Tuple[float, float], p2: Tuple[float, float], 
                                           p3: Tuple[float, float]) -> Tuple[Tuple[float, float], float]:
-        """세 점을 지나는 원의 중심과 반지름 계산"""
-        # 세 점이 일직선상에 있는지 확인
+        """Calculate the center and radius of a circle passing through three points"""
+        # Check if points are collinear
         x1, y1 = p1
         x2, y2 = p2
         x3, y3 = p3
         
-        # 세 점이 일직선상에 있으면 원을 그릴 수 없음
+        # Check determinant to see if points are collinear
         if abs((y2 - y1) * (x3 - x2) - (y3 - y2) * (x2 - x1)) < 1e-10:
-            return ((0, 0), 0)
+            raise ToolException("The three points are collinear, no circle can be formed")
         
-        # 세 점을 지나는 원의 중심은 세 점의 수직이등분선의 교점
-        # 첫 번째 선분의 중점
+        # The center of the circle is the intersection of the perpendicular bisectors of the sides
+        # First, find the midpoints of the sides
         mx1 = (x1 + x2) / 2
         my1 = (y1 + y2) / 2
         
-        # 두 번째 선분의 중점
         mx2 = (x2 + x3) / 2
         my2 = (y2 + y3) / 2
         
-        # 첫 번째 선분에 수직인 직선의 기울기
+        # Calculate slopes of the perpendicular bisectors
         if abs(x2 - x1) < 1e-10:
-            # 선분이 수직선인 경우
+            # First segment is vertical, perpendicular bisector is horizontal
             s1 = 0
         else:
             s1 = -1 / ((y2 - y1) / (x2 - x1))
         
-        # 두 번째 선분에 수직인 직선의 기울기
         if abs(x3 - x2) < 1e-10:
-            # 선분이 수직선인 경우
+            # Second segment is vertical, perpendicular bisector is horizontal
             s2 = 0
         else:
             s2 = -1 / ((y3 - y2) / (x3 - x2))
         
-        # 두 수직이등분선의 교점 (원의 중심)
+        # Check if perpendicular bisectors are parallel
         if abs(s1 - s2) < 1e-10:
-            # 기울기가 같으면 교점이 없음
-            return ((0, 0), 0)
+            raise ToolException("Cannot determine the circle, perpendicular bisectors are parallel")
         
+        # Find the intersection of the perpendicular bisectors (circle center)
         cx = 0
         cy = 0
         
-        if abs(s1) < 1e-10:  # 첫 번째 직선이 수평선
+        if abs(s1) < 1e-10:  # First perpendicular bisector is horizontal
             cx = mx1
             cy = s2 * (cx - mx2) + my2
-        elif abs(s2) < 1e-10:  # 두 번째 직선이 수평선
+        elif abs(s2) < 1e-10:  # Second perpendicular bisector is horizontal
             cx = mx2
             cy = s1 * (cx - mx1) + my1
         else:
             cx = (s1 * mx1 - s2 * mx2 + my2 - my1) / (s1 - s2)
             cy = s1 * (cx - mx1) + my1
         
-        # 중심과 첫 번째 점 사이의 거리 (원의 반지름)
+        # Calculate radius as distance from center to any of the points
         radius = CircleTools.calculate_distance((cx, cy), p1)
         
         return ((cx, cy), radius)
     
     @staticmethod
     def calculate_circle_from_center_and_point(center: Tuple[float, float], point: Tuple[float, float]) -> Tuple[Tuple[float, float], float]:
-        """중심과 한 점을 알 때 원의 중심과 반지름 계산"""
+        """Calculate the center and radius of a circle given the center and a point on the circle"""
         radius = CircleTools.calculate_distance(center, point)
+        if radius <= 0:
+            raise ToolException("Calculated radius must be positive")
         return (center, radius)
+    
+    @staticmethod
+    def calculate_central_angle(center: Tuple[float, float], p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
+        """Calculate the central angle formed by two points on a circle (in radians)"""
+        # Calculate vectors from center to points
+        v1 = (p1[0] - center[0], p1[1] - center[1])
+        v2 = (p2[0] - center[0], p2[1] - center[1])
+        
+        # Calculate dot product
+        dot_product = v1[0] * v2[0] + v1[1] * v2[1]
+        
+        # Calculate magnitudes
+        mag1 = np.sqrt(v1[0]**2 + v1[1]**2)
+        mag2 = np.sqrt(v2[0]**2 + v2[1]**2)
+        
+        # Calculate angle using dot product formula
+        # Handle floating point errors
+        cos_angle = dot_product / (mag1 * mag2)
+        cos_angle = max(min(cos_angle, 1.0), -1.0)  # Clamp to [-1, 1]
+        
+        return np.arccos(cos_angle)
+    
+    @staticmethod
+    def calculate_inscribed_angle(center: Tuple[float, float], p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> float:
+        """Calculate the inscribed angle in a circle (in radians)
+        
+        p1, p2, p3 are points on the circle, with p2 as the vertex of the angle
+        """
+        # Check if points are on the circle
+        if not (CircleTools.is_point_on_circle(center, CircleTools.calculate_distance(center, p1), p1) and
+                CircleTools.is_point_on_circle(center, CircleTools.calculate_distance(center, p2), p2) and
+                CircleTools.is_point_on_circle(center, CircleTools.calculate_distance(center, p3), p3)):
+            raise ToolException("All points must be on the circle")
+        
+        # Calculate the angle formed by p1, p2, p3
+        return CircleTools.calculate_angle(p1, p2, p3)
+    
+    @staticmethod
+    def calculate_power_of_point(external_point: Tuple[float, float], center: Tuple[float, float], radius: float) -> float:
+        """Calculate the power of a point with respect to a circle
+        
+        The power of a point P with respect to a circle is defined as:
+        power = OP^2 - r^2 where O is the center of the circle, r is the radius
+        """
+        distance_squared = CircleTools.calculate_distance(external_point, center)**2
+        return distance_squared - radius**2
+    
+    @staticmethod
+    def circle_tool(input_json: str) -> str:
+        """Main function for the circle calculation tool"""
+        try:
+            data = CircleTools.parse_input(input_json)
+            
+            result = {}
+            
+            # Handle circle defined by center and radius
+            if "center" in data and "radius" in data:
+                center = data["center"]
+                radius = data["radius"]
+                
+                result["area"] = CircleTools.calculate_area(radius)
+                result["circumference"] = CircleTools.calculate_circumference(radius)
+                
+                # Additional calculations
+                if "point" in data:
+                    point = data["point"]
+                    result["is_inside"] = CircleTools.is_point_inside_circle(center, radius, point)
+                    result["is_on_circle"] = CircleTools.is_point_on_circle(center, radius, point)
+                    
+                    if not result["is_inside"] and not result["is_on_circle"]:
+                        result["tangent_points"] = CircleTools.calculate_tangent_points(center, radius, point)
+                
+                if "angle" in data:
+                    angle = data["angle"]
+                    result["chord_length"] = CircleTools.calculate_chord_length(radius, angle)
+                    result["sector_area"] = CircleTools.calculate_sector_area(radius, angle)
+                    result["segment_area"] = CircleTools.calculate_segment_area(radius, angle)
+            
+            # Handle circle defined by three points
+            elif "points" in data and len(data["points"]) == 3:
+                p1, p2, p3 = data["points"]
+                center, radius = CircleTools.calculate_circle_from_three_points(p1, p2, p3)
+                
+                result["center"] = center
+                result["radius"] = radius
+                result["area"] = CircleTools.calculate_area(radius)
+                result["circumference"] = CircleTools.calculate_circumference(radius)
+            
+            # Handle intersection of two circles
+            elif "circle1" in data and "circle2" in data:
+                circle1 = data["circle1"]
+                circle2 = data["circle2"]
+                
+                center1 = circle1.get("center")
+                radius1 = circle1.get("radius")
+                center2 = circle2.get("center")
+                radius2 = circle2.get("radius")
+                
+                if not all([center1, radius1, center2, radius2]):
+                    raise ToolException("Both circles must have a center and radius")
+                
+                result["intersection_points"] = CircleTools.calculate_circle_intersection(center1, radius1, center2, radius2)
+            
+            else:
+                raise ToolException("Invalid input: required parameters missing")
+            
+            return CircleTools.format_output(result)
+        except ToolException as e:
+            return CircleTools.format_output({"error": str(e)})
+        except Exception as e:
+            return CircleTools.format_output({"error": f"Error calculating circle properties: {str(e)}"})
    

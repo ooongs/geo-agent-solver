@@ -4,9 +4,10 @@ from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 import sys
 import asyncio
-
+from datetime import datetime
 from graph import create_geometry_solver_graph
 from models import GeometryState
+
 
 # 환경 변수 로드
 load_dotenv()
@@ -29,7 +30,12 @@ async def solve_geometry_problem(problem_text: str, output_file: Optional[str] =
     initial_state = GeometryState(input_problem=problem_text)
     
     # 그래프 실행 (비동기로 실행)
-    result = await solver_graph.ainvoke(initial_state)
+    result = await solver_graph.ainvoke(
+        initial_state,
+        config={
+            "recursion_limit": 30  # 예: 기본값 25 → 100으로 늘림
+        }
+    )
     
     # 결과 반환
     # result 객체를 딕셔너리로 변환하여 접근
@@ -76,7 +82,7 @@ def save_result(result: dict, output_dir: str = "output"):
     
     # 문제 텍스트에서 파일명 생성
     problem_short = result["problem"][:20].replace(" ", "_").replace(".", "")
-    base_filename = f"{problem_short}_{len(result['geogebra_commands'])}_commands"
+    base_filename = f"{problem_short}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_commands"
     
     # JSON 결과 저장
     with open(f"{output_dir}/{base_filename}.json", "w", encoding="utf-8") as f:

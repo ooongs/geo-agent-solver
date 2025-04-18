@@ -65,15 +65,15 @@ else:  # 기본값은 중국어
 # 시스템 메시지 함수 가져오기
 from .system import get_system_message, get_calculation_system_message, CALCULATION_TYPES
 
-# 템플릿 가져오기
-from .templates import (
+# 템플릿 임포트
+from geo_prompts.templates.json_templates import (
     PLANNER_CALCULATION_JSON_TEMPLATE,
     PLANNER_NO_CALCULATION_JSON_TEMPLATE,
+    VALIDATION_JSON_TEMPLATE,
     COMMAND_SELECTION_TEMPLATE,
     COMMAND_GENERATION_TEMPLATE,
-    VALIDATION_JSON_TEMPLATE,
     COMMAND_REGENERATION_JSON_TEMPLATE,
-    MANAGER_JSON_TEMPLATE,
+    MANAGER_JSON_TEMPLATE,  # calculation_manager_agent에서 사용하는 JSON 템플릿
     TRIANGLE_JSON_TEMPLATE,
     ANGLE_JSON_TEMPLATE,
     COORDINATE_JSON_TEMPLATE,

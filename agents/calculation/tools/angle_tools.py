@@ -1,206 +1,328 @@
 """
-각도 관련 계산 도구
+Angle-related calculation tools
 
-이 모듈은 중국 중학교 수준의 각도 관련 기하학 문제를 해결하기 위한 도구를 제공합니다.
+This module provides tools for solving angle-related geometry problems at the middle school level.
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+import math
+from typing import Dict, Any, List, Tuple, Optional, Union
 import numpy as np
+from pydantic import BaseModel, Field
+from langchain_core.tools import ToolException
+
 from .base_tools import GeometryToolBase
-
-
+from .coordinate_tools import CoordinateTools
 
 class AngleTools(GeometryToolBase):
-    """각도 관련 계산 도구"""
+    """Angle-related calculation tools"""
+    
+    # Constants
+    PI = math.pi
+    HALF_PI = math.pi / 2
+    TWO_PI = math.pi * 2
+    
+    # === Math Tools ===
     
     @staticmethod
-    def calculate_angle_three_points(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> float:
-        """세 점으로 이루어진 각도 계산 (라디안, p2가 각의 꼭지점)"""
-        return AngleTools.calculate_angle(p1, p2, p3)
+    def normalize_angle(angle_rad: float) -> float:
+        """Normalize angle to [0, 2π) range"""
+        return angle_rad % AngleTools.TWO_PI
     
     @staticmethod
-    def calculate_angle_two_lines(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> float:
-        """두 직선 사이의 각도 계산 (라디안)"""
-        # ax + by + c = 0 형태에서 직선의 법선 벡터는 (a, b)
-        a1, b1, _ = line1
-        a2, b2, _ = line2
-        
-        # 두 법선 벡터 사이의 각도 계산
-        dot_product = a1 * a2 + b1 * b2
-        norm1 = np.sqrt(a1**2 + b1**2)
-        norm2 = np.sqrt(a2**2 + b2**2)
-        
-        # 코사인 값 계산
-        cos_angle = dot_product / (norm1 * norm2)
-        
-        # 부동소수점 오차 처리
-        cos_angle = max(min(cos_angle, 1.0), -1.0)
-        
-        # 각도 계산 (라디안)
-        angle = np.arccos(cos_angle)
-        
-        # 항상 예각 또는 직각 반환 (0 ~ pi/2)
-        return min(angle, np.pi - angle)
+    def degrees_to_radians(angle_deg: float) -> float:
+        """Convert angle from degrees to radians"""
+        return angle_deg * (math.pi / 180)
+    
+    @staticmethod
+    def radians_to_degrees(angle_rad: float) -> float:
+        """Convert angle from radians to degrees"""
+        return angle_rad * (180 / math.pi)
     
     @staticmethod
     def calculate_angle_two_vectors(v1: Tuple[float, float], v2: Tuple[float, float]) -> float:
-        """두 벡터 사이의 각도 계산 (라디안)"""
-        # 두 벡터의 내적 계산
+        """Calculate the angle between two vectors in radians"""
+        v1_length = math.sqrt(v1[0]**2 + v1[1]**2)
+        v2_length = math.sqrt(v2[0]**2 + v2[1]**2)
+        
+        if v1_length < 1e-10 or v2_length < 1e-10:
+            raise ToolException("Cannot calculate angle with zero-length vector")
+        
         dot_product = v1[0] * v2[0] + v1[1] * v2[1]
-        norm1 = np.sqrt(v1[0]**2 + v1[1]**2)
-        norm2 = np.sqrt(v2[0]**2 + v2[1]**2)
+        cos_angle = dot_product / (v1_length * v2_length)
         
-        # 코사인 값 계산
-        cos_angle = dot_product / (norm1 * norm2)
+        # Handle numerical inaccuracies
+        if cos_angle > 1:
+            cos_angle = 1
+        elif cos_angle < -1:
+            cos_angle = -1
+            
+        # Return the unsigned angle [0, π]
+        return math.acos(cos_angle)
+    
+    @staticmethod
+    def calculate_angle_three_points(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> float:
+        """Calculate the angle formed by three points with p2 as the vertex"""
+        v1 = (p1[0] - p2[0], p1[1] - p2[1])
+        v2 = (p3[0] - p2[0], p3[1] - p2[1])
+        return AngleTools.calculate_angle_two_vectors(v1, v2)
+    
+    @staticmethod
+    def calculate_angle_with_direction(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> float:
+        """Calculate the angle with direction (counter-clockwise is positive)"""
+        v1 = (p1[0] - p2[0], p1[1] - p2[1])
+        v2 = (p3[0] - p2[0], p3[1] - p2[1])
         
-        # 부동소수점 오차 처리
-        cos_angle = max(min(cos_angle, 1.0), -1.0)
+        # Calculate cross product (z-component)
+        cross_product = v1[0] * v2[1] - v1[1] * v2[0]
         
-        # 각도 계산 (라디안)
-        return np.arccos(cos_angle)
+        # Calculate the unsigned angle
+        angle = AngleTools.calculate_angle_three_points(p1, p2, p3)
+        
+        # Apply sign based on the cross product
+        if cross_product < 0:
+            return -angle
+        return angle
+    
+    @staticmethod
+    def calculate_angle_two_lines(line1: Tuple[float, float, float], line2: Tuple[float, float, float]) -> float:
+        """Calculate the angle between two lines in radians"""
+        if CoordinateTools.are_lines_parallel(line1, line2):
+            return 0.0
+        
+        # For line ax + by + c = 0, the slope is -a/b
+        if abs(line1[1]) < 1e-10:  # First line is vertical
+            if abs(line2[0]) < 1e-10:  # Second line is horizontal
+                return AngleTools.HALF_PI
+            else:
+                slope2 = -line2[0] / line2[1]
+                return math.atan(abs(slope2))
+        elif abs(line2[1]) < 1e-10:  # Second line is vertical
+            if abs(line1[0]) < 1e-10:  # First line is horizontal
+                return AngleTools.HALF_PI
+            else:
+                slope1 = -line1[0] / line1[1]
+                return math.atan(abs(slope1))
+        else:
+            slope1 = -line1[0] / line1[1]
+            slope2 = -line2[0] / line2[1]
+            return math.atan(abs((slope2 - slope1) / (1 + slope1 * slope2)))
     
     @staticmethod
     def calculate_interior_angles_triangle(vertices: List[Tuple[float, float]]) -> List[float]:
-        """삼각형 내각 계산 (라디안)"""
+        """Calculate the interior angles of a triangle"""
         if len(vertices) != 3:
-            return [0, 0, 0]
+            raise ToolException("A triangle must have exactly 3 vertices")
         
-        p1, p2, p3 = vertices
-        angle1 = AngleTools.calculate_angle(p2, p1, p3)
-        angle2 = AngleTools.calculate_angle(p1, p2, p3)
-        angle3 = AngleTools.calculate_angle(p1, p3, p2)
+        angles = []
+        for i in range(3):
+            p1 = vertices[i]
+            p2 = vertices[(i+1) % 3]
+            p3 = vertices[(i+2) % 3]
+            angles.append(AngleTools.calculate_angle_three_points(p1, p2, p3))
         
-        return [angle1, angle2, angle3]
+        return angles
     
     @staticmethod
     def calculate_exterior_angles_triangle(vertices: List[Tuple[float, float]]) -> List[float]:
-        """삼각형 외각 계산 (라디안)"""
+        """Calculate the exterior angles of a triangle"""
         interior_angles = AngleTools.calculate_interior_angles_triangle(vertices)
-        return [np.pi - angle for angle in interior_angles]
-    
-    @staticmethod
-    def calculate_inscribed_angle(center: Tuple[float, float], p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
-        """원에서의 내접각 계산 (라디안)"""
-        # 중심각 계산
-        central_angle = AngleTools.calculate_angle_two_vectors(
-            (p1[0] - center[0], p1[1] - center[1]),
-            (p2[0] - center[0], p2[1] - center[1])
-        )
-        
-        # 내접각은 중심각의 절반
-        return central_angle / 2
+        return [math.pi - angle for angle in interior_angles]
     
     @staticmethod
     def calculate_angle_bisector(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> Tuple[float, float, float]:
-        """두 점을 향하는 각의 이등분선 직선 방정식 계산"""
-        # 두 벡터 계산
+        """Calculate the angle bisector line for an angle formed by three points with p2 as vertex"""
+        # Normalize the two vectors
         v1 = (p1[0] - p2[0], p1[1] - p2[1])
-        v3 = (p3[0] - p2[0], p3[1] - p2[1])
+        v2 = (p3[0] - p2[0], p3[1] - p2[1])
         
-        # 벡터 정규화
-        norm1 = np.sqrt(v1[0]**2 + v1[1]**2)
-        norm3 = np.sqrt(v3[0]**2 + v3[1]**2)
+        v1_length = math.sqrt(v1[0]**2 + v1[1]**2)
+        v2_length = math.sqrt(v2[0]**2 + v2[1]**2)
         
-        v1_unit = (v1[0] / norm1, v1[1] / norm1)
-        v3_unit = (v3[0] / norm3, v3[1] / norm3)
+        if v1_length < 1e-10 or v2_length < 1e-10:
+            raise ToolException("Cannot calculate angle bisector with zero-length vector")
+            
+        v1_normalized = (v1[0] / v1_length, v1[1] / v1_length)
+        v2_normalized = (v2[0] / v2_length, v2[1] / v2_length)
         
-        # 이등분선 벡터 (두 단위 벡터의 합)
-        bisector = (v1_unit[0] + v3_unit[0], v1_unit[1] + v3_unit[1])
+        # Calculate the bisector vector
+        bisector = (v1_normalized[0] + v2_normalized[0], v1_normalized[1] + v2_normalized[1])
+        bisector_length = math.sqrt(bisector[0]**2 + bisector[1]**2)
         
-        # 이등분선 벡터가 영벡터인 경우
-        if abs(bisector[0]) < 1e-10 and abs(bisector[1]) < 1e-10:
-            # 두 벡터가 정반대 방향인 경우, 수직 벡터 사용
-            bisector = (-v1_unit[1], v1_unit[0])
+        if bisector_length < 1e-10:
+            # If the vectors are in opposite directions, take perpendicular
+            bisector = (-v1_normalized[1], v1_normalized[0])
+        else:
+            bisector = (bisector[0] / bisector_length, bisector[1] / bisector_length)
         
-        # 이등분선이 지나는 한 점 (각의 꼭지점)
-        point = p2
+        # Calculate a point on the bisector line
+        p_on_bisector = (p2[0] + bisector[0], p2[1] + bisector[1])
         
-        # 직선의 방정식 계산 (ax + by + c = 0)
-        if abs(bisector[1]) < 1e-10:
-            # 수평선
-            return (0, 1, -point[1])
-        
-        slope = bisector[0] / bisector[1]
-        intercept = point[1] - slope * point[0]
-        
-        return (-slope, 1, -intercept)
+        # Get the line equation
+        return CoordinateTools.calculate_line_equation(p2, p_on_bisector)
     
     @staticmethod
-    def calculate_angle_trisection(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> List[Tuple[float, float, float]]:
-        """각도를 세 등분하는 두 직선의 방정식 계산 (p1-p2-p3 각도 제외)"""
-        # 두 벡터 계산
+    def calculate_angle_trisection(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
+        """Calculate the two lines that trisect an angle formed by three points with p2 as vertex"""
+        # Calculate the angle
+        angle = AngleTools.calculate_angle_three_points(p1, p2, p3)
+        trisection_angle = angle / 3
+        
+        # Calculate the angle between p2->p1 and positive x-axis
         v1 = (p1[0] - p2[0], p1[1] - p2[1])
-        v3 = (p3[0] - p2[0], p3[1] - p2[1])
+        base_angle = math.atan2(v1[1], v1[0])
         
-        # 벡터 정규화
-        norm1 = np.sqrt(v1[0]**2 + v1[1]**2)
-        norm3 = np.sqrt(v3[0]**2 + v3[1]**2)
+        # Calculate the two trisection angles
+        first_trisection_angle = base_angle + trisection_angle
+        second_trisection_angle = base_angle + 2 * trisection_angle
         
-        v1_unit = (v1[0] / norm1, v1[1] / norm1)
-        v3_unit = (v3[0] / norm3, v3[1] / norm3)
+        # Calculate points on the trisection lines
+        first_trisection_point = (
+            p2[0] + math.cos(first_trisection_angle),
+            p2[1] + math.sin(first_trisection_angle)
+        )
         
-        # 두 벡터 사이의 각도 계산
-        dot_product = v1_unit[0] * v3_unit[0] + v1_unit[1] * v3_unit[1]
-        angle = np.arccos(max(min(dot_product, 1.0), -1.0))
+        second_trisection_point = (
+            p2[0] + math.cos(second_trisection_angle),
+            p2[1] + math.sin(second_trisection_angle)
+        )
         
-        # 각도를 삼등분하여 두 개의 새로운 벡터 계산
-        trisection_lines = []
-        for i in range(1, 3):  # 1/3, 2/3 위치에 직선 생성
-            # 회전 각도 계산 (v1에서 시작하여 v3 방향으로)
-            rotation_angle = angle * i / 3
-            
-            # 단위 벡터 v1을 회전
-            cos_theta = np.cos(rotation_angle)
-            sin_theta = np.sin(rotation_angle)
-            
-            # v1을 기준으로 회전 변환 적용
-            # 2D 회전 변환: [cos θ, -sin θ; sin θ, cos θ] * [x; y]
-            rotated_x = v1_unit[0] * cos_theta - v1_unit[1] * sin_theta
-            rotated_y = v1_unit[0] * sin_theta + v1_unit[1] * cos_theta
-            
-            # 회전된 벡터
-            trisect_vector = (rotated_x, rotated_y)
-            
-            # 직선의 방정식 계산 (ax + by + c = 0)
-            # 방향 벡터가 (dx, dy)일 때, 직선의 법선 벡터는 (-dy, dx)
-            a = -trisect_vector[1]
-            b = trisect_vector[0]
-            c = trisect_vector[1] * p2[0] - trisect_vector[0] * p2[1]
-            
-            trisection_lines.append((a, b, c))
+        # Get the line equations
+        first_trisection_line = CoordinateTools.calculate_line_equation(p2, first_trisection_point)
+        second_trisection_line = CoordinateTools.calculate_line_equation(p2, second_trisection_point)
         
-        return trisection_lines
+        return (first_trisection_line, second_trisection_line)
     
     @staticmethod
-    def is_angle_acute(angle: float) -> bool:
-        """예각인지 확인"""
-        return 0 < angle < np.pi / 2
+    def calculate_inscribed_angle(center: Tuple[float, float], p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
+        """Calculate the inscribed angle in a circle from two points on the circle and the center"""
+        v1 = (p1[0] - center[0], p1[1] - center[1])
+        v2 = (p2[0] - center[0], p2[1] - center[1])
+        central_angle = AngleTools.calculate_angle_two_vectors(v1, v2)
+        return central_angle / 2
     
     @staticmethod
-    def is_angle_right(angle: float) -> bool:
-        """직각인지 확인"""
-        return abs(angle - np.pi / 2) < 1e-10
+    def calculate_regular_polygon_angle(n: int) -> float:
+        """Calculate the interior angle of a regular polygon with n sides"""
+        if n < 3:
+            raise ToolException("A polygon must have at least 3 sides")
+        return (n - 2) * math.pi / n
     
     @staticmethod
-    def is_angle_obtuse(angle: float) -> bool:
-        """둔각인지 확인"""
-        return np.pi / 2 < angle < np.pi
+    def calculate_angle_complement(angle_rad: float) -> float:
+        """Calculate the complement of an angle (π/2 - angle)"""
+        return AngleTools.HALF_PI - angle_rad
+    
+    @staticmethod
+    def calculate_angle_supplement(angle_rad: float) -> float:
+        """Calculate the supplement of an angle (π - angle)"""
+        return math.pi - angle_rad
+    
+    @staticmethod
+    def calculate_rotation(point: Tuple[float, float], center: Tuple[float, float], angle_rad: float) -> Tuple[float, float]:
+        """Rotate a point around a center by a given angle"""
+        # Translate the point so the center is at the origin
+        translated = (point[0] - center[0], point[1] - center[1])
+        
+        # Apply rotation
+        rotated = (
+            translated[0] * math.cos(angle_rad) - translated[1] * math.sin(angle_rad),
+            translated[0] * math.sin(angle_rad) + translated[1] * math.cos(angle_rad)
+        )
+        
+        # Translate back
+        return (rotated[0] + center[0], rotated[1] + center[1])
+    
+    # === Validation Tools ===
+    
+    @staticmethod
+    def angle_classification(angle_rad: float) -> str:
+        """Classify an angle as acute, right, obtuse, straight, or reflex"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        
+        if abs(angle_rad) < 1e-10 or abs(angle_rad - AngleTools.TWO_PI) < 1e-10:
+            return "zero"
+        elif abs(angle_rad - AngleTools.HALF_PI) < 1e-10:
+            return "right"
+        elif angle_rad < AngleTools.HALF_PI:
+            return "acute"
+        elif abs(angle_rad - math.pi) < 1e-10:
+            return "straight"
+        elif angle_rad < math.pi:
+            return "obtuse"
+        else:
+            return "reflex"
+    
+    @staticmethod
+    def is_angle_acute(angle_rad: float) -> bool:
+        """Check if an angle is acute (less than π/2)"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        return 0 < angle_rad < AngleTools.HALF_PI
+    
+    @staticmethod
+    def is_angle_right(angle_rad: float) -> bool:
+        """Check if an angle is right (equal to π/2)"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        return abs(angle_rad - AngleTools.HALF_PI) < 1e-10
+    
+    @staticmethod
+    def is_angle_obtuse(angle_rad: float) -> bool:
+        """Check if an angle is obtuse (between π/2 and π)"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        return AngleTools.HALF_PI < angle_rad < math.pi
+    
+    @staticmethod
+    def is_angle_straight(angle_rad: float) -> bool:
+        """Check if an angle is straight (equal to π)"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        return abs(angle_rad - math.pi) < 1e-10
+    
+    @staticmethod
+    def is_angle_reflex(angle_rad: float) -> bool:
+        """Check if an angle is reflex (between π and 2π)"""
+        angle_rad = AngleTools.normalize_angle(angle_rad)
+        return math.pi < angle_rad < AngleTools.TWO_PI
+    
+    @staticmethod
+    def are_angles_equal(angle1_rad: float, angle2_rad: float, tolerance: float = 1e-10) -> bool:
+        """Check if two angles are equal within the given tolerance"""
+        angle1_rad = AngleTools.normalize_angle(angle1_rad)
+        angle2_rad = AngleTools.normalize_angle(angle2_rad)
+        return abs(angle1_rad - angle2_rad) < tolerance
     
     @staticmethod
     def is_triangle_acute(vertices: List[Tuple[float, float]]) -> bool:
-        """예각삼각형인지 확인"""
+        """Check if a triangle is acute (all angles are acute)"""
         angles = AngleTools.calculate_interior_angles_triangle(vertices)
         return all(AngleTools.is_angle_acute(angle) for angle in angles)
     
     @staticmethod
     def is_triangle_right(vertices: List[Tuple[float, float]]) -> bool:
-        """직각삼각형인지 확인"""
+        """Check if a triangle is right (has a right angle)"""
         angles = AngleTools.calculate_interior_angles_triangle(vertices)
         return any(AngleTools.is_angle_right(angle) for angle in angles)
     
     @staticmethod
     def is_triangle_obtuse(vertices: List[Tuple[float, float]]) -> bool:
-        """둔각삼각형인지 확인"""
+        """Check if a triangle is obtuse (has an obtuse angle)"""
         angles = AngleTools.calculate_interior_angles_triangle(vertices)
         return any(AngleTools.is_angle_obtuse(angle) for angle in angles)
+    
+    @staticmethod
+    def is_triangle_equiangular(vertices: List[Tuple[float, float]], tolerance: float = 1e-10) -> bool:
+        """Check if a triangle is equiangular (all angles are equal)"""
+        angles = AngleTools.calculate_interior_angles_triangle(vertices)
+        return (
+            abs(angles[0] - angles[1]) < tolerance and
+            abs(angles[1] - angles[2]) < tolerance
+        )
+    
+    @staticmethod
+    def is_angle_complementary(angle1_rad: float, angle2_rad: float, tolerance: float = 1e-10) -> bool:
+        """Check if two angles are complementary (sum to π/2)"""
+        return abs(angle1_rad + angle2_rad - AngleTools.HALF_PI) < tolerance
+    
+    @staticmethod
+    def is_angle_supplementary(angle1_rad: float, angle2_rad: float, tolerance: float = 1e-10) -> bool:
+        """Check if two angles are supplementary (sum to π)"""
+        return abs(angle1_rad + angle2_rad - math.pi) < tolerance
     

@@ -207,10 +207,8 @@ COMMAND_REGENERATION_PROMPT = ChatPromptTemplate.from_template("""
 你是一个专业的GeoGebra命令重新生成专家。你的任务是根据验证失败的原因，重新生成正确的GeoGebra命令，确保修复所有验证问题并遵循GeoGebra的标准语法规范。
 
 问题: {problem}
-原始作图计划: {construction_plan}
 原始GeoGebra命令: {original_commands}
 验证结果: {validation_result}
-检索到的命令: {retrieved_commands}
 当前重新生成尝试次数: {attempt_count}
 
 请严格按照以下步骤进行：

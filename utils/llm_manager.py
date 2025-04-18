@@ -6,6 +6,7 @@ LLM 관리자 모듈
 
 from langchain_core.messages import SystemMessage
 from langchain_deepseek import ChatDeepSeek
+from langchain_openai import ChatOpenAI
 from config import DEFAULT_MODEL, DEFAULT_TEMPERATURE, ADVANCED_MODEL
 import os
 import functools
@@ -42,7 +43,7 @@ class LLMManager:
         },
         # 계산 전용 LLM 프로필
         "calculation": {
-            "model": ADVANCED_MODEL,
+            "model": DEFAULT_MODEL,
             "temperature": 0,
             "system_message": SYSTEM_MESSAGES["calculation"]
         },
@@ -54,19 +55,19 @@ class LLMManager:
         },
         # GeoGebra 명령 생성 프로필
         "geogebra": {
-            "model": ADVANCED_MODEL,
+            "model": DEFAULT_MODEL,
             "temperature": 0.1,
             "system_message": SYSTEM_MESSAGES["geogebra"]
         },
         # 파싱 전용 LLM 프로필
         "parsing": {
-            "model": ADVANCED_MODEL,
+            "model": DEFAULT_MODEL,
             "temperature": 0,
             "system_message": SYSTEM_MESSAGES["parsing"]
         },
         # 설명 전용 LLM 프로필
         "explanation": {
-            "model": ADVANCED_MODEL,
+            "model": DEFAULT_MODEL,
             "temperature": 0.2,
             "system_message": SYSTEM_MESSAGES["explanation"]
         },
@@ -78,7 +79,7 @@ class LLMManager:
         },
         # 명령어 선택 전용 LLM 프로필
         "command_selection": {
-            "model": ADVANCED_MODEL,
+            "model": DEFAULT_MODEL,
             "temperature": 0.2,
             "system_message": SYSTEM_MESSAGES["command_selection"]
         }
@@ -109,19 +110,20 @@ class LLMManager:
         config.update(kwargs)
         
         # # OpenAI API 키 설정
-        # openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+        openai_api_key = os.environ.get("OPENAI_API_KEY", "")
         
-        # # ChatOpenAI 인스턴스 생성
-        # llm = ChatOpenAI(
-        #     openai_api_key=openai_api_key,
-        #     **config
-        # )
-        deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY", "")
-
-        llm = ChatDeepSeek(
-            api_key=deepseek_api_key,
+        # ChatOpenAI 인스턴스 생성
+        llm = ChatOpenAI(
+            openai_api_key=openai_api_key,
             **config
         )
+        
+        # deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+
+        # llm = ChatDeepSeek(
+        #     api_key=deepseek_api_key,
+        #     **config
+        # )
         
         # 원래 함수를 저장
         original_invoke = llm.__call__
@@ -175,20 +177,20 @@ class LLMManager:
         if "system_message" in config:
             config.pop("system_message")
         
-        # # OpenAI API 키 설정
-        # openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+        # OpenAI API 키 설정
+        openai_api_key = os.environ.get("OPENAI_API_KEY", "")
         
-        # # ChatOpenAI 인스턴스 생성
-        # llm = ChatOpenAI(
-        #     openai_api_key=openai_api_key,
-        #     **config
-        # )
-        deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY", "")
-
-        llm = ChatDeepSeek(
-            api_key=deepseek_api_key,
+        # ChatOpenAI 인스턴스 생성
+        llm = ChatOpenAI(
+            openai_api_key=openai_api_key,
             **config
         )
+        # deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+
+        # llm = ChatDeepSeek(
+        #     api_key=deepseek_api_key,
+        #     **config
+        # )
         
         # 원래 함수를 저장
         original_invoke = llm.__call__

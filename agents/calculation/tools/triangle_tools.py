@@ -1,7 +1,7 @@
 """
-삼각형 관련 계산 도구
+Triangle-related calculation tools
 
-이 모듈은 중국 중학교 수준의 삼각형 관련 기하학 문제를 해결하기 위한 도구를 제공합니다.
+This module provides tools for solving geometry problems related to triangles at the middle school level.
 """
 
 from typing import Dict, Any, List, Tuple, Optional
@@ -12,40 +12,41 @@ from langchain_core.tools import ToolException
 from .base_tools import GeometryToolBase
 
 
-
 class TriangleTools(GeometryToolBase):
-    """삼각형 관련 계산 도구"""
+    """Tools for triangle-related calculations"""
     
     @staticmethod
     def calculate_area(vertices: List[Tuple[float, float]]) -> float:
-        """삼각형의 면적 계산 (좌표 사용)"""
+        """Calculate the area of a triangle using coordinates"""
         if len(vertices) != 3:
-            return 0
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         x1, y1 = vertices[0]
         x2, y2 = vertices[1]
         x3, y3 = vertices[2]
         
-        # 삼각형의 면적 계산 (신발끈 공식)
+        # Calculate area using the shoelace formula
         area = 0.5 * abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)))
         return area
     
     @staticmethod
     def calculate_area_from_sides(a: float, b: float, c: float) -> float:
-        """삼각형의 면적 계산 (세 변의 길이 사용, 헤론의 공식)"""
-        # 헤론의 공식
-        s = (a + b + c) / 2  # 반둘레
-        if s <= a or s <= b or s <= c:  # 삼각형 부등식 검사
-            return 0
+        """Calculate the area of a triangle using side lengths (Heron's formula)"""
+        # Semi-perimeter
+        s = (a + b + c) / 2
+        
+        # Check triangle inequality
+        if s <= a or s <= b or s <= c:
+            raise ToolException("Triangle inequality not satisfied: the sum of any two sides must be greater than the third side")
         
         area = np.sqrt(s * (s - a) * (s - b) * (s - c))
         return area
     
     @staticmethod
     def calculate_perimeter(vertices: List[Tuple[float, float]]) -> float:
-        """삼각형의 둘레 계산"""
+        """Calculate the perimeter of a triangle"""
         if len(vertices) != 3:
-            return 0
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         a = TriangleTools.calculate_distance(p1, p2)
@@ -56,52 +57,52 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def is_right_triangle(vertices: List[Tuple[float, float]]) -> bool:
-        """직각삼각형 여부 확인"""
+        """Check if a triangle is a right triangle"""
         if len(vertices) != 3:
-            return False
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         a = TriangleTools.calculate_distance(p1, p2)
         b = TriangleTools.calculate_distance(p2, p3)
         c = TriangleTools.calculate_distance(p3, p1)
         
-        # 피타고라스 정리를 이용한 직각삼각형 판별
+        # Use Pythagorean theorem to check if it's a right triangle
         sides = sorted([a, b, c])
         return abs(sides[0]**2 + sides[1]**2 - sides[2]**2) < 1e-10
     
     @staticmethod
     def is_isosceles_triangle(vertices: List[Tuple[float, float]]) -> bool:
-        """이등변삼각형 여부 확인"""
+        """Check if a triangle is isosceles (has two equal sides)"""
         if len(vertices) != 3:
-            return False
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         a = TriangleTools.calculate_distance(p1, p2)
         b = TriangleTools.calculate_distance(p2, p3)
         c = TriangleTools.calculate_distance(p3, p1)
         
-        # 두 변의 길이가 같은지 확인
+        # Check if any two sides are equal
         return abs(a - b) < 1e-10 or abs(b - c) < 1e-10 or abs(c - a) < 1e-10
     
     @staticmethod
     def is_equilateral_triangle(vertices: List[Tuple[float, float]]) -> bool:
-        """정삼각형 여부 확인"""
+        """Check if a triangle is equilateral (all sides equal)"""
         if len(vertices) != 3:
-            return False
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         a = TriangleTools.calculate_distance(p1, p2)
         b = TriangleTools.calculate_distance(p2, p3)
         c = TriangleTools.calculate_distance(p3, p1)
         
-        # 세 변의 길이가 모두 같은지 확인
+        # Check if all sides are equal
         return abs(a - b) < 1e-10 and abs(b - c) < 1e-10
     
     @staticmethod
     def calculate_angles(vertices: List[Tuple[float, float]]) -> List[float]:
-        """삼각형의 세 각 계산 (라디안)"""
+        """Calculate the three angles of a triangle (in radians)"""
         if len(vertices) != 3:
-            return [0, 0, 0]
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         angle1 = TriangleTools.calculate_angle(p2, p1, p3)
@@ -112,9 +113,9 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def calculate_centroid(vertices: List[Tuple[float, float]]) -> Tuple[float, float]:
-        """삼각형의 무게중심 계산"""
+        """Calculate the centroid of a triangle (center of mass)"""
         if len(vertices) != 3:
-            return (0, 0)
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         x = sum(p[0] for p in vertices) / 3
         y = sum(p[1] for p in vertices) / 3
@@ -123,15 +124,15 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def calculate_circumcenter(vertices: List[Tuple[float, float]]) -> Tuple[float, float]:
-        """삼각형의 외심 계산"""
+        """Calculate the circumcenter of a triangle (center of the circumscribed circle)"""
         if len(vertices) != 3:
-            return (0, 0)
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         (x1, y1), (x2, y2), (x3, y3) = vertices
         
         D = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
         if abs(D) < 1e-10:
-            return (0, 0)  # 세 점이 일직선 상에 있는 경우
+            raise ToolException("The three points are collinear, no circumcenter exists")
         
         Ux = ((x1**2 + y1**2) * (y2 - y3) + (x2**2 + y2**2) * (y3 - y1) + (x3**2 + y3**2) * (y1 - y2)) / D
         Uy = ((x1**2 + y1**2) * (x3 - x2) + (x2**2 + y2**2) * (x1 - x3) + (x3**2 + y3**2) * (x2 - x1)) / D
@@ -140,16 +141,16 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def calculate_incenter(vertices: List[Tuple[float, float]]) -> Tuple[float, float]:
-        """삼각형의 내심 계산"""
+        """Calculate the incenter of a triangle (center of the inscribed circle)"""
         if len(vertices) != 3:
-            return (0, 0)
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         p1, p2, p3 = vertices
         a = TriangleTools.calculate_distance(p2, p3)
         b = TriangleTools.calculate_distance(p1, p3)
         c = TriangleTools.calculate_distance(p1, p2)
         
-        # 변들의 길이를 가중치로 사용
+        # Use the side lengths as weights
         x = (a * p1[0] + b * p2[0] + c * p3[0]) / (a + b + c)
         y = (a * p1[1] + b * p2[1] + c * p3[1]) / (a + b + c)
         
@@ -157,35 +158,36 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def calculate_orthocenter(vertices: List[Tuple[float, float]]) -> Tuple[float, float]:
-        """삼각형의 수심 계산"""
+        """Calculate the orthocenter of a triangle (intersection of the three altitudes)"""
         if len(vertices) != 3:
-            return (0, 0)
+            raise ToolException("Triangle must have exactly 3 vertices")
         
         (x1, y1), (x2, y2), (x3, y3) = vertices
         
-        # 세 점이 일직선 상에 있는지 확인
+        # Check if the points are collinear
         D = x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)
         if abs(D) < 1e-10:
-            return (0, 0)
+            raise ToolException("The three points are collinear, no orthocenter exists")
         
-        # 각 변의 기울기 계산
+        # Calculate the slopes of each side
         m1 = float('inf') if abs(x2 - x3) < 1e-10 else (y2 - y3) / (x2 - x3)
         m2 = float('inf') if abs(x1 - x3) < 1e-10 else (y1 - y3) / (x1 - x3)
         m3 = float('inf') if abs(x1 - x2) < 1e-10 else (y1 - y2) / (x1 - x2)
         
-        # 각 변에 수직인 직선의 기울기
+        # Calculate slopes of the perpendicular lines (altitudes)
         m1_perp = 0 if abs(m1) == float('inf') else -1 / m1
         m2_perp = 0 if abs(m2) == float('inf') else -1 / m2
         m3_perp = 0 if abs(m3) == float('inf') else -1 / m3
         
-        # 수선의 방정식 계산
+        # Calculate the y-intercepts of the perpendicular lines
         b1 = y1 - m1_perp * x1
         b2 = y2 - m2_perp * x2
         b3 = y3 - m3_perp * x3
         
-        # 두 수선의 교점 계산
+        # Calculate the intersection of two altitudes
+        # (the third will pass through the same point by definition)
         if abs(m1_perp - m2_perp) < 1e-10:
-            # 첫 번째와 두 번째 수선이 평행하면 다른 두 수선의 교점 계산
+            # If the first two altitudes are parallel, use the third altitude
             x = (b3 - b1) / (m1_perp - m3_perp)
             y = m1_perp * x + b1
         else:
@@ -196,7 +198,7 @@ class TriangleTools(GeometryToolBase):
     
     @staticmethod
     def calculate_triangle_centers(vertices: List[Tuple[float, float]]) -> Dict[str, Tuple[float, float]]:
-        """삼각형의 모든 중심 계산"""
+        """Calculate all centers of a triangle"""
         centers = {
             "centroid": TriangleTools.calculate_centroid(vertices),
             "circumcenter": TriangleTools.calculate_circumcenter(vertices),
@@ -206,16 +208,124 @@ class TriangleTools(GeometryToolBase):
         return centers
     
     @staticmethod
-    def calculate_triangle_tool(input_json: str) -> str:
-        """삼각형 계산 도구 메인 함수"""
+    def calculate_inradius(vertices: List[Tuple[float, float]]) -> float:
+        """Calculate the radius of the inscribed circle (inradius)"""
+        if len(vertices) != 3:
+            raise ToolException("Triangle must have exactly 3 vertices")
+        
+        p1, p2, p3 = vertices
+        a = TriangleTools.calculate_distance(p2, p3)
+        b = TriangleTools.calculate_distance(p1, p3)
+        c = TriangleTools.calculate_distance(p1, p2)
+        
+        # Semi-perimeter
+        s = (a + b + c) / 2
+        
+        # Area
+        area = np.sqrt(s * (s - a) * (s - b) * (s - c))
+        
+        # Inradius = Area / Semi-perimeter
+        return area / s
+    
+    @staticmethod
+    def calculate_circumradius(vertices: List[Tuple[float, float]]) -> float:
+        """Calculate the radius of the circumscribed circle (circumradius)"""
+        if len(vertices) != 3:
+            raise ToolException("Triangle must have exactly 3 vertices")
+        
+        p1, p2, p3 = vertices
+        a = TriangleTools.calculate_distance(p2, p3)
+        b = TriangleTools.calculate_distance(p1, p3)
+        c = TriangleTools.calculate_distance(p1, p2)
+        
+        # Semi-perimeter
+        s = (a + b + c) / 2
+        
+        # Area
+        area = np.sqrt(s * (s - a) * (s - b) * (s - c))
+        
+        # Circumradius = (a * b * c) / (4 * Area)
+        return (a * b * c) / (4 * area)
+    
+    @staticmethod
+    def calculate_median_lengths(vertices: List[Tuple[float, float]]) -> List[float]:
+        """Calculate the lengths of the three medians of a triangle"""
+        if len(vertices) != 3:
+            raise ToolException("Triangle must have exactly 3 vertices")
+        
+        p1, p2, p3 = vertices
+        
+        # Calculate midpoints of each side
+        mid_p2p3 = ((p2[0] + p3[0]) / 2, (p2[1] + p3[1]) / 2)
+        mid_p1p3 = ((p1[0] + p3[0]) / 2, (p1[1] + p3[1]) / 2)
+        mid_p1p2 = ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+        
+        # Calculate lengths of medians
+        median1 = TriangleTools.calculate_distance(p1, mid_p2p3)
+        median2 = TriangleTools.calculate_distance(p2, mid_p1p3)
+        median3 = TriangleTools.calculate_distance(p3, mid_p1p2)
+        
+        return [median1, median2, median3]
+    
+    @staticmethod
+    def calculate_altitude_lengths(vertices: List[Tuple[float, float]]) -> List[float]:
+        """Calculate the lengths of the three altitudes of a triangle"""
+        if len(vertices) != 3:
+            raise ToolException("Triangle must have exactly 3 vertices")
+        
+        p1, p2, p3 = vertices
+        
+        # Calculate side lengths
+        a = TriangleTools.calculate_distance(p2, p3)
+        b = TriangleTools.calculate_distance(p1, p3)
+        c = TriangleTools.calculate_distance(p1, p2)
+        
+        # Calculate area
+        s = (a + b + c) / 2  # Semi-perimeter
+        area = np.sqrt(s * (s - a) * (s - b) * (s - c))
+        
+        # Calculate altitudes (h = 2 * Area / side)
+        altitude1 = 2 * area / a
+        altitude2 = 2 * area / b
+        altitude3 = 2 * area / c
+        
+        return [altitude1, altitude2, altitude3]
+    
+    @staticmethod
+    def is_point_inside_triangle(point: Tuple[float, float], vertices: List[Tuple[float, float]]) -> bool:
+        """Check if a point is inside a triangle using barycentric coordinates"""
+        if len(vertices) != 3:
+            raise ToolException("Triangle must have exactly 3 vertices")
+        
+        p1, p2, p3 = vertices
+        px, py = point
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = p3
+        
+        # Calculate barycentric coordinates
+        denom = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+        if abs(denom) < 1e-10:
+            return False  # Degenerate triangle
+        
+        a = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / denom
+        b = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / denom
+        c = 1 - a - b
+        
+        # Check if point is inside triangle
+        return 0 <= a <= 1 and 0 <= b <= 1 and 0 <= c <= 1
+    
+    @staticmethod
+    def triangle_tool(input_json: str) -> str:
+        """Main function for the triangle calculation tool"""
         try:
             data = TriangleTools.parse_input(input_json)
             
             vertices = data.get("vertices", [])
             if not vertices or len(vertices) != 3:
-                raise ToolException("请提供有效的三角形顶点坐标，需要三个点")
+                raise ToolException("Please provide valid triangle vertices (three points required)")
             
-            # 삼각형 정보 계산
+            # Calculate triangle information
             result = {
                 "area": TriangleTools.calculate_area(vertices),
                 "perimeter": TriangleTools.calculate_perimeter(vertices),
@@ -226,7 +336,7 @@ class TriangleTools(GeometryToolBase):
                 "centers": TriangleTools.calculate_triangle_centers(vertices)
             }
             
-            # 특별한 계산 요청 처리
+            # Handle specific calculation requests
             if "calculate" in data:
                 for calc in data["calculate"]:
                     if calc == "centroid":
@@ -237,11 +347,19 @@ class TriangleTools(GeometryToolBase):
                         result["incenter"] = TriangleTools.calculate_incenter(vertices)
                     elif calc == "orthocenter":
                         result["orthocenter"] = TriangleTools.calculate_orthocenter(vertices)
+                    elif calc == "inradius":
+                        result["inradius"] = TriangleTools.calculate_inradius(vertices)
+                    elif calc == "circumradius":
+                        result["circumradius"] = TriangleTools.calculate_circumradius(vertices)
+                    elif calc == "medians":
+                        result["medians"] = TriangleTools.calculate_median_lengths(vertices)
+                    elif calc == "altitudes":
+                        result["altitudes"] = TriangleTools.calculate_altitude_lengths(vertices)
                     else:
-                        raise ToolException(f"不支持的计算类型：{calc}，可用选项：centroid, circumcenter, incenter, orthocenter")
+                        raise ToolException(f"Unsupported calculation type: {calc}")
             
             return TriangleTools.format_output(result)
         except ToolException as e:
             return TriangleTools.format_output({"error": str(e)})
         except Exception as e:
-            return TriangleTools.format_output({"error": f"计算三角形时出现错误：{str(e)}"}) 
+            return TriangleTools.format_output({"error": f"Error calculating triangle properties: {str(e)}"}) 

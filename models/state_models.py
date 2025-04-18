@@ -1,80 +1,111 @@
 """
-상태 모델 모듈
+State Model Module
 
-이 모듈은 기하학 문제 해결기에서 사용되는 상태 모델 클래스를 정의합니다.
-또한 계산 관련 모델도 포함하여 원형 가져오기(circular import) 문제를 해결합니다.
+This module defines state model classes used in the geometry problem solver.
+It also includes calculation-related models to avoid circular import problems.
 """
 
-from typing import Dict, List, Any, Optional, Literal
+from typing import Dict, List, Any, Optional, Literal, Union
 from pydantic import BaseModel, Field
 
-# 계산 작업 클래스 정의
+
+class DependencyNode(BaseModel):
+    task_id: str
+    dependencies: List[str] = []
+    status: str = "pending"
+    result: Optional[Dict[str, Any]] = None
+
+class DependencyGraph(BaseModel):
+    nodes: Dict[str, DependencyNode] = {}
+    execution_order: List[str] = []
+
+# Calculation task class definition
 class CalculationTask(BaseModel):
-    task_id: str = Field(description="计算任务的唯一标识符")
-    task_type: str = Field(description="计算任务类型，如'triangle', 'circle', 'angle'等")
+    task_id: str = Field(description="Unique identifier for the calculation task")
+    task_type: str = Field(description="Calculation task type, such as 'triangle', 'circle', 'angle', etc.")
     operation_type: Optional[str] = Field(
-        description="具体操作类型，如'midpoint', 'intersect', 'perpendicular'等",
+        description="Specific operation type, such as 'midpoint', 'intersect', 'perpendicular', etc.",
         default=None
     )
-    parameters: Dict[str, Any] = Field(description="计算任务的参数")
-    dependencies: List[str] = Field(description="此任务依赖的其他任务ID", default_factory=list)
-    description: str = Field(description="任务描述以及分析")
-    result: Optional[Dict[str, Any]] = Field(description="计算结果", default=None)
+    specific_method: Optional[str] = Field(description="Specific method", default=None)
+    required_precision: Optional[str] = Field(description="Required precision", default=None)
+    parameters: Dict[str, Any] = Field(description="Parameters for the calculation task")
+    dependencies: List[str] = Field(description="IDs of other tasks this task depends on", default_factory=list)
+    description: str = Field(description="Task description and analysis")
+    result: Optional[Dict[str, Any]] = Field(description="Calculation result", default=None)
     status: Literal["pending", "running", "completed", "failed"] = Field(
-        description="任务状态", default="pending"
+        description="Task status", default="pending"
     )
     geogebra_alternatives: bool = Field(
-        description="是否可以直接使用GeoGebra命令实现，不需要计算",
+        description="Whether it can be directly implemented using GeoGebra commands without calculation",
         default=False
     )
     geogebra_command: Optional[str] = Field(
-        description="可以替代计算的GeoGebra命令",
+        description="GeoGebra command that can replace the calculation",
         default=None
     )
+    available_tools: Dict[str, List[str]] = Field(default_factory=dict)
 
-# 계산 큐 클래스 정의
+    def copy(self) -> "CalculationTask":
+        return CalculationTask(
+            task_id=self.task_id,
+            task_type=self.task_type,
+            operation_type=self.operation_type,
+            parameters=self.parameters.copy(),
+            dependencies=self.dependencies.copy(),
+            description=self.description,
+            status=self.status,
+            specific_method=self.specific_method,
+            required_precision=self.required_precision,
+            geogebra_alternatives=self.geogebra_alternatives,
+            geogebra_command=self.geogebra_command,
+            available_tools=self.available_tools.copy()
+        )
+
+# Calculation queue class definition
 class CalculationQueue(BaseModel):
-    tasks: List[CalculationTask] = Field(description="所有计算任务列表", default_factory=list)
-    current_task_id: Optional[str] = Field(description="当前正在执行的任务ID", default=None)
-    completed_task_ids: List[str] = Field(description="已完成的任务ID列表", default_factory=list)
+    tasks: List[CalculationTask] = Field(description="List of all calculation tasks", default_factory=list)
+    current_task_id: Optional[str] = Field(description="ID of the currently executing task", default=None)
+    completed_task_ids: List[str] = Field(description="List of completed task IDs", default_factory=list)
+    dependency_graph: Optional[DependencyGraph] = Field(description="Dependency graph for calculation tasks", default=None)
     
     def get_next_task(self) -> Optional[CalculationTask]:
-        """다음 실행 가능한 작업 가져오기"""
+        """Get the next executable task"""
         for task in self.tasks:
             if task.status == "pending" and all(dep in self.completed_task_ids for dep in task.dependencies):
                 return task
         return None
 
-# 계산 작업 생성 모델
+# Calculation task creation model
 class CalculationTaskCreation(BaseModel):
-    """计算任务创建模型"""
-    tasks: List[Dict[str, Any]] = Field(description="需要创建的计算任务列表")
-    next_calculation_type: Optional[str] = Field(description="下一个要执行的计算类型", default=None)
-    completed_task_ids: List[str] = Field(description="已完成的任务ID列表", default_factory=list)
+    """Calculation task creation model"""
+    tasks: List[Dict[str, Any]] = Field(description="List of calculation tasks to create")
+    next_calculation_type: Optional[str] = Field(description="Type of the next calculation to execute", default=None)
+    completed_task_ids: List[str] = Field(description="List of completed task IDs", default_factory=list)
 
 class ConstructionStep(BaseModel):
-    """작도 단계 모델"""
-    step_id: str = Field(description="步骤唯一标识符")
-    description: str = Field(description="步骤描述")
-    task_type: str = Field(description="步骤类型，如'点作图'，'线作图'等")
-    operation_type: Optional[str] = Field(description="具体操作类型", default=None)
-    geometric_elements: List[str] = Field(description="此步骤涉及的几何元素", default_factory=list)
-    command_type: Optional[str] = Field(description="建议GeoGebra命令类型", default=None)
-    parameters: Dict[str, Any] = Field(description="步骤参数", default_factory=dict)
-    dependencies: List[str] = Field(description="依赖的步骤ID", default_factory=list)
-    geogebra_command: Optional[str] = Field(description="直接可用的GeoGebra命令", default=None)
-    selected_command: Optional[Dict[str, Any]] = Field(description="选择的最佳命令", default=None)
+    """Construction step model"""
+    step_id: str = Field(description="Unique step identifier")
+    description: str = Field(description="Step description")
+    task_type: str = Field(description="Step type, such as 'point construction', 'line construction', etc.")
+    operation_type: Optional[str] = Field(description="Specific operation type", default=None)
+    geometric_elements: List[str] = Field(description="Geometric elements involved in this step", default_factory=list)
+    command_type: Optional[str] = Field(description="Suggested GeoGebra command type", default=None)
+    parameters: Dict[str, Any] = Field(description="Step parameters", default_factory=dict)
+    dependencies: List[str] = Field(description="IDs of steps this step depends on", default_factory=list)
+    geogebra_command: Optional[str] = Field(description="Directly usable GeoGebra command", default=None)
+    selected_command: Optional[Dict[str, Any]] = Field(description="Selected best command", default=None)
 
 class ConstructionPlan(BaseModel):
-    """작도 계획 모델"""
-    title: str = Field(description="作图计划标题")
-    description: str = Field(description="作图计划整体描述")
-    steps: List[ConstructionStep] = Field(description="作图步骤列表", default_factory=list)
-    final_result: str = Field(description="预期最终结果")
+    """Construction plan model"""
+    title: str = Field(description="Construction plan title")
+    description: str = Field(description="Overall description of the construction plan")
+    steps: List[ConstructionStep] = Field(description="List of construction steps", default_factory=list)
+    final_result: str = Field(description="Expected final result")
 
 
 class CalculationTypes(BaseModel):
-    """계산 유형 정보"""
+    """Calculation type information"""
     triangle: bool = False
     circle: bool = False
     angle: bool = False
@@ -84,7 +115,7 @@ class CalculationTypes(BaseModel):
 
 
 class SuggestedTask(BaseModel):
-    """제안된 작업 정보"""
+    """Suggested task information"""
     task_type: str
     operation_type: Optional[str] = None
     parameters: Dict[str, Any] = {}
@@ -95,44 +126,52 @@ class SuggestedTask(BaseModel):
 
 
 class PlannerResult(BaseModel):
-    """분석 결과 모델"""
+    """Analysis result model"""
 
-    requires_calculation: bool = Field(description="是否需要复杂计算")
-    reasoning: str = Field(description="分析理由")
-    suggested_tasks: Optional[List[Dict[str, Any]]] = Field(description="建议的计算任务", default_factory=list)
-    suggested_tasks_reasoning: Optional[str] = Field(description="建议的计算任务理由", default="")
-    # 작도 계획 필드 추가
+    requires_calculation: bool = Field(description="Whether complex calculations are required")
+    reasoning: str = Field(description="Analysis reasoning")
+    suggested_tasks: Optional[List[Dict[str, Any]]] = Field(description="Suggested calculation tasks", default_factory=list)
+    suggested_tasks_reasoning: Optional[str] = Field(description="Reasoning for suggested calculation tasks", default="")
+    # Add construction plan field
     construction_plan: Optional[ConstructionPlan] = Field(
-        description="简单问题的几何作图计划", 
+        description="Geometric construction plan for simple problems", 
         default=None
     )
 
 
-# 기하학 상태 모델
+# Geometry state model
 class GeometryState(BaseModel):
-    input_problem: Optional[str] = Field(description="输入的几何问题", default=None)
-    parsed_elements: Dict[str, Any] = Field(description="解析后的几何元素和条件", default_factory=dict)
-    problem_analysis: Dict[str, Any] = Field(description="问题分析结果", default_factory=dict)
-    approach: Optional[str] = Field(description="解决问题的方法", default=None)
-    calculations: Dict[str, Any] = Field(description="合并后的计算结果", default_factory=dict)
+    input_problem: Optional[str] = Field(description="Input geometry problem", default=None)
+    parsed_elements: Dict[str, Any] = Field(description="Parsed geometric elements and conditions", default_factory=dict)
+    problem_analysis: Dict[str, Any] = Field(description="Problem analysis results", default_factory=dict)
+    approach: Optional[str] = Field(description="Method for solving the problem", default=None)
+    calculations: Dict[str, Any] = Field(description="Merged calculation results", default_factory=dict)
 
-    # 계산 관련 필드
-    calculation_queue: Optional[CalculationQueue] = Field(description="计算任务队列", default=None)
-    calculation_results: Optional[Dict[str, Any]] = Field(description="计算中间结果", default=None)
-    next_calculation: Optional[str] = Field(description="下一个要执行的计算类型", default=None)
-    requires_calculation: bool = Field(default=True, description="是否需要进行计算")
+    # Calculation-related fields
+    calculation_queue: Optional[CalculationQueue] = Field(description="Calculation task queue", default=None)
+    calculation_results: Dict[str, Any] = Field(description="Intermediate calculation results", default_factory=dict)
+    next_calculation: Optional[str] = Field(description="Type of the next calculation to execute", default=None)
+    requires_calculation: bool = Field(default=True, description="Whether calculations are required")
+    is_manager_initialized: bool = Field(default=False, description="Whether the Manager agent has been initialized")
     
-    # GeoGebra 및 검증 관련 필드
-    geogebra_commands: Optional[List[str]] = Field(default=None, description="生成的GeoGebra命令")
-    validation: Optional[Dict[str, Any]] = Field(default=None, description="验证结果") 
-    explanation: Optional[str] = Field(default=None, description="中文解释")
-    errors: Optional[List[str]] = Field(default=None, description="出现的错误")
-    is_valid: bool = Field(default=False, description="解决方案有效性")
-    retrieved_commands: Optional[List[Dict[str, Any]]] = Field(default=None, description="检索到的GeoGebra命令")
+    # GeoGebra and validation-related fields
+    geogebra_commands: Optional[List[str]] = Field(default=None, description="Generated GeoGebra commands")
+    validation: Optional[Dict[str, Any]] = Field(default=None, description="Validation results") 
+    explanation: Optional[str] = Field(default=None, description="Explanation")
+    errors: Optional[List[str]] = Field(default=None, description="Errors that occurred")
+    is_valid: bool = Field(default=False, description="Solution validity")
+    retrieved_commands: Optional[List[Dict[str, Any]]] = Field(default=None, description="Retrieved GeoGebra commands")
 
-    # 작도 계획 필드 추가
-    construction_plan: Optional[ConstructionPlan] = Field(default=None, description="几何作图计划")
+    # Add construction plan field
+    construction_plan: Optional[ConstructionPlan] = Field(default=None, description="Geometric construction plan")
     
-    # 명령어 재생성 관련 필드 추가
-    regenerated_commands: Optional[List[str]] = Field(default=None, description="重新生成的GeoGebra命令")
-    command_regeneration_attempts: int = Field(default=0, description="重新生成GeoGebra命令的尝试次数")
+    # Add command regeneration-related fields
+    regenerated_commands: Optional[List[str]] = Field(default=None, description="Regenerated GeoGebra commands")
+    command_regeneration_attempts: int = Field(default=0, description="Number of attempts to regenerate GeoGebra commands")
+
+    # Add geometric constraints
+    geometric_constraints: Optional[Dict[str, Any]] = Field(description="Geometric constraints", default=None)
+
+    # Add intermediate construction information
+    intermediate_constructions: Optional[Dict[str, Any]] = Field(description="Intermediate construction information", default=None)
+

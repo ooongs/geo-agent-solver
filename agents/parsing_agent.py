@@ -9,81 +9,81 @@ from geo_prompts import PARSING_PROMPT
 
 # 출력 구조 정의
 class GeometricObject(BaseModel):
-    type: str = Field(description="几何对象的类型 (point, line, circle, triangle 等)")
-    vertices: Optional[List[str]] = Field(None, description="多边形的顶点")
-    center: Optional[str] = Field(None, description="圆的中心点")
-    radius: Optional[float] = Field(None, description="圆的半径")
-    points: Optional[List[str]] = Field(None, description="定义对象的点")
+    type: str = Field(description="Geometric object type (point, line, circle, triangle, etc.)")
+    vertices: Optional[List[str]] = Field(None, description="Vertices of a polygon")
+    center: Optional[str] = Field(None, description="Center of a circle")
+    radius: Optional[float] = Field(None, description="Radius of a circle")
+    points: Optional[List[str]] = Field(None, description="Points defining the object")
 
 class Relation(BaseModel):
-    type: str = Field(description="关系类型 (segment, parallel, perpendicular 等)")
-    elements: Optional[List[str]] = Field(None, description="相关的元素")
-    length: Optional[float] = Field(None, description="线段长度")
-    target: Optional[bool] = Field(None, description="是否为求解目标")
+    type: str = Field(description="Relation type (segment, parallel, perpendicular, etc.)")
+    elements: Optional[List[str]] = Field(None, description="Related elements")
+    length: Optional[float] = Field(None, description="Length of a segment")
+    target: Optional[bool] = Field(None, description="Whether it is a target to solve")
 
 class Condition(BaseModel):
-    type: str = Field(description="条件类型 (angle, equality, similarity 等)")
-    measure: Optional[float] = Field(None, description="角度或测量值")
-    unit: Optional[str] = Field(None, description="测量单位 (degree, radian 等)")
-    elements: Optional[List[str]] = Field(None, description="相关的元素")
+    type: str = Field(description="Condition type (angle, equality, similarity, etc.)")
+    measure: Optional[float] = Field(None, description="Angle or measurement value")
+    unit: Optional[str] = Field(None, description="Measurement unit (degree, radian, etc.)")
+    elements: Optional[List[str]] = Field(None, description="Related elements")
 
 class Target(BaseModel):
-    type: str = Field(description="目标类型 (length, angle, area 等)")
-    segment: Optional[str] = Field(None, description="需要求解的线段")
-    angle: Optional[str] = Field(None, description="需要求解的角度")
-    description: Optional[str] = Field(None, description="目标的描述")
+    type: str = Field(description="Target type (length, angle, area, etc.)")
+    segment: Optional[str] = Field(None, description="The segment to solve")
+    angle: Optional[str] = Field(None, description="The angle to solve")
+    description: Optional[str] = Field(None, description="The description of the target")
 
 class ProblemType(BaseModel):
-    triangle: bool = Field(False, description="问题是否与三角形相关")
-    circle: bool = Field(False, description="问题是否与圆相关")
-    angle: bool = Field(False, description="问题是否与角度相关")
-    coordinate: bool = Field(False, description="问题是否与坐标相关")
-    area: bool = Field(False, description="问题是否与面积相关")
-    proof: bool = Field(False, description="问题是否为证明题")
-    construction: bool = Field(False, description="问题是否为作图题")
-    measurement: bool = Field(False, description="问题是否为计算题")
+    triangle: bool = Field(False, description="Whether the problem is related to triangles")
+    circle: bool = Field(False, description="Whether the problem is related to circles")
+    angle: bool = Field(False, description="Whether the problem is related to angles")
+    coordinate: bool = Field(False, description="Whether the problem is related to coordinates")
+    area: bool = Field(False, description="Whether the problem is related to area")
+    proof: bool = Field(False, description="Whether the problem is a proof problem")
+    construction: bool = Field(False, description="Whether the problem is a construction problem")
+    measurement: bool = Field(False, description="Whether the problem is a calculation problem")
 
 class AnalyzedConditions(BaseModel):
-    equal_sides: bool = Field(False, description="问题是否包含等边条件")
-    equal_angles: bool = Field(False, description="问题是否包含等角条件")
-    perpendicular: bool = Field(False, description="问题是否包含垂直条件")
-    parallel: bool = Field(False, description="问题是否包含平行条件")
-    congruent: bool = Field(False, description="问题是否包含全等条件")
-    similar: bool = Field(False, description="问题是否包含相似条件")
-    tangent: bool = Field(False, description="问题是否包含切线条件")
+    equal_sides: bool = Field(False, description="Whether the problem contains equal sides conditions")
+    equal_angles: bool = Field(False, description="Whether the problem contains equal angles conditions")
+    perpendicular: bool = Field(False, description="Whether the problem contains perpendicular conditions")
+    parallel: bool = Field(False, description="Whether the problem contains parallel conditions")
+    congruent: bool = Field(False, description="Whether the problem contains congruent conditions")
+    similar: bool = Field(False, description="Whether the problem contains similar conditions")
+    tangent: bool = Field(False, description="Whether the problem contains tangent conditions")
 
 class ParsedElements(BaseModel):
     geometric_objects: Dict[str, GeometricObject] = Field(
-        description="问题中出现的所有几何对象 (点、线、圆、三角形等)"
+        description="All geometric objects in the problem (points, lines, circles, triangles, etc.)"
     )
     relations: Dict[str, Relation] = Field(
-        description="几何对象之间的关系 (线段、平行、垂直等)"
+        description="Relationships between geometric objects (segments, parallel, perpendicular, etc.)"
     )
     conditions: Dict[str, Condition] = Field(
-        description="问题中给出的条件 (角度、长度等约束条件)"
+        description="Conditions given in the problem (angles, lengths, etc.)"
     )
     targets: Dict[str, Target] = Field(
-        description="问题中需要求解的目标"
+        description="Targets to solve in the problem"
     )
     problem_type: ProblemType = Field(
         default_factory=ProblemType,
-        description="问题类型分析结果"
+        description="Analysis of the problem type"
     )
     analyzed_conditions: AnalyzedConditions = Field(
         default_factory=AnalyzedConditions,
-        description="问题条件分析结果"
+        description="Analysis of the problem conditions"
     )
-    approach: Optional[str] = Field(None, description="作图方法（尺规作图/GeoGebra作图等）")
+    approach: Optional[str] = Field(None, description="Drawing method (ruler and compass drawing/GeoGebra drawing, etc.)")
 
 def parsing_agent(state):
     """
-    중국어 기하학 문제에서 기하학적 요소를 추출하는 에이전트
+    Extract geometric elements from Chinese geometry problems
     
     Args:
-        state: 현재 상태(GeometryState 객체), input_problem 속성 포함
+        state: Current state (GeometryState object), includes input_problem property
         
     Returns:
-        parsed_elements가 추가된 상태 딕셔너리
+        Dictionary with parsed_elements added
     """
     # 출력 파서 설정
     parser = PydanticOutputParser(pydantic_object=ParsedElements)

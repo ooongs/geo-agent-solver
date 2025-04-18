@@ -37,42 +37,48 @@ def create_geometry_solver_graph():
         area_calculation_agent,
         coordinate_calculation_agent,
         calculation_manager_agent,
-        calculation_result_merger_agent
+        calculation_result_merger_agent,
+        calculation_router_agent
     )
 
     # 그래프 초기화
-    workflow = StateGraph(GeometryState)
+    workflow = StateGraph(GeometryState,)
 
+    # 모든 노드 추가
     workflow.add_node("parsing_agent", parsing_agent)
     workflow.add_node("planner_agent", planner_agent)
 
+    workflow.add_node("calculation_manager_agent", calculation_manager_agent)
+    workflow.add_node("calculation_router_agent", calculation_router_agent)
+    workflow.add_node("calculation_result_merger_agent", calculation_result_merger_agent)
+    
+    # 계산 노드 추가
     workflow.add_node("triangle_calculation_agent", triangle_calculation_agent)
     workflow.add_node("circle_calculation_agent", circle_calculation_agent)
     workflow.add_node("angle_calculation_agent", angle_calculation_agent)
     workflow.add_node("length_calculation_agent", length_calculation_agent)
     workflow.add_node("area_calculation_agent", area_calculation_agent)
     workflow.add_node("coordinate_calculation_agent", coordinate_calculation_agent)
-    workflow.add_node("calculation_manager_agent", calculation_manager_agent)
-    workflow.add_node("calculation_result_merger_agent", calculation_result_merger_agent)
 
+    # GeoGebra 관련 노드 추가
     workflow.add_node("geogebra_command_retrieval_agent", geogebra_command_retrieval_agent)
     workflow.add_node("geogebra_command_agent", geogebra_command_agent)
     workflow.add_node("validation_agent", validation_agent)
     workflow.add_node("command_regeneration_agent", command_regeneration_agent)
-
     workflow.add_node("explanation_agent", explanation_agent)
     
-    # 에이전트 간 전환 규칙 설정
-    # workflow.set_entry_point("parsing_agent")
-    # workflow.add_edge("parsing_agent", "planner_agent")
-    workflow.set_entry_point("planner_agent")
+    # 기본 흐름 설정
+    workflow.set_entry_point("parsing_agent")
+    workflow.add_edge("parsing_agent", "planner_agent")
     
     # 분석 결과에 따른 라우팅 설정
     def route_after_planner(state: GeometryState):
+        """Planner 에이전트 이후 라우팅"""
         if state.requires_calculation:
+            # 계산 필요 시 Manager로 라우팅
             return "calculation_manager_agent"
         else:
-            # 계산이 필요 없는 경우 바로 retrieval로 이동
+            # 계산 불필요 시 바로 GeoGebra 명령어 검색으로
             return "geogebra_command_retrieval_agent"
     
     workflow.add_conditional_edges(
@@ -84,26 +90,20 @@ def create_geometry_solver_graph():
         }
     )
     
-    # 계산 관리 및 실행 경로 설정
-    def route_calculation(state: GeometryState):
-        if state.next_calculation == "triangle":
-            return "triangle_calculation_agent"
-        elif state.next_calculation == "circle":
-            return "circle_calculation_agent"
-        elif state.next_calculation == "angle":
-            return "angle_calculation_agent"
-        elif state.next_calculation == "length":
-            return "length_calculation_agent"
-        elif state.next_calculation == "area":
-            return "area_calculation_agent"
-        elif state.next_calculation == "coordinate":
-            return "coordinate_calculation_agent"
-        else:
-            return "calculation_result_merger_agent"
+    # 매니저 에이전트에서 라우터로 항상 라우팅
+    workflow.add_edge("calculation_manager_agent", "calculation_router_agent")
     
+    # 라우터에서 계산 에이전트 또는 병합기로 라우팅
+    def route_from_router(state: GeometryState):
+        """라우터에서 다음 단계 결정"""
+        if state.next_calculation is None:
+            return "calculation_result_merger_agent"
+        return f"{state.next_calculation}_calculation_agent"
+    
+    # 라우터 조건부 라우팅 설정
     workflow.add_conditional_edges(
-        "calculation_manager_agent",
-        route_calculation,
+        "calculation_router_agent",
+        route_from_router,
         {
             "triangle_calculation_agent": "triangle_calculation_agent",
             "circle_calculation_agent": "circle_calculation_agent",
@@ -115,81 +115,27 @@ def create_geometry_solver_graph():
         }
     )
     
-    # 계산 후 관리 혹은 병합으로 이동
-    def after_calculation(state: GeometryState):
-        if state.calculation_queue and state.calculation_queue.tasks:
-            # 대기 중인 작업이 있는지 확인
-            pending_tasks = [task for task in state.calculation_queue.tasks if task.status == "pending"]
-            if pending_tasks:
-                print(f"[DEBUG] Found {len(pending_tasks)} pending tasks. Returning to calculation_manager_agent")
-                return "calculation_manager_agent"
-        print("[DEBUG] No pending tasks remain. Moving to calculation_result_merger_agent")
-        return "calculation_result_merger_agent"
-    
-    workflow.add_conditional_edges(
+    # 모든 계산 에이전트에서 다시 라우터로 돌아가기
+    calculation_agents = [
         "triangle_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
-    
-    workflow.add_conditional_edges(
         "circle_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
-    
-    workflow.add_conditional_edges(
         "angle_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
-    
-    workflow.add_conditional_edges(
         "length_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
-    
-    workflow.add_conditional_edges(
         "area_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
+        "coordinate_calculation_agent"
+    ]
     
-    workflow.add_conditional_edges(
-        "coordinate_calculation_agent",
-        after_calculation,
-        {
-            "calculation_manager_agent": "calculation_manager_agent",
-            "calculation_result_merger_agent": "calculation_result_merger_agent"
-        }
-    )
+    for agent in calculation_agents:
+        workflow.add_edge(agent, "calculation_router_agent")
     
     # 결과 병합 후 명령어 검색
     workflow.add_edge("calculation_result_merger_agent", "geogebra_command_retrieval_agent")
     
-    # 명령어 검색 후 명령어 생성
+    # GeoGebra 명령어 생성 관련 흐름
     workflow.add_edge("geogebra_command_retrieval_agent", "geogebra_command_agent")
-    
-    # 명령어 생성 후 검증
     workflow.add_edge("geogebra_command_agent", "validation_agent")
 
-    # 검증 후 조건부 엣지 추가
+    # 검증 후 조건부 라우팅
     workflow.add_conditional_edges(
         "validation_agent",
         route_after_validation,
@@ -199,23 +145,23 @@ def create_geometry_solver_graph():
         }
     )
     
-    # 명령어 재생성 후 다시 검증
-    workflow.add_edge("command_regeneration_agent", "validation_agent")
+    # 명령어 재생성 후 조건부 라우팅
+    workflow.add_conditional_edges(
+        "command_regeneration_agent",
+        route_after_regeneration,
+        {
+            "explanation_agent": "explanation_agent",
+            "validation_agent": "validation_agent"
+        }
+    )
     
-    # # 대체 해법에서 명령어 생성으로 돌아가는 조건부 엣지
-    # workflow.add_conditional_edges(
-    #     "alternative_agent",
-    #     route_after_alternative_solution,
-    #     {
-    #         "retry": "geogebra_command_agent",
-    #         "give_up": "explanation_agent"
-    #     }
-    # )
+    # 검증 후 성공 시 설명으로 이동
+    workflow.add_edge("validation_agent", "explanation_agent")
     
-    # 시작점과 종료점 설정
+    # 종료점 설정
     workflow.set_finish_point("explanation_agent")
     
-    # 모든 에이전트들이 비동기 처리를 지원하도록 설정
+    # 그래프 컴파일
     compiled_graph = workflow.compile()
     
     return compiled_graph
@@ -232,3 +178,14 @@ def route_after_validation(state: GeometryState) -> str:
         return "success"
     
     return "regenerate"
+
+def route_after_regeneration(state: GeometryState) -> str:
+    """재생성 후 라우팅 결정"""
+    # 최대 재생성 시도 횟수 초과 시 바로 설명으로 넘어감
+    if state.command_regeneration_attempts >= MAX_ATTEMPTS:
+        print(f"[WARNING] 최대 명령어 재생성 시도 횟수({MAX_ATTEMPTS})를 초과했습니다. 검증을 건너뛰고 설명으로 넘어갑니다.")
+        state.is_valid = True  # 강제로 유효하다고 설정
+        return "explanation_agent"
+    
+    # 그렇지 않으면 검증 단계로 이동
+    return "validation_agent"

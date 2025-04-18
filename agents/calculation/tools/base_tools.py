@@ -1,7 +1,7 @@
 """
-기하학 도구의 기본 클래스
+Base class for geometry tools
 
-이 모듈은 모든 기하학 도구가 상속받는 기본 클래스를 정의합니다.
+This module defines the base class that all geometry tools inherit from.
 """
 
 from typing import Dict, Any, List, Tuple, Optional
@@ -11,30 +11,44 @@ import json
 from langchain_core.tools import ToolException
 
 class GeometryToolBase:
-    """기하학 도구 기본 클래스"""
+    """Base class for geometry tools"""
     
     @staticmethod
     def parse_input(input_json: str) -> Dict[str, Any]:
-        """입력 JSON 문자열을 파싱"""
+        """Parse input JSON string"""
         if isinstance(input_json, str) and input_json.strip().startswith('{'):
             try:
                 return json.loads(input_json)
             except json.JSONDecodeError:
-                raise ToolException("无效的JSON格式，请确保输入是有效的JSON字符串")
+                raise ToolException("Invalid JSON format, please ensure the input is a valid JSON string")
         elif isinstance(input_json, dict):
             return input_json
         else:
-            raise ToolException("无效的输入格式，请提供有效的JSON字符串或字典")
-    
-    @staticmethod
-    def format_output(result: Dict[str, Any]) -> str:
-        """출력을 JSON 문자열로 변환"""
-        return json.dumps(result, ensure_ascii=False)
+            raise ToolException("Invalid input format, please provide a valid JSON string or dictionary")
     
     @staticmethod
     def calculate_distance(p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
-        """두 점 사이의 거리 계산"""
-        return np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+        """Calculate distance between two points"""
+        return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+    
+    @staticmethod
+    def format_result(result: Any) -> str:
+        """Format calculation result as JSON string"""
+        if isinstance(result, (dict, list)):
+            return json.dumps(result, ensure_ascii=False)
+        else:
+            return json.dumps({"result": result}, ensure_ascii=False)
+    
+    @staticmethod
+    def validate_point(point: Any) -> Tuple[float, float]:
+        """Validate and convert point data to tuple format"""
+        if isinstance(point, (list, tuple)) and len(point) == 2:
+            try:
+                return (float(point[0]), float(point[1]))
+            except (ValueError, TypeError):
+                raise ToolException("Point coordinates must be numeric values")
+        else:
+            raise ToolException("Invalid point format. Point must be a tuple or list of two numeric values")
     
     @staticmethod
     def calculate_angle(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> float:

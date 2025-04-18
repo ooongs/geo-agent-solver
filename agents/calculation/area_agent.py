@@ -19,7 +19,8 @@ from agents.calculation.wrappers.area_wrappers import (
     calculate_area_polygon_wrapper,
     calculate_area_circle_wrapper,
     calculate_area_sector_wrapper,
-    calculate_area_segment_wrapper
+    calculate_area_segment_wrapper,
+    calculate_area_quadrilateral_wrapper
 )
 from agents.calculation.schemas.area_schemas import (
     TriangleAreaFromPointsInput,
@@ -37,24 +38,21 @@ from agents.calculation.schemas.area_schemas import (
     PolygonAreaFromPointsInput,
     CircleAreaFromRadiusInput,
     SectorAreaFromRadiusAngleInput,
-    SegmentAreaFromRadiusAngleInput
+    SegmentAreaFromRadiusAngleInput,
+    ParallelogramAreaFromBaseHeightInput,
+    QuadrilateralAreaFromPointsInput
 )
 from langchain_core.output_parsers import JsonOutputParser
 from models.calculation_result_model import CalculationResult
 from geo_prompts import AREA_CALCULATION_PROMPT, AREA_JSON_TEMPLATE
 from utils.llm_manager import LLMManager
-
+from agents.calculation.utils.result_utils import update_calculation_results
+from utils.json_parser import safe_parse_llm_json_output
 def area_calculation_agent(state: GeometryState) -> GeometryState:
     """
-    面积计算代理
+    범용적인 면적 계산 에이전트
     
-    执行与面积相关的几何计算
-    
-    Args:
-        state: 当前状态对象
-        
-    Returns:
-        更新后的状态对象
+    면적 관련 기하학적 계산 수행
     """
     print("[DEBUG] Starting area_calculation_agent")
     
@@ -63,8 +61,7 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
     print(f"[DEBUG] Current task ID: {current_task_id}")
     
     if not current_task_id:
-        print("[DEBUG] No current_task_id set. Setting it to the first pending area task.")
-        # 작업 ID가 없는 경우 첫 번째 대기 중인 면적 작업 설정
+        print("[DEBUG] No current_task_id set. Finding a pending area task.")
         for task in state.calculation_queue.tasks:
             if task.task_type == "area" and task.status == "pending":
                 state.calculation_queue.current_task_id = task.task_id
@@ -73,20 +70,16 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
                 print(f"[DEBUG] Set current_task_id to {current_task_id}")
                 break
     
-    if not current_task_id or not current_task_id.startswith("area_"):
-        # 작업 ID가 없거나 면적 작업이 아닌 경우
-        print(f"[DEBUG] Task ID not set or not an area task: {current_task_id}. Returning state.")
-        return state
-    
     # 현재 작업 찾기
     current_task = None
     for task in state.calculation_queue.tasks:
         if task.task_id == current_task_id:
             current_task = task
             break
-            
-    if not current_task:
-        print(f"[DEBUG] Could not find task with ID {current_task_id}. Returning state.")
+    
+    # task_type 확인으로 변경
+    if not current_task or current_task.task_type != "area":
+        print(f"[DEBUG] No area task found. Returning state.")
         return state
     
     
@@ -95,120 +88,127 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
         StructuredTool.from_function(
             name="calculate_area_triangle",
             func=calculate_area_triangle_wrapper,
-            description="计算三角形面积（使用顶点坐标）",
+            description="Calculate triangle area from vertices",
             args_schema=TriangleAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_triangle_from_sides",
             func=calculate_area_triangle_from_sides_wrapper,
-            description="计算三角形面积（使用三条边长度）",
+            description="Calculate triangle area from three sides using Heron's formula",
             args_schema=TriangleAreaFromSidesInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_triangle_from_base_height",
             func=calculate_area_triangle_from_base_height_wrapper,
-            description="计算三角形面积（使用底边和高）",
+            description="Calculate triangle area from base and height",
             args_schema=TriangleAreaFromBaseHeightInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_rectangle",
             func=calculate_area_rectangle_wrapper,
-            description="计算矩形面积",
+            description="Calculate rectangle area from width and height",
             args_schema=RectangleAreaFromWidthHeightInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_rectangle_from_points",
             func=calculate_area_rectangle_from_points_wrapper,
-            description="计算矩形面积（使用顶点坐标）",
+            description="Calculate rectangle area from vertices",
             args_schema=RectangleAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_square",
             func=calculate_area_square_wrapper,
-            description="计算正方形面积",
+            description="Calculate square area from side length",
             args_schema=SquareAreaFromSideInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_parallelogram",
             func=calculate_area_parallelogram_wrapper,
-            description="计算平行四边形面积",
-            args_schema=ParallelogramAreaFromPointsInput,
+            description="Calculate parallelogram area from base and height",
+            args_schema=ParallelogramAreaFromBaseHeightInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_parallelogram_from_points",
             func=calculate_area_parallelogram_from_points_wrapper,
-            description="计算平行四边形面积（使用顶点坐标）",
+            description="Calculate parallelogram area from vertices",
             args_schema=ParallelogramAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_rhombus",
             func=calculate_area_rhombus_wrapper,
-            description="计算菱形面积（使用对角线）",
+            description="Calculate rhombus area from diagonals",
             args_schema=RhombusAreaFromDiagonalsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_rhombus_from_points",
             func=calculate_area_rhombus_from_points_wrapper,
-            description="计算菱形面积（使用顶点坐标）",
+            description="Calculate rhombus area from vertices",
             args_schema=RhombusAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_trapezoid",
             func=calculate_area_trapezoid_wrapper,
-            description="计算梯形面积",
-            args_schema=TrapezoidAreaFromPointsInput,
+            description="Calculate trapezoid area from parallel sides and height",
+            args_schema=TrapezoidAreaFromBaseHeightInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_trapezoid_from_points",
             func=calculate_area_trapezoid_from_points_wrapper,
-            description="计算梯形面积（使用顶点坐标）",
-            args_schema=TrapezoidAreaFromBaseHeightInput,
+            description="Calculate trapezoid area from vertices",
+            args_schema=TrapezoidAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_regular_polygon",
             func=calculate_area_regular_polygon_wrapper,
-            description="计算正多边形面积",
+            description="Calculate regular polygon area from side length and number of sides",
             args_schema=RegularPolygonAreaFromSideInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_polygon",
             func=calculate_area_polygon_wrapper,
-            description="计算多边形面积",
+            description="Calculate polygon area from vertices",
             args_schema=PolygonAreaFromPointsInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_circle",
             func=calculate_area_circle_wrapper,
-            description="计算圆面积",
+            description="Calculate circle area from radius",
             args_schema=CircleAreaFromRadiusInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_sector",
             func=calculate_area_sector_wrapper,
-            description="计算扇形面积",
+            description="Calculate sector area from radius and central angle",
             args_schema=SectorAreaFromRadiusAngleInput,
             handle_tool_error=True
         ),
         StructuredTool.from_function(
             name="calculate_area_segment",
             func=calculate_area_segment_wrapper,
-            description="计算弓形面积",
+            description="Calculate segment area from radius and central angle",
             args_schema=SegmentAreaFromRadiusAngleInput,
+            handle_tool_error=True
+        ),
+        StructuredTool.from_function(
+            name="calculate_area_quadrilateral",
+            func=calculate_area_quadrilateral_wrapper,
+            description="Calculate quadrilateral area from vertices",
+            args_schema=QuadrilateralAreaFromPointsInput,
             handle_tool_error=True
         )
     ]
@@ -228,25 +228,86 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
     agent = create_openai_functions_agent(llm, tools, prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools)
     
-    # 에이전트 실행
+    # 종속성 데이터 준비 - 추가된 부분
+    task_dependencies = {}
+    if current_task.dependencies:
+        for dep_id in current_task.dependencies:
+            if dep_id in state.calculation_results:
+                task_dependencies[dep_id] = state.calculation_results[dep_id]
+    
+    # 종속성 데이터 처리 - 작업 파라미터에 필요한 데이터 추가 - 추가된 부분
+    enhanced_task = current_task.model_dump()
+    if current_task.parameters and task_dependencies:
+        # 특정 종속성 데이터 변환 로직 (면적 계산에 맞게 조정)
+        for dep_id, dep_data in task_dependencies.items():
+            # 예: 좌표 데이터를 면적 계산에 활용
+            if "coordinates" in dep_data:
+                enhanced_task["parameters"]["coordinates"] = dep_data["coordinates"]
+            # 예: 길이 데이터를 면적 계산에 활용
+            if "lengths" in dep_data:
+                enhanced_task["parameters"]["lengths"] = dep_data["lengths"]
+    
+    # 에이전트 실행 - 종속성 데이터 전달 - 수정된 부분
     result = agent_executor.invoke({
         "problem": state.input_problem,
-        "current_task": str(current_task.model_dump()),
+        "current_task": str(enhanced_task),
         "calculation_results": str(state.calculation_results),
+        "dependencies": str(task_dependencies),  # 종속성 데이터 전달 - 추가됨
         "json_template": AREA_JSON_TEMPLATE,
         "agent_scratchpad": ""
     })
     
     
-    # 계산 결과 파싱 및 저장
     try:
-        parsed_result = output_parser.parse(result["output"])
-        current_task.result = parsed_result.model_dump(exclude_none=True)
+        print(f"[DEBUG] 파싱을 시작합니다: 출력 타입 = {type(result)}")
+        
+        # output 필드가 있는지 확인하고 적절히 처리
+        result_output = None
+        if isinstance(result, dict) and "output" in result:
+            result_output = result["output"]
+            print(f"[DEBUG] 딕셔너리에서 output 필드를 추출했습니다: {type(result_output)}")
+        elif hasattr(result, 'output'):
+            result_output = result.output
+            print(f"[DEBUG] 객체에서 output 속성을 추출했습니다: {type(result_output)}")
+        elif hasattr(result, 'content'):
+            result_output = result.content
+            print(f"[DEBUG] 객체에서 content 속성을 추출했습니다: {type(result_output)}")
+        else:
+            result_output = result
+            print(f"[DEBUG] 결과를 그대로 사용합니다: {type(result_output)}")
+            
+        # 사용자 제공 JSON 형식을 직접 파싱 시도
+        # 만약 이것이 딕셔너리라면 그대로 사용
+        if isinstance(result_output, dict):
+            print("[DEBUG] 결과가 이미 딕셔너리 형태입니다")
+            parsed_result = result_output
+        else:
+            # 안전한 파싱 함수를 사용하여 문자열에서 JSON 파싱
+            print("[DEBUG] safe_parse_llm_json_output 함수로 파싱 시도")
+            parsed_result = safe_parse_llm_json_output(result_output, dict)
+        
+        print(f"[DEBUG] 파싱 결과: {type(parsed_result)}")
+        
+        if parsed_result:
+            # 파싱된 결과가 딕셔너리인 경우
+            if isinstance(parsed_result, dict):
+                print(f"[DEBUG] 파싱된 딕셔너리를 결과로 사용: {list(parsed_result.keys())[:5] if parsed_result else '빈 딕셔너리'}")
+                current_task.result = parsed_result
+            # 파싱된 결과가 CalculationResult 인스턴스인 경우
+            else:
+                print("[DEBUG] CalculationResult 객체를 딕셔너리로 변환")
+                current_task.result = parsed_result.to_dict()
+        else:
+            print("[WARNING] 파싱 결과가 없어 원본 출력을 raw_output으로 저장")
+            current_task.result = {"raw_output": str(result_output), "success": False}
     except Exception as e:
-        print(f"Error parsing area calculation result: {e}")
-        # 파싱 실패 시 결과 텍스트 그대로 저장
-        current_task.result = {"raw_output": result["output"]}
-    
+        print(f"[ERROR] 계산 결과 파싱 중 오류 발생: {e}")
+        # 오류 발생 시 원본 출력 내용을 저장하고 성공 상태를 False로 설정
+        if isinstance(result, dict) and "output" in result:
+            raw_output = result["output"]
+        else:
+            raw_output = str(result)
+        current_task.result = {"raw_output": raw_output, "success": False, "error": str(e)}
     
     # 작업 상태 업데이트 - 완료로 설정
     current_task.status = "completed"
@@ -265,35 +326,10 @@ def area_calculation_agent(state: GeometryState) -> GeometryState:
     # 현재 작업 ID 지우기
     state.calculation_queue.current_task_id = None
     
-    # 전체 계산 결과에 추가
-    _update_calculation_results(state, current_task)
+    # 전체 계산 결과에 추가 - 공통 함수 사용으로 변경
+    update_calculation_results(state, current_task)
         
     
     return state
 
-def _update_calculation_results(state: GeometryState, task: Any) -> None:
-    """
-    전체 계산 결과 업데이트
-    
-    Args:
-        state: 현재 상태 객체
-        task: 완료된 계산 작업
-    """
-    if not task.result:
-        return
-        
-    # 결과가 없는 경우 초기화
-    if not state.calculation_results:
-        state.calculation_results = {}
-        
-    # 면적 결과 업데이트
-    if "areas" in task.result:
-        if "areas" not in state.calculation_results:
-            state.calculation_results["areas"] = {}
-        state.calculation_results["areas"].update(task.result["areas"])
-    
-    # 기타 결과 업데이트
-    if "other_results" in task.result:
-        if "other_results" not in state.calculation_results:
-            state.calculation_results["other_results"] = {}
-        state.calculation_results["other_results"].update(task.result["other_results"]) 
+# 기존 _update_calculation_results 함수 제거 

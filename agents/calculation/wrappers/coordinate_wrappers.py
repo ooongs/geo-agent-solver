@@ -1,269 +1,304 @@
 """
-좌표 계산 래퍼 함수 모듈
+Coordinate calculation wrapper module
 
-이 모듈은 좌표 계산 도구의 래퍼 함수들을 제공합니다.
-각 함수는 입력을 검증하고 결과를 중국어로 설명합니다.
+This module provides wrapper functions for coordinate calculation tools.
+Each function validates input and provides the result with explanation.
 """
 
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from langchain_core.tools import ToolException
 from agents.calculation.tools import CoordinateTools
+import numpy as np
 
-def calculate_midpoint_wrapper(point1: List[float], point2: List[float]) -> dict:
+def calculate_midpoint_wrapper(point1: List[float], point2: List[float]) -> Tuple[float, float]:
     """
-    두 점의 중점을 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        
-    Returns:
-        중점 계산 결과와 설명
+    Wrapper function to calculate the midpoint between two points
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        midpoint = CoordinateTools.calculate_midpoint(p1, p2)
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        return CoordinateTools.calculate_midpoint(point1_tuple, point2_tuple)
+    except Exception as e:
+        raise ToolException(f"Midpoint calculation error: {str(e)}")
+
+def calculate_slope_wrapper(point1: List[float], point2: List[float]) -> float:
+    """
+    Wrapper function to calculate the slope of a line passing through two points
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        result = CoordinateTools.calculate_slope(point1_tuple, point2_tuple)
+        if result == float('inf'):
+            return "Infinity (vertical line)"
+        return result
+    except Exception as e:
+        raise ToolException(f"Slope calculation error: {str(e)}")
+
+def calculate_line_equation_wrapper(point1: List[float], point2: List[float]) -> Dict[str, Any]:
+    """
+    Wrapper function to calculate the equation of a line passing through two points (in the form ax + by + c = 0)
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        a, b, c = CoordinateTools.calculate_line_equation(point1_tuple, point2_tuple)
+        return {"a": a, "b": b, "c": c, "equation": f"{a}x + {b}y + {c} = 0"}
+    except Exception as e:
+        raise ToolException(f"Line equation calculation error: {str(e)}")
+
+def are_points_collinear_wrapper(point1: List[float], point2: List[float], point3: List[float]) -> bool:
+    """
+    Wrapper function to check if three points are collinear
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        point3_tuple = tuple(point3)
+        return CoordinateTools.are_points_collinear(point1_tuple, point2_tuple, point3_tuple)
+    except Exception as e:
+        raise ToolException(f"Collinearity check error: {str(e)}")
+
+def are_lines_parallel_wrapper(
+    line1_a: float, 
+    line1_b: float, 
+    line1_c: float, 
+    line2_a: float, 
+    line2_b: float, 
+    line2_c: float
+) -> bool:
+    """
+    Wrapper function to check if two lines are parallel
+    Input is the a, b, c values for each line (in the form ax + by + c = 0)
+    """
+    try:
+        line1_tuple = (line1_a, line1_b, line1_c)
+        line2_tuple = (line2_a, line2_b, line2_c)
+        return CoordinateTools.are_lines_parallel(line1_tuple, line2_tuple)
+    except Exception as e:
+        raise ToolException(f"Lines parallel check error: {str(e)}")
+
+def calculate_segment_division_wrapper(point1: List[float], point2: List[float], ratio: float) -> Tuple[float, float]:
+    """
+    Wrapper function to calculate a point that divides a line segment by a specific ratio
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        return CoordinateTools.calculate_segment_division(point1_tuple, point2_tuple, ratio)
+    except Exception as e:
+        raise ToolException(f"Segment division calculation error: {str(e)}")
+
+def calculate_internal_division_point_wrapper(point1: List[float], point2: List[float], m: float, n: float) -> Tuple[float, float]:
+    """
+    Wrapper function to calculate the internal division point of a line segment (ratio m:n)
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        return CoordinateTools.calculate_internal_division_point(point1_tuple, point2_tuple, m, n)
+    except Exception as e:
+        raise ToolException(f"Internal division point calculation error: {str(e)}")
+
+def calculate_external_division_point_wrapper(point1: List[float], point2: List[float], m: float, n: float) -> Tuple[float, float]:
+    """
+    Wrapper function to calculate the external division point of a line segment (ratio m:n)
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        return CoordinateTools.calculate_external_division_point(point1_tuple, point2_tuple, m, n)
+    except Exception as e:
+        raise ToolException(f"External division point calculation error: {str(e)}")
+
+def is_point_on_segment_wrapper(point: List[float], segment_start: List[float], segment_end: List[float]) -> bool:
+    """
+    Wrapper function to check if a point is on a line segment
+    """
+    try:
+        # Convert list to tuple
+        point_tuple = tuple(point)
+        segment_start_tuple = tuple(segment_start)
+        segment_end_tuple = tuple(segment_end)
+        return CoordinateTools.is_point_on_segment(point_tuple, segment_start_tuple, segment_end_tuple)
+    except Exception as e:
+        raise ToolException(f"Point on segment check error: {str(e)}")
+
+# Additional wrapper functions
+
+def calculate_vector_wrapper(point1: List[float], point2: List[float]) -> Dict[str, Any]:
+    """
+    Wrapper function to calculate the vector between two points
+    """
+    try:
+        # Convert list to tuple
+        point1_tuple = tuple(point1)
+        point2_tuple = tuple(point2)
+        vector = CoordinateTools.calculate_vector(point1_tuple, point2_tuple)
+        length = CoordinateTools.calculate_vector_length(vector)
         return {
-            "midpoint": midpoint,
-            "midpoint_explanation": f"点 {p1} 和 {p2} 的中点是 {midpoint}"
+            "vector": vector,
+            "length": length,
+            "unit_vector": CoordinateTools.normalize_vector(vector) if length > 1e-10 else None
         }
     except Exception as e:
-        raise ToolException(f"计算中点时出错：{str(e)}")
+        raise ToolException(f"Vector calculation error: {str(e)}")
 
-def calculate_slope_wrapper(point1: List[float], point2: List[float]) -> dict:
+def calculate_dot_product_wrapper(vector1: List[float], vector2: List[float]) -> Dict[str, Any]:
     """
-    두 점의 기울기를 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        
-    Returns:
-        기울기 계산 결과와 설명
+    Wrapper function to calculate the dot product of two vectors
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        slope = CoordinateTools.calculate_slope(p1, p2)
-        if slope == float('inf'):
-            return {
-                "slope": "无穷大",
-                "slope_explanation": f"点 {p1} 和 {p2} 连线的斜率是无穷大（垂直线）"
-            }
+        # Convert list to tuple
+        vector1_tuple = tuple(vector1)
+        vector2_tuple = tuple(vector2)
+        dot_product = CoordinateTools.calculate_dot_product(vector1_tuple, vector2_tuple)
+        length1 = CoordinateTools.calculate_vector_length(vector1_tuple)
+        length2 = CoordinateTools.calculate_vector_length(vector2_tuple)
+        
+        # cos(θ) = dot_product / (|v1| * |v2|)
+        cos_theta = dot_product / (length1 * length2) if length1 > 1e-10 and length2 > 1e-10 else 0
+        # Handle floating-point errors
+        cos_theta = max(min(cos_theta, 1.0), -1.0)
+        angle_radians = np.arccos(cos_theta)
+        angle_degrees = np.degrees(angle_radians)
+        
         return {
-            "slope": slope,
-            "slope_explanation": f"点 {p1} 和 {p2} 连线的斜率是 {slope}"
+            "dot_product": dot_product,
+            "angle_radians": angle_radians,
+            "angle_degrees": angle_degrees
         }
     except Exception as e:
-        raise ToolException(f"计算斜率时出错：{str(e)}")
+        raise ToolException(f"Dot product calculation error: {str(e)}")
 
-def calculate_line_equation_wrapper(point1: List[float], point2: List[float]) -> dict:
+def calculate_cross_product_wrapper(vector1: List[float], vector2: List[float]) -> Dict[str, Any]:
     """
-    두 점을 지나는 직선 방정식을 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        
-    Returns:
-        직선 방정식 계산 결과와 설명
+    Wrapper function to calculate the cross product of two vectors (z component)
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        a, b, c = CoordinateTools.calculate_line_equation(p1, p2)
-        equation = f"{a}x + {b}y + {c} = 0"
+        # Convert list to tuple
+        vector1_tuple = tuple(vector1)
+        vector2_tuple = tuple(vector2)
+        cross_product = CoordinateTools.calculate_cross_product(vector1_tuple, vector2_tuple)
+        # The magnitude of the cross product is the area of the parallelogram formed by the two vectors
+        area = abs(cross_product)
         return {
-            "line_equation": [a, b, c],
-            "equation_string": equation,
-            "equation_explanation": f"通过点 {p1} 和 {p2} 的直线方程是 {equation}"
+            "cross_product": cross_product,
+            "area": area
         }
     except Exception as e:
-        raise ToolException(f"计算直线方程时出错：{str(e)}")
+        raise ToolException(f"Cross product calculation error: {str(e)}")
 
-def are_points_collinear_wrapper(point1: List[float], point2: List[float], point3: List[float]) -> dict:
+def normalize_vector_wrapper(vector: List[float]) -> Tuple[float, float]:
     """
-    세 점의 공선성을 확인하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        point3: 세 번째 점 좌표 [x3, y3]
-        
-    Returns:
-        공선성 확인 결과와 설명
+    Wrapper function to normalize a vector
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        p3 = tuple(point3)
-        collinear = CoordinateTools.are_points_collinear(p1, p2, p3)
-        if collinear:
-            return {
-                "collinear": True,
-                "collinear_explanation": f"点 {p1}、{p2} 和 {p3} 在同一直线上"
-            }
-        else:
-            # 삼각형 면적 계산
-            area = 0.5 * abs((p1[0]*(p2[1]-p3[1]) + p2[0]*(p3[1]-p1[1]) + p3[0]*(p1[1]-p2[1])))
-            return {
-                "collinear": False,
-                "collinear_explanation": f"点 {p1}、{p2} 和 {p3} 不在同一直线上",
-                "triangle_area": area,
-                "area_explanation": f"这三点形成的三角形面积是 {area}"
-            }
+        # Convert list to tuple
+        vector_tuple = tuple(vector)
+        return CoordinateTools.normalize_vector(vector_tuple)
     except Exception as e:
-        raise ToolException(f"检查点共线性时出错：{str(e)}")
+        raise ToolException(f"Vector normalization error: {str(e)}")
 
-def are_lines_parallel_wrapper(line1: List[float], line2: List[float]) -> dict:
+def calculate_distance_point_to_line_wrapper(
+    point: List[float], 
+    line_a: float, 
+    line_b: float, 
+    line_c: float
+) -> float:
     """
-    두 직선의 평행 여부를 확인하는 래퍼 함수
-    
-    Args:
-        line1: 첫 번째 직선의 방정식 계수 [a1, b1, c1] (a1x + b1y + c1 = 0)
-        line2: 두 번째 직선의 방정식 계수 [a2, b2, c2] (a2x + b2y + c2 = 0)
-        
-    Returns:
-        평행 여부 확인 결과와 설명
+    Wrapper function to calculate the distance from a point to a line
+    Input is the point coordinates and the a, b, c values for the line (in the form ax + by + c = 0)
     """
     try:
-        l1 = tuple(line1)
-        l2 = tuple(line2)
-        parallel = CoordinateTools.are_lines_parallel(l1, l2)
-        if parallel:
-            return {
-                "parallel": True,
-                "parallel_explanation": f"直线 {l1} 和 {l2} 是平行的"
-            }
-        else:
-            # 교점 계산
-            a1, b1, c1 = l1
-            a2, b2, c2 = l2
-            det = a1*b2 - a2*b1
-            if abs(det) < 1e-10:
-                return {
-                    "parallel": True,
-                    "parallel_explanation": f"直线 {l1} 和 {l2} 重合或平行"
-                }
-            x = (b1*c2 - b2*c1) / det
-            y = (a2*c1 - a1*c2) / det
-            intersection = (x, y)
-            return {
-                "parallel": False,
-                "parallel_explanation": f"直线 {l1} 和 {l2} 不是平行的",
-                "intersection": intersection,
-                "intersection_explanation": f"两直线的交点是 {intersection}"
-            }
+        line_tuple = (line_a, line_b, line_c)
+        return CoordinateTools.calculate_distance_point_to_line(point, line_tuple)
     except Exception as e:
-        raise ToolException(f"检查直线平行性时出错：{str(e)}")
+        raise ToolException(f"Distance from point to line calculation error: {str(e)}")
 
-def calculate_segment_division_wrapper(point1: List[float], point2: List[float], ratio: float) -> dict:
+def calculate_line_intersection_wrapper(
+    line1_a: float, 
+    line1_b: float, 
+    line1_c: float, 
+    line2_a: float, 
+    line2_b: float, 
+    line2_c: float
+) -> Optional[Tuple[float, float]]:
     """
-    선분 분할점을 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        ratio: 분할 비율
-        
-    Returns:
-        분할점 계산 결과와 설명
+    Wrapper function to calculate the intersection point of two lines
+    Input is the a, b, c values for each line (in the form ax + by + c = 0)
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        division_point = CoordinateTools.calculate_segment_division(p1, p2, ratio)
-        return {
-            "division_point": division_point,
-            "division_explanation": f"线段 {p1} 到 {p2} 按比例 {ratio} 分割的点是 {division_point}"
-        }
+        line1_tuple = (line1_a, line1_b, line1_c)
+        line2_tuple = (line2_a, line2_b, line2_c)
+        intersection = CoordinateTools.calculate_line_intersection(line1_tuple, line2_tuple)
+        return intersection
     except Exception as e:
-        raise ToolException(f"计算分割点时出错：{str(e)}")
+        raise ToolException(f"Line intersection calculation error: {str(e)}")
 
-def calculate_internal_division_point_wrapper(point1: List[float], point2: List[float], m: float, n: float) -> dict:
+def calculate_ray_intersection_wrapper(
+    ray_start: List[float], 
+    ray_angle: float, 
+    segment_start: List[float], 
+    segment_end: List[float]
+) -> Optional[Tuple[float, float]]:
     """
-    내분점을 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        m: 첫 번째 비율
-        n: 두 번째 비율
-        
-    Returns:
-        내분점 계산 결과와 설명
+    Wrapper function to calculate the intersection between a ray and a line segment
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        
-        if m <= 0 or n <= 0:
-            raise ToolException("内分比的两个数值必须为正数")
-            
-        division_point = CoordinateTools.calculate_internal_division_point(p1, p2, m, n)
-        return {
-            "internal_division_point": division_point,
-            "division_explanation": f"线段 {p1} 到 {p2} 的内分点（比例 {m}:{n}）是 {division_point}"
-        }
+        # Convert list to tuple
+        ray_start_tuple = tuple(ray_start)
+        segment_start_tuple = tuple(segment_start)
+        segment_end_tuple = tuple(segment_end)
+        return CoordinateTools.calculate_ray_intersection_with_segment(
+            ray_start_tuple, ray_angle, segment_start_tuple, segment_end_tuple
+        )
     except Exception as e:
-        raise ToolException(f"计算内分点时出错：{str(e)}")
+        raise ToolException(f"Ray intersection calculation error: {str(e)}")
 
-def calculate_external_division_point_wrapper(point1: List[float], point2: List[float], m: float, n: float) -> dict:
+def are_lines_perpendicular_wrapper(
+    line1_a: float, 
+    line1_b: float, 
+    line1_c: float, 
+    line2_a: float, 
+    line2_b: float, 
+    line2_c: float
+) -> bool:
     """
-    외분점을 계산하는 래퍼 함수
-    
-    Args:
-        point1: 첫 번째 점 좌표 [x1, y1]
-        point2: 두 번째 점 좌표 [x2, y2]
-        m: 첫 번째 비율
-        n: 두 번째 비율
-        
-    Returns:
-        외분점 계산 결과와 설명
+    Wrapper function to check if two lines are perpendicular
+    Input is the a, b, c values for each line (in the form ax + by + c = 0)
     """
     try:
-        p1 = tuple(point1)
-        p2 = tuple(point2)
-        
-        if m <= 0 or n <= 0 or m == n:
-            raise ToolException("外分比的两个数值必须为正数且不相等")
-            
-        division_point = CoordinateTools.calculate_external_division_point(p1, p2, m, n)
-        return {
-            "external_division_point": division_point,
-            "division_explanation": f"线段 {p1} 到 {p2} 的外分点（比例 {m}:{n}）是 {division_point}"
-        }
+        line1_tuple = (line1_a, line1_b, line1_c)
+        line2_tuple = (line2_a, line2_b, line2_c)
+        return CoordinateTools.are_lines_perpendicular(line1_tuple, line2_tuple)
     except Exception as e:
-        raise ToolException(f"计算外分点时出错：{str(e)}")
+        raise ToolException(f"Lines perpendicular check error: {str(e)}")
 
-def is_point_on_segment_wrapper(point: List[float], segment_start: List[float], segment_end: List[float]) -> dict:
+def is_point_inside_triangle_wrapper(
+    point: List[float], 
+    triangle_point1: List[float], 
+    triangle_point2: List[float], 
+    triangle_point3: List[float]
+) -> bool:
     """
-    점이 선분 위에 있는지 확인하는 래퍼 함수
-    
-    Args:
-        point: 확인할 점의 좌표 [x, y]
-        segment_start: 선분의 시작점 좌표 [x1, y1]
-        segment_end: 선분의 끝점 좌표 [x2, y2]
-        
-    Returns:
-        확인 결과와 설명
+    Wrapper function to check if a point is inside a triangle
     """
     try:
-        p = tuple(point)
-        p1 = tuple(segment_start)
-        p2 = tuple(segment_end)
-        
-        is_on_segment = CoordinateTools.is_point_on_segment(p, p1, p2)
-        if is_on_segment:
-            return {
-                "is_on_segment": True,
-                "explanation": f"点 {p} 在线段 {p1} 到 {p2} 上"
-            }
-        else:
-            return {
-                "is_on_segment": False,
-                "explanation": f"点 {p} 不在线段 {p1} 到 {p2} 上"
-            }
+        # Convert list to tuple
+        point_tuple = tuple(point)
+        triangle_point1_tuple = tuple(triangle_point1)
+        triangle_point2_tuple = tuple(triangle_point2)
+        triangle_point3_tuple = tuple(triangle_point3)
+        return CoordinateTools.is_point_inside_triangle(
+            point_tuple, triangle_point1_tuple, triangle_point2_tuple, triangle_point3_tuple
+        )
     except Exception as e:
-        raise ToolException(f"判断点是否在线段上时出错：{str(e)}") 
+        raise ToolException(f"Point inside triangle check error: {str(e)}") 

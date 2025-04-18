@@ -177,11 +177,8 @@ def command_selection_agent(state, reranker_agent_input):
                                 "command": selected_cmd.get("command", ""),
                                 "syntax": selected_cmd.get("syntax", ""),
                                 "description": selected_cmd.get("description", ""),
-                                "category": selected_cmd.get("category", ""),
                                 "examples": selected_cmd.get("examples", []),
                                 "note": selected_cmd.get("note", ""),
-                                "related": selected_cmd.get("related", ""),
-                                "score": selected_cmd.get("score", 0),
                                 "selection_reason": reason
                             }
                             retrieved_commands.append(selected_command)
@@ -239,12 +236,8 @@ def _select_default_commands(state, reranker_agent_input):
                 "command": first_cmd.get("command", ""),
                 "syntax": first_cmd.get("syntax", ""),
                 "description": first_cmd.get("description", ""),
-                "category": first_cmd.get("category", ""),
                 "examples": first_cmd.get("examples", []),
-                "note": first_cmd.get("note", ""),
-                "related": first_cmd.get("related", ""),
-                "score": first_cmd.get("score", 0),
-                "selection_reason": "기본 선택"
+                "note": first_cmd.get("note", "")
             }
             
             # ConstructionStep의 selected_command에 저장
