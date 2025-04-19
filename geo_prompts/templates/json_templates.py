@@ -4,7 +4,7 @@ JSON 템플릿 모듈
 이 모듈은 여러 프롬프트에서 공통으로 사용하는 JSON 템플릿을 정의합니다.
 """
 
-# 플래너 JSON 템플릿 (언어별 제공되는 템플릿의 통합 버전)
+# Planner JSON Template ------------------------------------------------------------
 PLANNER_CALCULATION_JSON_TEMPLATE = '''
 {
   "requires_calculation": true,
@@ -174,50 +174,11 @@ MANAGER_JSON_TEMPLATE = """{
       "geogebra_alternatives": true,
       "geogebra_command": "Polygon[A, B, C]",
       "available_tools": {
-        "math_tools": ["vector_calculation", "linear_algebra", "coordinate_geometry"],
-        "geometric_tools": ["intersect", "midpoint", "perpendicular", "parallel"],
-        "visualization_tools": ["plot_point", "plot_line", "plot_segment"]
+        "math_tools": ["calculate_midpoint", "calculate_vector"],
+        "validation_tools": ["check_collinearity", "check_point_on_segment"]
       }
     },
-    {
-      "task_id": "angle_1", // After coordinates are established, work on angle trisection
-      "task_type": "angle",
-      "operation_type": "angle_trisection",
-      "specific_method": "trigonometric_solution",
-      "required_precision": "high",
-      "parameters": {
-        "point1": "C",
-        "point2": "A", 
-        "point3": "B",
-        "special_property": "equilateral_triangle"
-      },
-      "dependencies": ["coordinate_initialization"],
-      "description": "Trisect angle CAB to determine rays AD and AE",
-      "geogebra_alternatives": false,
-      "available_tools": {
-        "math_tools": ["trigonometry", "angle_calculation", "radian_degree_conversion"],
-        "geometric_tools": ["angle_bisector", "angle_trisector", "special_angles"],
-        "visualization_tools": ["plot_angle", "plot_ray"]
-      }
-    },
-    {
-      "task_id": "coordinate_1",
-      "task_type": "coordinate",
-      "operation_type": "ray_intersection",
-      "parameters": {
-        "ray_start": "A",
-        "ray_angle": "first_trisection_angle",
-        "line_segment": "BC"
-      },
-      "dependencies": ["angle_1", "coordinate_initialization"],
-      "description": "Find coordinates of point D where the first trisection ray intersects BC",
-      "geogebra_alternatives": false,
-      "available_tools": {
-        "math_tools": ["vector_calculation", "linear_algebra", "coordinate_geometry"],
-        "geometric_tools": ["intersect", "midpoint", "perpendicular", "parallel"],
-        "visualization_tools": ["plot_point", "plot_line", "plot_segment"]
-      }
-    }
+  
     // Other tasks omitted for brevity
   ],
   "completed_task_ids": [], // ["angle_1", "coordinate_1"]
@@ -453,3 +414,5 @@ MERGER_JSON_TEMPLATE = '''
   }
 }
 '''
+
+

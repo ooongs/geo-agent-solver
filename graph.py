@@ -42,7 +42,7 @@ def create_geometry_solver_graph():
     )
 
     # 그래프 초기화
-    workflow = StateGraph(GeometryState,)
+    workflow = StateGraph(GeometryState)
 
     # 모든 노드 추가
     workflow.add_node("parsing_agent", parsing_agent)
@@ -61,8 +61,8 @@ def create_geometry_solver_graph():
     workflow.add_node("coordinate_calculation_agent", coordinate_calculation_agent)
 
     # GeoGebra 관련 노드 추가
-    workflow.add_node("geogebra_command_retrieval_agent", geogebra_command_retrieval_agent)
-    workflow.add_node("geogebra_command_agent", geogebra_command_agent)
+    workflow.add_node("command_retrieval_agent", geogebra_command_retrieval_agent)
+    workflow.add_node("command_generation_agent", geogebra_command_agent)
     workflow.add_node("validation_agent", validation_agent)
     workflow.add_node("command_regeneration_agent", command_regeneration_agent)
     workflow.add_node("explanation_agent", explanation_agent)
@@ -79,14 +79,14 @@ def create_geometry_solver_graph():
             return "calculation_manager_agent"
         else:
             # 계산 불필요 시 바로 GeoGebra 명령어 검색으로
-            return "geogebra_command_retrieval_agent"
+            return "command_retrieval_agent"
     
     workflow.add_conditional_edges(
         "planner_agent",
         route_after_planner,
         {
             "calculation_manager_agent": "calculation_manager_agent",
-            "geogebra_command_retrieval_agent": "geogebra_command_retrieval_agent"
+            "command_retrieval_agent": "command_retrieval_agent"
         }
     )
     
@@ -129,11 +129,11 @@ def create_geometry_solver_graph():
         workflow.add_edge(agent, "calculation_router_agent")
     
     # 결과 병합 후 명령어 검색
-    workflow.add_edge("calculation_result_merger_agent", "geogebra_command_retrieval_agent")
+    workflow.add_edge("calculation_result_merger_agent", "command_retrieval_agent")
     
     # GeoGebra 명령어 생성 관련 흐름
-    workflow.add_edge("geogebra_command_retrieval_agent", "geogebra_command_agent")
-    workflow.add_edge("geogebra_command_agent", "validation_agent")
+    workflow.add_edge("command_retrieval_agent", "command_generation_agent")
+    workflow.add_edge("command_generation_agent", "validation_agent")
 
     # 검증 후 조건부 라우팅
     workflow.add_conditional_edges(
@@ -154,9 +154,6 @@ def create_geometry_solver_graph():
             "validation_agent": "validation_agent"
         }
     )
-    
-    # 검증 후 성공 시 설명으로 이동
-    workflow.add_edge("validation_agent", "explanation_agent")
     
     # 종료점 설정
     workflow.set_finish_point("explanation_agent")

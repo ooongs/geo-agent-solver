@@ -379,10 +379,6 @@ Current task queue: {calculation_queue}
 3. Identify tasks with satisfied dependencies that can be executed
 4. Select the next task to execute based on optimized ordering
 5. Enhance the calculation request with context, constraints, and special properties
-6. Process completed task results by:
-   - Updating the dependency graph status
-   - Transforming results to standard formats
-   - Generating derived information for subsequent tasks
 
 ## Available Calculation Types:
 - coordinate: Calculate point coordinates, line equations, intersections

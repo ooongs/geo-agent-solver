@@ -87,7 +87,7 @@ def coordinate_calculation_agent(state: GeometryState) -> GeometryState:
     use_math_tools = "math_tools" in available_tools
     use_validation_tools = "validation_tools" in available_tools
     
-    # 수학적 계산 도구
+    # 数学工具
     math_tools = []
     if use_math_tools:
         math_tools = [
@@ -184,7 +184,7 @@ def coordinate_calculation_agent(state: GeometryState) -> GeometryState:
             )
         ]
     
-    # 검증 도구
+    # 验真工具
     validation_tools = []
     if use_validation_tools:
         validation_tools = [
