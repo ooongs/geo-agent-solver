@@ -47,9 +47,38 @@ Choose one of:
 - Special construction (under specific geometric constraints)
 - Complex construction (with chained dependencies or logical inferences)
 
----
+### 2. Establish optimal coordinate system
+- For problems with line segments of known length, consider setting endpoints at origin (0,0) and along axes
+- For right triangles, align one leg with x-axis when possible
+- For circles, position center at origin or other strategic coordinates
+- Consider symmetry and simplicity when establishing coordinates
 
-### 2. Analyze whether the problem requires calculation tools:
+### 3. Strategic geometric constraints utilization
+- For problems involving circles:
+  - Remember that points on a circle centered at (a,b) satisfy (x-a)²+(y-b)²=r²
+  - Points on a circle with diameter AB are precisely the points that form right angles with A and B
+  - To create a circle with diameter AB in GeoGebra, use Circle(Midpoint(A,B),Distance(A,B)/2)
+  - Note that Circle(A,B) creates a circle with center A passing through B, NOT a circle with diameter AB
+- For problems with distance constraints:
+  - Use circles of specified radius to locate points satisfying distance requirements
+  - Intersections of two circles can determine points with specific distance requirements
+- For angle constraints:
+  - Right angles can be established using perpendicular lines or circle properties
+  - Use angle bisectors or trisectors when needed
+- For points with multiple possible positions:
+  - Use the Point(Object) command to represent points constrained to geometric objects
+  - Example: For all points on circle c, use P = Point(c)
+  - Example: For all points on segment AB, use P = Point(Segment(A,B))
+  - This approach is especially useful when:
+    - Multiple valid configurations exist for a problem
+    - The exact position is not uniquely determined
+    - Interactive exploration of valid positions is beneficial
+  - When combining constraints, use circle intersections:
+    - For a point P on segment AB that is distance d from point C, find the intersection of:
+      - Circle centered at C with radius d
+      - Segment AB
+
+### 4. Analyze whether the problem requires calculation tools:
 
 - If **yes** → set `"requires_calculation": true`, and provide a list of `suggested_tasks`.
   Do **not** include a `construction_plan`.
@@ -66,7 +95,7 @@ Choose one of:
 
 ---
 
-### 3. Task creation guidelines (for either plan):
+### 5. Task creation guidelines (for either plan):
 
 For every task or step:
 - Set `task_type` to: triangle, circle, angle, length, area, or coordinate
@@ -84,7 +113,7 @@ Use the following GeoGebra-compatible operations when possible:
 
 ---
                                                   
-### 4. Output format 
+### 6. Output format 
                                          
 Your output must conform to one of the following JSON formats:
 
@@ -130,26 +159,71 @@ Analyze the input data, noting the following points:
 3. If there are calculation results but no problem analysis, infer the problem type from the calculation results
 4. Ensure the generated commands are complete and can accurately express the geometric relationships of the problem
 5. For uncertain values, use reasonable default values (such as default radius, default angle, etc.)
-6. The construction plan will include available commands and their syntax, examples, etc. for each step, please strictly use the commands in the construction plan to generate GeoGebra commands
-7. Please ensure that the generated commands strictly adhere to the dependency relationships of the instructions, when using commands from other steps in one step instruction, please ensure that the commands from other steps have already been generated
-8. The correct usage for instructions is <Object Name> : <CommandName> (<Parameter1>, <Parameter2>, ...) or <Object Name> = <CommandName> [<Parameter1>, <Parameter2>, ...], for example, `a:Segment(B,C)`, `a=Segment(B,C)`, `a:Segment[B,C]`, `a=Segment[B,C]` are all valid
-9. When defining a point, the object name should be uppercase letters and enclosed in parentheses, for example, `A=(1,2)`, `B=(3,4)`, `C=(5,6)`, etc.
-10. When defining a vector, the object name should be lowercase letters and enclosed in parentheses, for example, `v=(1,2)`, `u=(3,4)`, `w=(5,6)`, etc.
-11. When defining a line segment, the object name should use lowercase letters, for example, `a=Segment(B,C)`, `b=Segment(A,C)`, `c=Segment(A,B)`, etc.
-12. When defining a regular polygon, it's best to use the `Polygon(A,B,C,...)` command, don't use the `Polygon(A,B,<Number of Vertices>)` command, as this command cannot use the remaining vertices of the regular polygon
-13. Angles MUST be expressed using the degree symbol (°) or as radians using π, for example, 30° or π/6. Never use plain numbers like 30 or 45 without the degree symbol for angles.
-14. The Rotate command in GeoGebra performs counter-clockwise rotation by default. For clockwise rotation, use negative angle values, for example: `Rotate[C, -20°, A]` for a 20° clockwise rotation of point C around point A.
-15. If the construction plan requires generating a point or vector and provides reference instructions, and its value has already been determined, define the point or vector directly, don't use the Point or Vector command
-16. If you need to define a point on an object, and its coordinates have not yet been determined, use the <Object Name> = Point(<Object>) command to generate a dynamic point. If you can predict or determine its coordinates at the end, use the SetCoords(<Object>, <x>, <y>) command to determine its coordinates, and ensure that the defined dynamic point and the parameter object of the SetCoords command are the same object
-17. Examples of incorrect commands:
-   - Command name error: The `RegularPolygon(A,B,C)` command doesn't exist, correct should be the `Polygon(A,B,C)` command, etc.
-   - Using non-existent commands: For example, the `Triangle(A,B,C)` command doesn't exist, correct should be the `Polygon(A,B,C)` command
-    - Command syntax error: For example, using the `AngleBisector(A, B, C, 3)` command to generate an angle bisector, correct should be `AngleBisector(A, B, C)` or similar format
-   - Object dependency relationship error: For example, using the `Polygon(A, B, C)` command to generate triangle ABC, need to ensure that points A, B, C have been defined before this command
-   - Angle notation error: Using plain numbers without the degree symbol or π notation, such as `Rotate[C, 20, A]` instead of `Rotate[C, 20°, A]` or `Rotate[C, π/9, A]`
-   - Rotation direction error: Using positive angles for clockwise rotation, such as `Rotate[C, 20°, A]` for clockwise rotation when it should be `Rotate[C, -20°, A]`
 
-     
+## Strategic Coordinate System Initialization
+6. For right triangles, set up coordinates efficiently:
+   - Consider placing one vertex at the origin (0,0)
+   - Place another vertex along the x-axis, e.g., (side_length, 0)
+   - For the third vertex (forming the right angle), either:
+     - Place it along the y-axis, e.g., (0, side_length)
+     - Use a semicircle with diameter formed by the first two vertices
+   
+7. For circles with specific properties:
+   - To create a circle with center C through point P: use Circle(C, P)
+   - To create a circle with given radius r: use Circle(C, r)
+   - To create a circle with diameter AB: use Circle(Midpoint(A,B), Distance(A,B)/2)
+   - IMPORTANT: Circle(A,B) creates a circle with center A passing through B, NOT a circle with diameter AB
+   - To create a circle through 3 points: use Circle(A, B, C)
+
+8. For distance constraints:
+   - Use the Circle command to create circles representing distance constraints
+   - Use the Intersect command to find points satisfying multiple distance constraints
+   - Example: If point P must be 1 unit from Q, use "Circle[Q, 1]" to find possible locations
+
+9. For angle constraints:
+   - Use the Angle command to specify angles
+   - For right angles, use the Perpendicular command
+   - Remember points on a semicircle create right angles with the diameter endpoints
+
+10. For points with multiple possible positions:
+    - Use the Point(Object) command to represent points constrained to geometric objects
+    - Example: For all points on circle c, use P = Point(c)
+    - Example: For all points on segment AB, use P = Point(Segment(A,B))
+    - This approach is especially useful when:
+      - Multiple valid configurations exist for a problem
+      - The exact position is not uniquely determined
+      - Interactive exploration of valid positions is beneficial
+    - When combining constraints, use circle intersections:
+      - For a point P on segment AB that is distance d from point C, find the intersection of:
+        - Circle centered at C with radius d
+        - Segment AB
+
+11. The construction plan will include available commands and their syntax, examples, etc. for each step, please strictly use the commands in the construction plan to generate GeoGebra commands
+12. Please ensure that the generated commands strictly adhere to the dependency relationships of the instructions, when using commands from other steps in one step instruction, please ensure that the commands from other steps have already been generated
+13. The correct usage for instructions is <Object Name> : <CommandName> (<Parameter1>, <Parameter2>, ...) or <Object Name> = <CommandName> [<Parameter1>, <Parameter2>, ...], for example, `a:Segment(B,C)`, `a=Segment(B,C)`, `a:Segment[B,C]`, `a=Segment[B,C]` are all valid
+14. When defining a point, the object name should be uppercase letters and enclosed in parentheses, for example, `A=(1,2)`, `B=(3,4)`, `C=(5,6)`, etc.
+15. When defining a vector, the object name should be lowercase letters and enclosed in parentheses, for example, `v=(1,2)`, `u=(3,4)`, `w=(5,6)`, etc.
+16. When defining a line segment, the object name should use lowercase letters, for example, `a=Segment(B,C)`, `b=Segment(A,C)`, `c=Segment(A,B)`, etc.
+17. When defining a regular polygon, it's best to use the `Polygon(A,B,C,...)` command, don't use the `Polygon(A,B,<Number of Vertices>)` command, as this command cannot use the remaining vertices of the regular polygon
+18. Angles MUST be expressed using the degree symbol (°) or as radians using π, for example, 30° or π/6. Never use plain numbers like 30 or 45 without the degree symbol for angles.
+19. The Rotate command in GeoGebra performs counter-clockwise rotation by default. For clockwise rotation, use negative angle values, for example: `Rotate[C, -20°, A]` for a 20° clockwise rotation of point C around point A.
+20. If the construction plan requires generating a point or vector and provides reference instructions, and its value has already been determined, define the point or vector directly, don't use the Point or Vector command
+21. If you need to define a point on an object, and its coordinates have not yet been determined, use the <Object Name> = Point(<Object>) command to generate a dynamic point. If you can predict or determine its coordinates at the end, use the SetCoords(<Object>, <x>, <y>) command to determine its coordinates, and ensure that the defined dynamic point and the parameter object of the SetCoords command are the same object
+22. When defining polygons, ensure completeness by either:
+    - Using the Polygon command to create the entire shape at once: Polygon(A,B,C,...)
+    - OR defining all sides individually as segments: a=Segment(A,B), b=Segment(B,C), etc.
+    - Always ensure all vertices are connected - never leave sides undefined
+    - For triangles, either use Polygon(A,B,C) or define all three segments
+
+23. Examples of incorrect commands:
+    - Command name error: The `RegularPolygon(A,B,C)` command doesn't exist, correct should be the `Polygon(A,B,C)` command, etc.
+    - Using non-existent commands: For example, the `Triangle(A,B,C)` command doesn't exist, correct should be the `Polygon(A,B,C)` command
+    - Command syntax error: For example, using the `AngleBisector(A, B, C, 3)` command to generate an angle bisector, correct should be `AngleBisector(A, B, C)` or similar format
+    - Object dependency relationship error: For example, using the `Polygon(A, B, C)` command to generate triangle ABC, need to ensure that points A, B, C have been defined before this command
+    - Angle notation error: Using plain numbers without the degree symbol or π notation, such as `Rotate[C, 20, A]` instead of `Rotate[C, 20°, A]` or `Rotate[C, π/9, A]`
+    - Rotation direction error: Using positive angles for clockwise rotation, such as `Rotate[C, 20°, A]` for clockwise rotation when it should be `Rotate[C, -20°, A]`
+    - Circle with diameter error: Using Circle(A,B) to create a circle with diameter AB, which is incorrect; use Circle(Midpoint(A,B),Distance(A,B)/2) instead
+
 Your output must conform to the following JSON format:
 {json_template}
 
@@ -205,6 +279,14 @@ Please strictly verify each command according to the following specific steps:
    - Check whether the required geometric shapes and relationships are correctly constructed
    - Validate whether specific geometric relationships such as angles, lengths, etc. are correctly expressed through commands
    - Pay special attention to angle notation (must use ° or π) and rotation direction (use negative angles for clockwise rotation)
+   - Verify correct circle creation methods:
+     - For circles with diameter AB, confirm use of Circle(Midpoint(A,B),Distance(A,B)/2)
+     - Watch for incorrect usage like Circle(A,B) for creating a circle with diameter AB
+   - Verify polygon definition completeness:
+     - Ensure all polygons are either fully defined using the Polygon command (e.g., Polygon(A,B,C) for a triangle)
+     - OR all sides are explicitly defined as Segments (e.g., a=Segment(A,B), b=Segment(B,C), c=Segment(C,A))
+     - Check for incomplete polygon definitions where some sides are missing
+     - For triangles, verify that either Polygon(A,B,C) is used or all three segments are defined
 
 5. **Completeness verification**:
    - Whether all geometric elements required by the problem have been constructed
@@ -266,6 +348,8 @@ Avoid common errors:
 6. Command order error: The execution order of commands must consider the dependency relationships between objects
 7. Angle notation error: Using plain numbers without the degree symbol or π notation, such as `Rotate[C, 20, A]` instead of `Rotate[C, 20°, A]` or `Rotate[C, π/9, A]`
 8. Rotation direction error: Using positive angles for clockwise rotation, such as `Rotate[C, 20°, A]` for clockwise rotation when it should be `Rotate[C, -20°, A]`
+9. Circle with diameter error: Using Circle(A,B) to create a circle with diameter AB, which is incorrect; use Circle(Midpoint(A,B),Distance(A,B)/2) instead
+10. Incomplete polygon definition error: Failing to define all sides of a polygon when using segments, or not using the Polygon command to create the entire shape at once
 
 Please generate a complete list of commands, not just the modified parts. Ensure each command is syntactically correct, logically reasonable, and consistent with the problem requirements.
 
@@ -414,7 +498,13 @@ Current task queue: {calculation_queue}
    - After initialization, schedule tasks with dependencies satisfied
    - Ensure proper data flow between calculation steps
 
-3. **GeoGebra Alternatives**
+3. **Single Calculation Type Per Task**
+   - Each task MUST use tools from only ONE calculation type (coordinate, angle, triangle, circle, length, or area)
+   - If a task requires tools from multiple calculation types, split it into separate subtasks
+   - Ensure proper dependencies between these split subtasks
+   - Example: If calculating both angles and area of a triangle, create two separate tasks
+
+4. **GeoGebra Alternatives**
    - Identify tasks that can be directly handled by GeoGebra
    - Mark appropriate tasks with geogebra_alternatives = true and provide geogebra_command
 
@@ -424,6 +514,45 @@ Current task queue: {calculation_queue}
 - Parallel/perpendicular lines
 - Tangent circles/lines
 - Collinear points
+
+## Coordinate System Initialization Strategies:
+- **Right Triangle Setup**: For right triangles ABC, consider placing A at origin (0,0), B at (c,0) where c is hypotenuse length, and C at (0,b) or finding C on semicircle with diameter AB
+- **Distance Constraint Resolution**: For points with specific distance requirements, use circle intersections:
+  - If point P must be distance d from point A, P lies on circle centered at A with radius d
+  - To find points satisfying multiple distance constraints, find intersections of the respective circles
+- **Circle Properties Utilization**:
+  - Points on circle with diameter PQ form right angles with P and Q
+  - For any point on a circle, the distance to center equals radius
+  - To create a circle with diameter AB in GeoGebra, use Circle(Midpoint(A,B),Distance(A,B)/2)
+  - Note: Circle(A,B) command creates a circle with center A passing through B, NOT a circle with diameter AB
+- **Angle Constraint Handling**:
+  - Right angles can be established using perpendicular lines or circle properties
+  - Specific angles can be constructed using intersections of rays and circles
+- **Dynamic Point Representation**:
+  - When a solution has multiple valid configurations, consider using dynamic point representation
+  - Points on specific objects can be represented using Point(Object) in GeoGebra
+  - Example: All points distance d from point P can be represented as Point(Circle(P,d))
+  - Example: A point on line segment AB can be represented as Point(Segment(A,B))
+  - This approach allows for exploring all valid configurations for points with geometric constraints
+
+## Geometric Constraint-Based Coordinate Determination:
+
+### Right Triangle Constraints:
+- When dealing with right triangles, use the property that they can be inscribed in a semicircle
+- If a triangle ABC has a right angle at C, then C lies on the semicircle with diameter AB
+- For a right triangle with hypotenuse of length L, consider placing vertices at (0,0), (L,0), and finding the third point on the semicircle
+
+### Circle-Based Point Determination:
+- To find points satisfying distance constraints, use circle intersections
+- If point P must be distance d₁ from A and distance d₂ from B, find the intersection of:
+  - Circle centered at A with radius d₁
+  - Circle centered at B with radius d₂
+- When multiple points satisfy constraints, choose based on additional conditions (e.g., forming a right angle)
+
+### Distance-Based Constraints:
+- For points on a given line segment with distance constraints, first establish the line equation
+- Then use distance formulas and circle intersections to determine exact coordinates
+- For points on segments with proportional divisions, use the internal/external division formulas
 
 Please analyze the problem and generate an enhanced calculation plan. Your response must:
 1. Build a complete dependency graph for all tasks
@@ -578,6 +707,7 @@ Dependencies: {dependencies}
 3. Process dependency data from previous calculations
 4. Return standardized results that can be used by other calculation agents
 5. Format your output to use the generic data structures: geometric_elements and derived_data for specialized data
+6. Apply strategic coordinate system initialization based on geometric properties
 
 ## Result Format Guidelines:
 1. For standard point coordinates, use the "coordinates" field
@@ -829,7 +959,26 @@ GeoGebra commands: {geogebra_commands}
    - Integrate derived data while maintaining relationship integrity
    - Convert calculation-specific outputs to standardized formats
 
-3. **Generate Comprehensive Construction Plan**
+3. **Apply Geometric Constraint Verification**
+   - Ensure right angle constraints are satisfied in appropriate triangles
+   - Verify distance constraints between points match specified values
+   - Confirm points on circles satisfy the circle equation
+   - Validate that points on semicircles form right angles with diameter endpoints
+   - Check for correct usage of circle commands:
+     - Verify that circles with given diameter AB use Circle(Midpoint(A,B),Distance(A,B)/2)
+     - Not Circle(A,B), which creates a circle with center A through B (not a circle with diameter AB)
+
+4. **Optimize Coordinate Representations**
+   - When right triangles are involved, verify the coordinate system leverages the semicircle property
+   - For distance constraints, confirm circles with appropriate radii were used to determine points
+   - Ensure points on line segments satisfy the line equation and any distance requirements
+   - Check that angle constraints are satisfied through appropriate coordinate choices
+   - For objects with multiple possible configurations, use dynamic point representation:
+     - Use Point(Object) notation for points with multiple possible positions
+     - Distinguish between cases requiring exact coordinates and those allowing interactive exploration
+     - Ensure that dynamic point constraints are properly specified
+
+5. **Generate Comprehensive Construction Plan**
    - Create a step-by-step construction plan based on the dependency graph
    - Include both calculation-based steps and direct GeoGebra commands
    - Ensure clear descriptions and logical ordering of steps

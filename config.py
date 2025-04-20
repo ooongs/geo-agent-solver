@@ -12,10 +12,10 @@
 
 
 # LLM 설정
-DEFAULT_MODEL = "gpt-4.1-mini"
+DEFAULT_MODEL = "gpt-4.1-nano"
 DEFAULT_TEMPERATURE = 0.1
 
-ADVANCED_MODEL = "gpt-4.1-mini"
+ADVANCED_MODEL = "gpt-4.1-nano"
 ADVANCED_TEMPERATURE = 0.1
 
 # 시스템 설정

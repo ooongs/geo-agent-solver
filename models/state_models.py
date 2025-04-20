@@ -102,6 +102,38 @@ class ConstructionPlan(BaseModel):
     description: str = Field(description="Overall description of the construction plan")
     steps: List[ConstructionStep] = Field(description="List of construction steps", default_factory=list)
     final_result: str = Field(description="Expected final result")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the ConstructionPlan instance to a dictionary for JSON serialization"""
+        steps_list = []
+        for step in self.steps:
+            step_dict = {
+                "step_id": step.step_id,
+                "description": step.description,
+                "task_type": step.task_type,
+                "operation_type": step.operation_type,
+                "geometric_elements": step.geometric_elements,
+                "command_type": step.command_type,
+                "parameters": step.parameters,
+                "dependencies": step.dependencies,
+                "geogebra_command": step.geogebra_command
+            }
+            
+            # Handle selected_command which might contain complex objects
+            if step.selected_command:
+                step_dict["selected_command"] = {k: v for k, v in step.selected_command.items() 
+                                              if not isinstance(v, (BaseModel, type))}
+            else:
+                step_dict["selected_command"] = None
+                
+            steps_list.append(step_dict)
+            
+        return {
+            "title": self.title,
+            "description": self.description,
+            "steps": steps_list,
+            "final_result": self.final_result
+        }
 
 
 class CalculationTypes(BaseModel):
@@ -174,4 +206,46 @@ class GeometryState(BaseModel):
 
     # Add intermediate construction information
     intermediate_constructions: Optional[Dict[str, Any]] = Field(description="Intermediate construction information", default=None)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the GeometryState instance to a dictionary for JSON serialization"""
+        result = {
+            "input_problem": self.input_problem,
+            "parsed_elements": self.parsed_elements,
+            "problem_analysis": self.problem_analysis,
+            "approach": self.approach,
+            "calculations": self.calculations,
+            "calculation_results": self.calculation_results,
+            "next_calculation": self.next_calculation,
+            "requires_calculation": self.requires_calculation,
+            "is_manager_initialized": self.is_manager_initialized,
+            "geogebra_commands": self.geogebra_commands,
+            "validation": self.validation,
+            "explanation": self.explanation,
+            "errors": self.errors,
+            "is_valid": self.is_valid,
+            "retrieved_commands": self.retrieved_commands,
+            "regenerated_commands": self.regenerated_commands,
+            "command_regeneration_attempts": self.command_regeneration_attempts,
+            "geometric_constraints": self.geometric_constraints,
+            "intermediate_constructions": self.intermediate_constructions
+        }
+        
+        # Handle construction_plan
+        if self.construction_plan:
+            result["construction_plan"] = self.construction_plan.to_dict()
+        else:
+            result["construction_plan"] = None
+            
+        # Handle calculation_queue
+        if self.calculation_queue:
+            result["calculation_queue"] = {
+                "completed_task_ids": self.calculation_queue.completed_task_ids,
+                "current_task_id": self.calculation_queue.current_task_id,
+                "tasks_count": len(self.calculation_queue.tasks) if self.calculation_queue.tasks else 0
+            }
+        else:
+            result["calculation_queue"] = None
+            
+        return result
 

@@ -3,261 +3,369 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기하학 문제 해결기</title>
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <title>기하학 문제 해결기 - GeoGebra 명령어 생성기</title>
   <style>
+    :root {
+      --primary-color: #0078ff;
+      --secondary-color: #f8f9fa;
+      --success-color: #00c853;
+      --warning-color: #ffc107;
+      --error-color: #ff3d00;
+      --text-color: #333;
+      --light-text: #666;
+      --border-color: #ddd;
+      --background-color: #fff;
+      --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
-      font-family: 'Arial', sans-serif;
-      max-width: 800px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: #f0f2f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
     
-    h1 {
-      color: #333;
+    header {
       text-align: center;
+      margin-bottom: 30px;
     }
     
-    .container {
+    header h1 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+    
+    header p {
+      color: var(--light-text);
+      font-size: 1.1rem;
+    }
+    
+    .card {
+      background-color: var(--background-color);
+      border-radius: 10px;
+      box-shadow: var(--card-shadow);
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      align-items: center;
+    }
+    
+    .card-title i {
+      margin-right: 10px;
+      color: var(--primary-color);
     }
     
     .input-section {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 20px;
-      background-color: #f9f9f9;
+      margin-bottom: 30px;
+    }
+    
+    .input-label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: block;
     }
     
     textarea {
       width: 100%;
-      min-height: 100px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
       resize: vertical;
+      min-height: 120px;
+      margin-bottom: 15px;
     }
     
     button {
-      padding: 10px 20px;
-      background-color: #4CAF50;
+      padding: 12px 24px;
+      background-color: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-size: 1rem;
       cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
+      transition: background-color 0.3s;
     }
     
     button:hover {
-      background-color: #45a049;
+      background-color: #0056b3;
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
     }
     
     .progress-container {
-      width: 100%;
-      background-color: #f1f1f1;
-      border-radius: 4px;
-      margin: 20px 0;
+      margin-top: 20px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      height: 10px;
+      overflow: hidden;
     }
     
-    #progress-bar {
-      height: 20px;
-      background-color: #4CAF50;
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary-color);
       width: 0%;
-      border-radius: 4px;
       transition: width 0.3s ease;
     }
     
-    #status-text {
+    .status-text {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: var(--light-text);
       text-align: center;
-      margin: 10px 0;
-      font-style: italic;
-      color: #666;
     }
     
-    .result-section {
+    /* 기존 컴포넌트 스타일은 JS에서 동적으로 추가되므로 여기서는 최소한의 레이아웃만 정의 */
+    #agent-flow, #result-visualizer {
+      width: 100%;
+      min-height: 200px;
+    }
+    
+    /* 반응형 설정 */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .card {
+        padding: 15px;
+      }
+      
+      header h1 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    /* 그래프 시각화 컨테이너를 위한 스타일 */
+    #graph-container {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    
+    .graph-status {
+        background-color: #f5f5f5;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .progress-indicator {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    
+    .progress-indicator.running {
+        background-color: #4CAF50;
+        animation: pulse 1.5s infinite;
+    }
+    
+    .progress-indicator.completed {
+        background-color: #2196F3;
+    }
+    
+    .progress-indicator.failed {
+        background-color: #F44336;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    /* 기존 스타일에 추가 */
+    .log-container {
+      height: 150px;
+      overflow-y: auto;
       border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 20px;
-      display: none;
-    }
-    
-    .commands-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    
-    .command-item {
-      background-color: #eee;
-      padding: 8px;
-      margin-bottom: 5px;
       border-radius: 4px;
+      padding: 10px;
+      background-color: #fff;
       font-family: monospace;
+      font-size: 12px;
     }
     
-    .explanation-title {
-      font-weight: bold;
-      margin: 20px 0 10px 0;
+    .log-entry {
+      margin: 3px 0;
+      border-bottom: 1px dashed #eee;
+      padding-bottom: 3px;
+    }
+    
+    .graph-visualization {
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      background-color: #f9f9f9;
     }
   </style>
 </head>
 <body>
-  <h1>기하학 문제 해결기</h1>
-  
   <div class="container">
-    <div class="input-section">
-      <h2>문제 입력</h2>
-      <textarea id="problem-input" placeholder="여기에 기하학 문제를 입력하세요..."></textarea>
-      <button id="submit-button">문제 해결</button>
-    </div>
+    <header>
+      <h1>기하학 문제 해결기</h1>
+      <p>기하학 문제 입력 시 GeoGebra 명령어 자동 생성 및 해설 제공</p>
+    </header>
     
-    <div class="progress-container">
-      <div id="progress-bar"></div>
-    </div>
-    <div id="status-text">준비 완료</div>
+    <section class="card">
+      <h2 class="card-title">문제 입력</h2>
+      <div class="input-section">
+        <label for="problem-input" class="input-label">기하학 문제를 입력하세요 (중국어)</label>
+        <textarea id="problem-input" placeholder="예: 在△ABC中，∠C=90°，AB=5，BC=3，求AC的长度。"></textarea>
+        <button id="submit-button">문제 해결하기</button>
+        
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="status-text" class="status-text">문제를 입력하고 해결하기 버튼을 누르세요.</div>
+      </div>
+    </section>
     
-    <div id="result-section" class="result-section">
-      <h2>해결 결과</h2>
-      
-      <div class="commands-title">GeoGebra 명령어:</div>
-      <div id="commands-container"></div>
-      
-      <div class="explanation-title">설명:</div>
-      <div id="explanation"></div>
-    </div>
+    <section class="card">
+      <h2 class="card-title">에이전트 해결 과정</h2>
+      <div id="agent-flow" class="agent-flow-container"></div>
+    </section>
+    
+    <section class="card">
+      <h2 class="card-title">결과</h2>
+      <div id="result-visualizer" class="result-visualizer"></div>
+    </section>
+    
+    <!-- 디버그 콘솔 -->
+    <section class="card">
+      <h2 class="card-title">디버그 콘솔</h2>
+      <div id="debug-console" style="background-color: #f5f5f5; padding: 10px; border-radius: 6px; font-family: monospace; height: 200px; overflow-y: auto;"></div>
+    </section>
   </div>
-
+  
+  <!-- Socket.IO 라이브러리 업데이트 -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  
+  <!-- 애플리케이션 JavaScript -->
+  <script src="example-frontend.js"></script>
+  
+  <!-- 디버그용 스크립트 -->
   <script>
-    // Socket.IO 인스턴스
-    const socket = io('http://localhost:8000');
-    let currentTaskId = null;
+    // Socket.IO 디버그 모드 활성화
+    localStorage.debug = '*';
     
-    // 연결 이벤트
-    socket.on('connect', () => {
-      console.log('서버에 연결되었습니다.');
-      updateStatus('준비 완료');
-    });
+    // 콘솔 로그 출력을 페이지에도 표시
+    const debugConsole = document.getElementById('debug-console');
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
     
-    socket.on('disconnect', () => {
-      console.log('서버와 연결이 끊어졌습니다.');
-      updateStatus('서버 연결 끊김');
-    });
-    
-    // 작업 상태 업데이트 처리
-    socket.on('task_update', (data) => {
-      if (currentTaskId && data.task_id === currentTaskId) {
-        console.log(`작업 상태 업데이트: ${data.status}`);
-        
-        if (data.status === 'processing') {
-          updateProgressBar(50);
-          updateStatus('문제를 분석 중입니다...');
-        }
-      }
-    });
-    
-    // 작업 완료 처리
-    socket.on('task_completed', (data) => {
-      if (currentTaskId && data.task_id === currentTaskId) {
-        console.log('작업이 완료되었습니다.', data.result);
-        updateProgressBar(100);
-        updateStatus('완료!');
-        
-        // 결과 표시
-        displayResult(data.result);
-      }
-    });
-    
-    // 오류 처리
-    socket.on('task_error', (data) => {
-      if (currentTaskId && data.task_id === currentTaskId) {
-        console.error('작업 처리 중 오류가 발생했습니다:', data.error);
-        updateProgressBar(0);
-        updateStatus(`오류: ${data.error}`);
-      }
-    });
-    
-    // 제출 버튼 이벤트 리스너
-    document.getElementById('submit-button').addEventListener('click', async () => {
-      const problemText = document.getElementById('problem-input').value.trim();
+    console.log = function() {
+      originalConsoleLog.apply(console, arguments);
+      const message = Array.from(arguments).map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
       
-      if (!problemText) {
-        alert('문제를 입력해주세요.');
-        return;
+      if (debugConsole) {
+        const logItem = document.createElement('div');
+        logItem.textContent = `[LOG] ${message}`;
+        debugConsole.appendChild(logItem);
+        debugConsole.scrollTop = debugConsole.scrollHeight;
       }
+    };
+    
+    console.error = function() {
+      originalConsoleError.apply(console, arguments);
+      const message = Array.from(arguments).map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
       
-      // 결과 섹션 숨기기
-      document.getElementById('result-section').style.display = 'none';
-      
-      // 진행 상태 초기화
-      updateProgressBar(10);
-      updateStatus('작업을 제출 중입니다...');
-      
-      try {
-        // 서버에 작업 제출
-        const response = await fetch('http://localhost:8000/generate-commands', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'user',
-                content: problemText
-              }
-            ]
-          }),
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          currentTaskId = data.task_id;
-          updateStatus(`작업이 제출되었습니다. 작업 ID: ${currentTaskId}`);
-          updateProgressBar(30);
-        } else {
-          updateStatus(`작업 제출 실패: ${data.detail || '알 수 없는 오류'}`);
-          updateProgressBar(0);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        updateStatus(`오류 발생: ${error.message}`);
-        updateProgressBar(0);
+      if (debugConsole) {
+        const logItem = document.createElement('div');
+        logItem.style.color = 'red';
+        logItem.textContent = `[ERROR] ${message}`;
+        debugConsole.appendChild(logItem);
+        debugConsole.scrollTop = debugConsole.scrollHeight;
       }
-    });
+    };
     
-    // UI 업데이트 함수
-    function updateProgressBar(percent) {
-      document.getElementById('progress-bar').style.width = `${percent}%`;
-    }
+    // 페이지 로드 시 로그
+    console.log('페이지가 로드되었습니다.');
     
-    function updateStatus(text) {
-      document.getElementById('status-text').textContent = text;
-    }
-    
-    // 결과 표시 함수
-    function displayResult(result) {
-      const resultSection = document.getElementById('result-section');
-      const commandsContainer = document.getElementById('commands-container');
-      const explanationElement = document.getElementById('explanation');
-      
-      // 명령어 표시
-      commandsContainer.innerHTML = '';
-      result.geogebra_commands.forEach(cmd => {
-        const cmdElement = document.createElement('div');
-        cmdElement.textContent = cmd;
-        cmdElement.className = 'command-item';
-        commandsContainer.appendChild(cmdElement);
+    // 서버 상태 체크
+    fetch('http://localhost:8000/health')
+      .then(response => response.json())
+      .then(data => {
+        console.log('서버 상태:', data);
+      })
+      .catch(error => {
+        console.error('서버 연결 오류:', error);
       });
       
-      // 설명 표시
-      explanationElement.textContent = result.explanation || '설명이 제공되지 않았습니다.';
+    // UI 초기화 - 페이지 로드 시 호출
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('UI 초기화 중...');
+      // 기존 이벤트 리스너가 있으면 제거
+      const submitButton = document.getElementById('submit-button');
+      if (submitButton) {
+        const clone = submitButton.cloneNode(true);
+        submitButton.parentNode.replaceChild(clone, submitButton);
+      }
       
-      // 결과 섹션 표시
-      resultSection.style.display = 'block';
-    }
+      // UI 초기화 함수 호출
+      window.appState = initializeUI();
+      console.log('UI 초기화 완료');
+    });
   </script>
+  
+  <!-- 솔루션 컨테이너 수정 -->
+  <div id="solution-container" class="container mt-5">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header" style="background-color: #0078ff; color: white;">
+            <h5 class="mb-0">문제 해결 과정</h5>
+          </div>
+          
+          <!-- 그래프 상태 표시 영역 추가 -->
+          <div id="graph-status" class="graph-status">
+            <span class="progress-indicator"></span>
+            <span class="status-text">대기 중...</span>
+          </div>
+          
+          <!-- 그래프 시각화가 여기에 삽입됨 -->
+          <!-- GraphVisualization 클래스에 의해 여기에 그래프가 생성됨 -->
+          
+          <div class="card-body">
+            <!-- 기존 내용 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html> 
